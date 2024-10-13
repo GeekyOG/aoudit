@@ -260,7 +260,7 @@ function AddProductModal({
                 name: "",
                 quantity: "",
                 purchasePrice: "",
-                salesPrice: "",
+                salesPrice: 0,
                 items: [{ sn: "" }],
               }}
               validationSchema={addProductValidation}
