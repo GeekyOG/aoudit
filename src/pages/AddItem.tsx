@@ -13,9 +13,9 @@ function AddItem() {
     getProducts("");
   }, []);
 
-  const filteredData = productsData?.filter(
-    (product) => product.product_name == productName
-  );
+  const filteredData = productsData?.filter((product) => {
+    return product.product_name == productName;
+  });
 
   return (
     <Container>
@@ -26,7 +26,7 @@ function AddItem() {
         <div className="flex flex-col gap-2"></div>
       </div>
       <div className="flex flex-col gap-[8px]">
-        {productsData?.map((item, index) => (
+        {filteredData?.map((item, index) => (
           <div className="flex w-[100%] mt-[24px]" key={index}>
             <div className="w-[50%] border-[1px] p-[24px]">
               <h1 className="text-[1.25rem] font-[600] text-neutral-500">
