@@ -1,4 +1,11 @@
-import { ErrorMessage, Field, FieldArray, Form, Formik } from "formik";
+import {
+  ErrorMessage,
+  Field,
+  FieldArray,
+  Form,
+  Formik,
+  FormikErrors,
+} from "formik";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import Button from "../../ui/Button";
@@ -20,26 +27,30 @@ import { useLazyGetSerialCodesQuery } from "../../api/serialCodesAPi";
 import { toast } from "react-toastify";
 import AddCustomer from "../customers/AddCustomer";
 import DataLoading from "../../ui/DataLoading";
+import SnSelectField from "../../components/input/SnSelectField";
 
-// Validation schema for form validation
-const validationSchema = Yup.object({
-  items: Yup.array()
-    .of(
-      Yup.object({
-        itemId: Yup.string().required("Item is required"),
-        id: Yup.string().required("Item is required"),
-        sn: Yup.string().required("SN is required"),
-        amount: Yup.number()
-          .required("Amount is required")
-          .min(1, "Amount cannot be 0"),
-        amountPaid: Yup.number()
-          .required("Amount Paid is required")
-          .min(1, "Amount cannot be 0"),
-      })
-    )
-    .min(1, "At least one item is required"),
-});
+// Define custom method to check if `sn` values are unique
+const uniqueSN = (value, context) => {
+  const serialNumbers = context.parent.map((item) => item.sn); // Extract `sn` values from the array
+  const uniqueSerialNumbers = new Set(serialNumbers); // Use Set to store unique values
+  return serialNumbers.length === uniqueSerialNumbers.size;
+};
 
+const validationSchema = Yup.array().of(
+  Yup.object({
+    itemId: Yup.string().required("Item is required"),
+    id: Yup.string().required("ID is required"),
+    sn: Yup.string()
+      .required("SN is required")
+      .test("unique-sn", "SN must be unique", uniqueSN), // Custom validation for uniqueness
+    amount: Yup.number()
+      .required("Amount is required")
+      .min(1, "Amount cannot be 0"),
+    amountPaid: Yup.number()
+      .required("Amount Paid is required")
+      .min(1, "Amount Paid cannot be 0"),
+  })
+);
 interface ViewInvoiceProps {
   setDialogOpen: Dispatch<SetStateAction<boolean>>;
   id: string;
@@ -60,6 +71,57 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
   const [selectedCustomer, setSelectedCustomer] = useState("Select an option");
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedCustomerError, setSelectedCustomerError] = useState(false);
+
+  const uniqueSN = (
+    data: {
+      id: string;
+      sn: string;
+      amount: number;
+      amountPaid: number;
+    }[],
+    setErrors: (
+      errors: FormikErrors<{
+        items: { id: string; sn: string; amount: number; amountPaid: number }[];
+      }>
+    ) => void
+  ) => {
+    const duplicates = data.filter((item, index, self) =>
+      self.some(
+        (otherItem, otherIndex) =>
+          otherIndex !== index &&
+          item.id === otherItem.id &&
+          item.sn === otherItem.sn
+      )
+    );
+
+    if (duplicates.length > 0) {
+      toast.error("Multiple items with duplicate SNs found");
+
+      const errors: FormikErrors<{
+        items: { id: string; sn: string; amount: number; amountPaid: number }[];
+      }> = { items: [] };
+
+      // Set errors for duplicate serial numbers
+      data.forEach((item, index) => {
+        const hasDuplicate = duplicates.some(
+          (duplicateItem) =>
+            duplicateItem.sn === item.sn && duplicateItem.id === item.id
+        );
+
+        if (hasDuplicate) {
+          if (!errors.items) errors.items = [];
+          errors.items[index] = {
+            sn: "Exists in multiple items",
+          };
+        }
+      });
+
+      setErrors(errors);
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSelectFieldValidation = () => {
     if (selectedCustomer === "Select an option") {
@@ -111,9 +173,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                 },
                 ...response,
               ]
-            : response.filter(
-                (serial) => !selectedSn.includes(serial.serial_number)
-              ) || [],
+            : response || [],
         }));
       } catch (error) {
         console.error("Error fetching serial codes: ", error);
@@ -152,7 +212,6 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
       amountPaid: item.amount_paid || 0,
     })) || [{ id: "", sn: "", amount: 0, amountPaid: 0 }],
   };
-  console.log(initialValues);
 
   useEffect(() => {
     data?.map((item, index) => {
@@ -206,37 +265,38 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
-            onSubmit={(values) => {
+            onSubmit={(values, { setErrors }) => {
               const valid = handleSelectFieldValidation();
-
-              updateOrder({
-                id: id,
-                status: values.status,
-                customerId: selectedCustomerId,
-                items: values.items.map((item) => ({
-                  id: item.itemId,
-                  productId: item.id,
-                  serial_number: item.sn,
-                  amount: item.amount,
-                  amount_paid: item.amountPaid,
-                })),
-                total_amount: values.items.reduce(
-                  (acc, item) => acc + item.amount,
-                  0
-                ),
-                total_paid: values.items.reduce(
-                  (acc, item) => acc + item.amountPaid,
-                  0
-                ),
-              })
-                .unwrap()
-                .then(() => {
-                  getOrder(id);
-                  toast.success("Successfully Updated");
+              const uniqueSn = uniqueSN(values.items, setErrors);
+              if (valid && uniqueSn)
+                updateOrder({
+                  id: id,
+                  status: values.status,
+                  customerId: selectedCustomerId,
+                  items: values.items.map((item) => ({
+                    id: item.itemId,
+                    productId: item.id,
+                    serial_number: item.sn,
+                    amount: item.amount,
+                    amount_paid: item.amountPaid,
+                  })),
+                  total_amount: values.items.reduce(
+                    (acc, item) => acc + item.amount,
+                    0
+                  ),
+                  total_paid: values.items.reduce(
+                    (acc, item) => acc + item.amountPaid,
+                    0
+                  ),
                 })
-                .catch((error) => {
-                  toast.error(error.data.message ?? "Something went wrong.");
-                });
+                  .unwrap()
+                  .then(() => {
+                    getOrder(id);
+                    toast.success("Successfully Updated");
+                  })
+                  .catch((error) => {
+                    toast.error(error.data.message ?? "Something went wrong.");
+                  });
             }}
           >
             {({ values, setFieldValue }) => (
@@ -355,7 +415,24 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                 >
                                   Serial Number
                                 </label>
-                                <Field
+                                <SnSelectField
+                                  serialCodesForProducts={
+                                    serialCodesForProducts
+                                  }
+                                  snIndex={index}
+                                  values={values}
+                                  setFieldValue={setFieldValue}
+                                  options={serialCodesForProducts[index]}
+                                  productsData={productsData}
+                                  setSelectedSerialNumbers={
+                                    setSelectedSerialNumbers
+                                  }
+                                  providedSN={{
+                                    serial_number: data[index]?.serial_number,
+                                    productId: data[index]?.productId,
+                                  }}
+                                />
+                                {/* <Field
                                   className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px]"
                                   as="select"
                                   name={`items[${index}].sn`}
@@ -381,7 +458,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                       </option>
                                     )
                                   )}
-                                </Field>
+                                </Field> */}
                                 <ErrorMessage
                                   name={`items[${index}].sn`}
                                   component="div"

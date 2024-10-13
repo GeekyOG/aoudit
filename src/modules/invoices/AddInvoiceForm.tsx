@@ -1,4 +1,11 @@
-import { ErrorMessage, Field, FieldArray, Form, Formik } from "formik";
+import {
+  ErrorMessage,
+  Field,
+  FieldArray,
+  Form,
+  Formik,
+  FormikErrors,
+} from "formik";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Button from "../../ui/Button";
 import { useLazyGetProductsQuery } from "../../api/productApi";
@@ -51,6 +58,57 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedCustomerError, setSelectedCustomerError] = useState(false);
 
+  const uniqueSN = (
+    data: {
+      id: string;
+      sn: string;
+      amount: number;
+      amountPaid: number;
+    }[],
+    setErrors: (
+      errors: FormikErrors<{
+        items: { id: string; sn: string; amount: number; amountPaid: number }[];
+      }>
+    ) => void
+  ) => {
+    const duplicates = data.filter((item, index, self) =>
+      self.some(
+        (otherItem, otherIndex) =>
+          otherIndex !== index &&
+          item.id === otherItem.id &&
+          item.sn === otherItem.sn
+      )
+    );
+
+    if (duplicates.length > 0) {
+      toast.error("Multiple items with duplicate SNs found");
+
+      const errors: FormikErrors<{
+        items: { id: string; sn: string; amount: number; amountPaid: number }[];
+      }> = { items: [] };
+
+      // Set errors for duplicate serial numbers
+      data.forEach((item, index) => {
+        const hasDuplicate = duplicates.some(
+          (duplicateItem) =>
+            duplicateItem.sn === item.sn && duplicateItem.id === item.id
+        );
+
+        if (hasDuplicate) {
+          if (!errors.items) errors.items = [];
+          errors.items[index] = {
+            sn: "Exists in multiple items",
+          };
+        }
+      });
+
+      setErrors(errors);
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSelectFieldValidation = () => {
     if (selectedCustomer === "Select an option") {
       setSelectedCustomerError(true);
@@ -88,10 +146,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
       setSerialCodesForProducts((prevState) => {
         return {
           ...prevState,
-          [index]:
-            response.filter(
-              (serial) => !selectedSn.includes(serial.serial_number)
-            ) || [],
+          [index]: response || [],
         };
       });
     }
@@ -144,35 +199,36 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
             items: [{ id: "", sn: "", amount: 0, amountPaid: 0 }],
           }}
           validationSchema={validationSchema}
-          onSubmit={(values) => {
+          onSubmit={(values, { setErrors }) => {
             const valid = handleSelectFieldValidation();
-
-            addOrder({
-              customerId: selectedCustomerId,
-              items: values.items.map((item) => ({
-                productId: item.id,
-                serial_number: item.sn,
-                amount: item.amount,
-                amount_paid: item.amountPaid,
-              })),
-              total_amount: values.items.reduce(
-                (acc, item) => acc + item.amount,
-                0
-              ),
-              total_paid: values.items.reduce(
-                (acc, item) => acc + item.amountPaid,
-                0
-              ),
-            })
-              .unwrap()
-              .then(() => {
-                toast.success("Sale added successfully");
-                setDialogOpen(false);
-                getOrders("");
+            const uniqueSn = uniqueSN(values.items, setErrors);
+            if (valid && uniqueSn)
+              addOrder({
+                customerId: selectedCustomerId,
+                items: values.items.map((item) => ({
+                  productId: item.id,
+                  serial_number: item.sn,
+                  amount: item.amount,
+                  amount_paid: item.amountPaid,
+                })),
+                total_amount: values.items.reduce(
+                  (acc, item) => acc + item.amount,
+                  0
+                ),
+                total_paid: values.items.reduce(
+                  (acc, item) => acc + item.amountPaid,
+                  0
+                ),
               })
-              .catch((error) => {
-                toast.error(error.data.message ?? "Something went wrong.");
-              });
+                .unwrap()
+                .then(() => {
+                  toast.success("Sale added successfully");
+                  setDialogOpen(false);
+                  getOrders("");
+                })
+                .catch((error) => {
+                  toast.error(error.data.message ?? "Something went wrong.");
+                });
           }}
         >
           {({ values, setFieldValue }) => (

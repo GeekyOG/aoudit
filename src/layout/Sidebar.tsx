@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
-
 import { useLocation } from "react-router-dom";
 import Cookies from "js-cookie";
-import { jwtDecode } from "jwt-decode";
 import { DecodedData } from "../types/DecodedDataType";
 import SidebarTab from "./SidebarTab";
 import {
@@ -41,7 +39,6 @@ const mainMenuOptions = [
     icon: <ReceiptText size={16} />,
     slug: "read_order",
   },
-
   {
     text: "Inventory",
     url: "/dashboard/inventory",
@@ -62,30 +59,47 @@ const mainMenuOptions = [
   },
 ];
 
-const storedPermissions = localStorage.getItem("permissions");
-const permissions = storedPermissions ? JSON.parse(storedPermissions) : null;
-const permittedOverviewNavs = mainMenuOptions.filter((item) =>
-  permissions?.some((permission) => permission.name === item.slug)
-);
-
 function Sidebar() {
+  const [permittedOverviewNavs, setPermittedOverviewNavs] = useState<
+    {
+      text: string;
+      url: string;
+      icon: React.JSX.Element;
+      slug: string;
+    }[]
+  >([]);
   const [user] = useState(Cookies.get("authToken"));
-
   const [decodedData, setDecodedData] = useState<DecodedData>();
 
   const location = useLocation();
   const { pathname } = location;
 
+  // Retrieve permissions from local storage
+  const storedPermissions = localStorage.getItem("permissions");
+  const permissions = storedPermissions ? JSON.parse(storedPermissions) : null;
+
+  // Filter permitted menu items based on user's permissions
+  useEffect(() => {
+    if (permissions) {
+      const navs = mainMenuOptions.filter((item) =>
+        permissions.some(
+          (permission: { name: string }) => permission.name === item.slug
+        )
+      );
+      setPermittedOverviewNavs(navs);
+    }
+  }, []); // Use permissions as a dependency
+
+  // Decode JWT token and set user data
   useEffect(() => {
     if (user) {
-      setDecodedData(jwtDecode(user));
     }
-  }, [decodedData?.roles, user]);
+  }, [user]); // User as dependency to avoid re-running on every render
 
   return (
-    <div className=" hidden h-[100vh] w-[250px]  flex-none border-r-[1px] lg:block overflow-scroll">
+    <div className="hidden h-[100vh] w-[250px] flex-none border-r-[1px] lg:block overflow-scroll">
       <div className="fixed bottom-0 top-0 w-[250px] bg-[#282830]">
-        <div className="border-b-[1px] px-[28px] pb-[20px] pt-[24px] ] "></div>
+        <div className="border-b-[1px] px-[28px] pb-[20px] pt-[24px]"></div>
 
         <div className="border-b-[1px] px-[20px] py-[17px]">
           <div className="flex h-[76px] w-[100%] items-center gap-[8px] rounded-[12px] px-[12px]">
@@ -101,7 +115,7 @@ function Sidebar() {
           <div className="px-[28px] py-[14px]">
             <p className="text-[0.625rem] font-[700]">MAIN MENU</p>
           </div>
-          {permittedOverviewNavs.map((item) => (
+          {permittedOverviewNavs?.map((item) => (
             <SidebarTab
               key={item.text}
               item={item.text}

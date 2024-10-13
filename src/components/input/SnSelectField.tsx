@@ -139,12 +139,16 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
       >
         <div
           className="flex justify-between w-[100%] px-4px]"
-          onClick={toggleShowOptions}
+          onClick={() => {
+            providedSN?.serial_number !== undefined
+              ? null
+              : toggleShowOptions();
+          }}
         >
           <p className={clsx("text-[0.75rem] font-[500]")}>
             {snValue?.serial_number ?? "Select SN"}
           </p>
-          <ChevronsUpDown />
+          <ChevronsUpDown size={16} />
         </div>
 
         {showOptions && options && (

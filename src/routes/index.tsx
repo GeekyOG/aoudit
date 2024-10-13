@@ -90,7 +90,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: `/dashboard/product/:productName`,
+        path: `/dashboard/product/:id`,
         element: <AddItem />,
       },
       {

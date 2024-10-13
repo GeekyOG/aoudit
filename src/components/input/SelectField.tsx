@@ -116,7 +116,7 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
           >
             {selected}
           </p>
-          <ChevronsUpDown />
+          <ChevronsUpDown size={16} />
         </div>
 
         {showOptions && options && (
