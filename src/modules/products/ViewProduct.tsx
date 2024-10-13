@@ -407,13 +407,7 @@ function ViewProduct({
                         setId={setSelectedSubCategoryId}
                         setSelected={setSelectedSubCategory}
                         isLoading={subCategoryLoading}
-                        options={
-                          (selectedCategoryId &&
-                            subCategoryData?.filter(
-                              (item) => item.categoryId == selectedCategoryId
-                            )) ||
-                          []
-                        }
+                        options={subCategoryData}
                       />
                       <div
                         className="flex cursor-pointer items-center text-[blue]"
