@@ -32,11 +32,10 @@ import { useLazyGetOrdersQuery } from "../../api/ordersApi";
 const productValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
   quantity: Yup.number()
-    .required("Quantity is required")
+
     .min(1, "Quantity must be at least 1"),
-  salesPrice: Yup.number()
-    // .required("Sales price is required")
-    .min(100, "Sales price must be at least 100"),
+  salesPrice: Yup.number(),
+  // .required("Sales price is required")
   purchasePrice: Yup.number()
     .required("Purchase price is required")
     .min(100, "Purchase price must be at least 100"),
@@ -45,7 +44,7 @@ const productValidation = Yup.object().shape({
     .of(
       Yup.object().shape({
         sn: Yup.string()
-          .required("SN is required")
+
           .min(5, "SN must be at least 5 characters"),
       })
     )
@@ -70,11 +69,9 @@ function ViewProduct({
   const [selectedVendorId, setSelectedVendorId] = useState("");
   const [selectedVendorError, setSelectedVendorError] = useState(false);
 
-  const [selectedSubCategory, setSelectedSubCategory] =
-    useState("Select an option");
-  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState("");
-  const [selectedSubCategoryError, setSelectedSubCategoryError] =
-    useState(false);
+  const [selectedSize, setSelectedSize] = useState("Select an option");
+  const [selectedSizeId, setSelectedSizeId] = useState("");
+  const [selectedSizeError, setSelectedSizeError] = useState(false);
 
   const handleAddField = () => {
     setInputFields([
@@ -83,10 +80,10 @@ function ViewProduct({
     ]);
   };
 
-  const [getCategories, { isFetching: categoryLoading, data: categoryData }] =
+  const [getCategories, { isLoading: categoryLoading, data: categoryData }] =
     useLazyGetCategoriesQuery();
 
-  const { isFetching: supplierLoading, data: supplierData } =
+  const { isLoading: supplierLoading, data: supplierData } =
     useGetSupplierQuery("");
 
   const [updateProduct, { isLoading: addProductLoading }] =
@@ -94,7 +91,7 @@ function ViewProduct({
 
   const [
     getSubCategories,
-    { isFetching: subCategoryLoading, data: subCategoryData },
+    { isLoading: subCategoryLoading, data: subCategoryData },
   ] = useLazyGetSubCategoriesQuery();
 
   const handleRemoveField = (index: number) => {
@@ -127,10 +124,10 @@ function ViewProduct({
     } else {
       setSelectedCategoryError(false);
     }
-    if (selectedSubCategory === "Select an option") {
-      setSelectedSubCategoryError(true);
+    if (selectedSize === "Select an option") {
+      setSelectedSizeError(true);
     } else {
-      setSelectedSubCategoryError(false);
+      setSelectedSizeError(false);
     }
     if (selectedVendor === "Select an option") {
       setSelectedVendorError(true);
@@ -158,10 +155,9 @@ function ViewProduct({
       );
 
       setInputFields(updatedInputFields);
-      setSelectedCategory(data.Category.name);
       setSelectedCategoryId(data.categoryId);
-      setSelectedSubCategory(data.Subcategory.name);
-      setSelectedSubCategoryId(data.subCategoryId);
+      setSelectedSize(data.size);
+      setSelectedSizeId(data.subCategoryId);
       setSelectedVendor(
         `${data?.Vendor?.first_name} ${data?.Vendor?.last_name}`
       );
@@ -264,9 +260,11 @@ function ViewProduct({
     salesPrice: data?.sales_price ?? "",
 
     items: data
-      ? JSON.parse(data?.serial_numbers)?.map((item: any, i) => ({
-          sn: item || "",
-        })) || [{ sn: "" }]
+      ? JSON.parse(data?.serial_numbers.length) != 0
+        ? JSON.parse(data?.serial_numbers)?.map((item: any, i) => ({
+            sn: item || "",
+          })) || [{ sn: "" }]
+        : [{ sn: "" }]
       : [{ sn: "" }],
   };
 
@@ -342,8 +340,7 @@ function ViewProduct({
                     quantity: parseInt(values.quantity),
                     purchase_amount: parseFloat(values.purchasePrice),
                     sales_price: parseFloat(values.salesPrice),
-                    subcategoryId: selectedSubCategoryId,
-                    categoryId: selectedCategoryId,
+                    size: selectedSize,
                     vendorId: selectedVendorId,
                     serial_numbers: values.items?.map((value) => value.sn),
                   },
@@ -375,37 +372,16 @@ function ViewProduct({
                         touched={touched.name}
                       />
                     </div>
-                    <div className=" w-[100%]">
-                      <SelectField
-                        searchPlaceholder="Enter category name"
-                        className="w-[100%]"
-                        title="Category"
-                        error={selectedCategoryError}
-                        selected={selectedCategory}
-                        setId={setSelectedCategoryId}
-                        setSelected={setSelectedCategory}
-                        isLoading={categoryLoading}
-                        options={categoryData || []}
-                      />
-                      <div
-                        className="flex  cursor-pointer items-center text-[blue]"
-                        onClick={() => setIsCategoryOpen(true)}
-                      >
-                        <p className="text-[0.75rem] font-[400]">
-                          Add Category
-                        </p>
-                        <IoIosAdd className="cursor-pointer text-[0.865rem]" />
-                      </div>
-                    </div>
+
                     <div className=" w-[100%]">
                       <SelectField
                         searchPlaceholder="Enter sub category name"
                         className="w-[100%]"
-                        title="Sub Category"
-                        error={selectedSubCategoryError}
-                        selected={selectedSubCategory}
-                        setId={setSelectedSubCategoryId}
-                        setSelected={setSelectedSubCategory}
+                        title="Size"
+                        error={selectedSizeError}
+                        selected={selectedSize}
+                        setId={setSelectedSizeId}
+                        setSelected={setSelectedSize}
                         isLoading={subCategoryLoading}
                         options={subCategoryData}
                       />
@@ -413,9 +389,7 @@ function ViewProduct({
                         className="flex cursor-pointer items-center text-[blue]"
                         onClick={() => setIsSubCategoryOpen(true)}
                       >
-                        <p className="text-[0.75rem] font-[400]">
-                          Add Sub Category
-                        </p>
+                        <p className="text-[0.75rem] font-[400]">Add Size</p>
                         <IoIosAdd className="text-[0.865rem] " />
                       </div>
                     </div>

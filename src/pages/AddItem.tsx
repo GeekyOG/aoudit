@@ -1,9 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Container from "../ui/Container";
 import { useLazyGetProductsQuery } from "../api/productApi";
 import { useParams } from "react-router-dom";
 import ProductDetails from "../ui/dashboard/ProductDetails";
 import { format } from "date-fns";
+import ViewProduct from "../modules/products/ViewProduct";
 
 function AddItem() {
   const [getProducts, { data: productsData }] = useLazyGetProductsQuery();
@@ -16,6 +17,11 @@ function AddItem() {
   const filteredData = productsData?.filter((product) => {
     return product.product_name == productName;
   });
+
+  const [productDialog, setProductDialog] = useState(false);
+  const [productId, setProductId] = useState("");
+
+  console.log(filteredData);
 
   return (
     <Container>
@@ -48,9 +54,21 @@ function AddItem() {
               </div>
             </div>
             <div className="w-[50%] border-[1px] p-[24px]">
-              <h1 className="text-[1.25rem] font-[600] text-neutral-500">
-                Product Details
-              </h1>
+              <div className="flex justify-between">
+                <h1 className="text-[1.25rem] font-[600] text-neutral-500">
+                  Product Details
+                </h1>
+                <button
+                  onClick={() => {
+                    setProductId(item.id);
+                    setProductDialog(true);
+                  }}
+                  className="bg-[#000] text-neutral p-[6px]"
+                >
+                  view details
+                </button>
+              </div>
+
               <div className="flex flex-col gap-2 mt-[10px]">
                 <ProductDetails
                   title={" Product name"}
@@ -73,6 +91,10 @@ function AddItem() {
           </div>
         ))}
       </div>
+
+      {productDialog && (
+        <ViewProduct id={productId} setShowAddProduct={setProductDialog} />
+      )}
     </Container>
   );
 }

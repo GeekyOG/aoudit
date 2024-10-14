@@ -18,7 +18,7 @@ function Invoices() {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
-  const [getOrders, { data: ordersData, isFetching, isError, isSuccess }] =
+  const [getOrders, { data: ordersData, isLoading, isError, isSuccess }] =
     useLazyGetOrdersQuery();
 
   // Fetch orders when the component mounts
@@ -142,7 +142,7 @@ function Invoices() {
         <DashboardTable
           columns={columns}
           data={fetchedData || []}
-          isFetching={isFetching}
+          isFetching={isLoading}
           action={() => getOrders("")}
           type={"orders"}
         />

@@ -33,8 +33,7 @@ function AddSubCategory({ open, setShowDrawer, id }: AddSubCategoryProps) {
     setShowDrawer(false);
   };
 
-  const { isFetching: categoryLoading, data: categoryData } =
-    useGetCategoriesQuery("");
+  const { data: categoryData } = useGetCategoriesQuery("");
 
   const [selectedCategory, setSelectedCategory] = useState("Select an option");
   const [selectedCategoryId, setSelectedCategoryId] = useState("");
@@ -83,7 +82,7 @@ function AddSubCategory({ open, setShowDrawer, id }: AddSubCategoryProps) {
             try {
               if (id) {
                 await updateCategory({
-                  categoryId: selectedCategoryId,
+                  // categoryId: selectedCategoryId,
                   name: values.name,
                   id,
                 })
@@ -96,7 +95,7 @@ function AddSubCategory({ open, setShowDrawer, id }: AddSubCategoryProps) {
                   });
               } else {
                 await addSubCategory({
-                  categoryId: selectedCategoryId,
+                  // categoryId: selectedCategoryId,
                   name: values.name,
                 })
                   .unwrap()
@@ -120,7 +119,7 @@ function AddSubCategory({ open, setShowDrawer, id }: AddSubCategoryProps) {
         >
           {({ errors, touched }) => (
             <Form className="flex flex-col gap-[15px]">
-              <SelectField
+              {/* <SelectField
                 error={false}
                 isLoading={categoryLoading}
                 selected={selectedCategory}
@@ -133,7 +132,7 @@ function AddSubCategory({ open, setShowDrawer, id }: AddSubCategoryProps) {
                   id: option.id,
                   name: option.name,
                 }))}
-              />
+              /> */}
               <Input
                 title="Sub Size"
                 name="name"

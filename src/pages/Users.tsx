@@ -10,7 +10,7 @@ import { columns } from "../modules/users/columns";
 function Users() {
   const [open, setOpen] = useState(false);
 
-  const [getAdminUsers, { data: adminUsers, isFetching, isError }] =
+  const [getAdminUsers, { data: adminUsers, isLoading, isError }] =
     useLazyGetAdminUserQuery();
 
   useEffect(() => {
@@ -48,7 +48,7 @@ function Users() {
         <DashboardTable
           columns={columns}
           data={adminUsers || []}
-          isFetching={isFetching}
+          isFetching={isLoading}
           action={() => getAdminUsers("")}
           type={"users"}
         />

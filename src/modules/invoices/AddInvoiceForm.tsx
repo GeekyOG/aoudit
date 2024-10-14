@@ -23,6 +23,8 @@ import { useLazyGetSerialCodesQuery } from "../../api/serialCodesAPi";
 import { toast } from "react-toastify";
 import AddCustomer from "../customers/AddCustomer";
 import SnSelectField from "../../components/input/SnSelectField";
+import SizeSelectField from "../../components/input/sizeSlelectField";
+import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
 
 // Validation schema for form validation
 const validationSchema = Yup.object({
@@ -30,13 +32,12 @@ const validationSchema = Yup.object({
     .of(
       Yup.object({
         name: Yup.string().optional(),
-        id: Yup.string().required("Item is required"),
-        sn: Yup.string().required("SN is required"),
-        amount: Yup.number()
-          .required("Amount is required")
-          .min(1, "Amount cannot be 0"),
+        id: Yup.string().required("required"),
+        sn: Yup.string().required("required"),
+        size: Yup.string().required(" required"),
+        amount: Yup.number().required("required").min(1, "Amount cannot be 0"),
         amountPaid: Yup.number()
-          .required("Amount Paid is required")
+          .required("required")
           .min(1, "Amount cannot be 0")
           .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
       })
@@ -49,8 +50,7 @@ interface AddInvoicesProps {
 }
 
 function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
-  const [getProduct, { isFetching: productsLoading, data: productsData }] =
-    useLazyGetProductsQuery();
+  const [getProduct, { data: productsData }] = useLazyGetProductsQuery();
   const [getOrders] = useLazyGetOrdersQuery();
   const [getSerialCodes] = useLazyGetSerialCodesQuery();
 
@@ -84,7 +84,13 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
       toast.error("Multiple items with duplicate SNs found");
 
       const errors: FormikErrors<{
-        items: { id: string; sn: string; amount: number; amountPaid: number }[];
+        items: {
+          id: string;
+          sn: string;
+          amount: number;
+          amountPaid: number;
+          size: string;
+        }[];
       }> = { items: [] };
 
       // Set errors for duplicate serial numbers
@@ -137,12 +143,13 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
     JSON.parse(product.serial_numbers).map((serial_number) => ({
       serial_number,
       productId: product.id,
+      productName: product.product_name,
     }))
   );
 
   const fetchSerialCodes = async (productId: string, index: number) => {
     if (productId) {
-      const response = result?.filter((item) => item.productId === productId);
+      const response = result?.filter((item) => item.productName === productId);
       setSerialCodesForProducts((prevState) => {
         return {
           ...prevState,
@@ -156,39 +163,12 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
     getProduct("");
   }, []);
 
-  const [selectedSn, setSelectedSerialNumbers] = useState<any>([]);
+  const [getSubCategories, { data: subCategoryData }] =
+    useLazyGetSubCategoriesQuery();
 
-  const handleSerialNumberChange = (
-    e: React.ChangeEvent<HTMLSelectElement>,
-    index: number,
-    setFieldValue: Function
-  ) => {
-    const newSerialNumber = e.target.value;
-    const selectedCode = serialCodesForProducts[index]?.find(
-      (item) => item.serial_number === e.target.value
-    );
-
-    // Add the new serial number to the selected list
-    if (selectedCode) {
-      setSelectedSerialNumbers((prevSelected) => [
-        ...prevSelected,
-        newSerialNumber,
-      ]);
-
-      // Set the product ID and serial number
-      setFieldValue(`items[${index}].id`, selectedCode.productId);
-      setFieldValue(`items[${index}].sn`, selectedCode.serial_number);
-
-      // Update the amount with the selected product's sales price
-      const selectedProduct = productsData.find(
-        (product) => product.id === selectedCode.productId
-      );
-      setFieldValue(
-        `items[${index}].amount`,
-        selectedProduct?.sales_price || 0
-      );
-    }
-  };
+  useEffect(() => {
+    getSubCategories("");
+  }, []);
 
   return (
     <div>
@@ -196,7 +176,9 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
         <Formik
           initialValues={{
             customerId: "",
-            items: [{ id: "", sn: "", amount: 0, amountPaid: 0 }],
+            items: [
+              { id: "", sn: "", amount: 0, amountPaid: 0, color: "", size: "" },
+            ],
           }}
           validationSchema={validationSchema}
           onSubmit={(values, { setErrors }) => {
@@ -210,6 +192,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
                   serial_number: item.sn,
                   amount: item.amount,
                   amount_paid: item.amountPaid,
+                  size: item.size,
                 })),
                 total_amount: values.items.reduce(
                   (acc, item) => acc + item.amount,
@@ -266,187 +249,200 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
 
                 <FieldArray name="items">
                   {({ remove, push }) => (
-                    <div className="flex flex-col gap-2 mt-[16px]">
+                    <div className="flex flex-col gap-4 mt-[16px]">
                       {values.items.length > 0 &&
                         values.items.map((item, index) => (
-                          <div key={index} className="flex items-end gap-2">
-                            {/* Product Name Field */}
-                            <div>
-                              <label
-                                htmlFor={`items[${index}].id`}
-                                className="text-[0.75rem]"
-                              >
-                                Product Name
-                              </label>
-                              <Field
-                                className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px] h-[46px]"
-                                as="select"
-                                name={`items[${index}].name`}
-                                onChange={(e) => {
-                                  const selectedProduct = productsData?.find(
-                                    (product) => product.id == e.target.value
-                                  );
-
-                                  // Set the selected product's ID and amount (pre-fill)
-                                  setFieldValue(
-                                    `items[${index}].id`,
-                                    selectedProduct?.id
-                                  );
-                                  setFieldValue(
-                                    `items[${index}].amount`,
-                                    selectedProduct?.sales_price || 0 // Pre-fill amount with product's sales_price
-                                  );
-
-                                  // Fetch serial numbers for the selected product
-                                  fetchSerialCodes(
-                                    selectedProduct?.id || "",
-                                    index
-                                  );
-
-                                  // Store the product name separately to display it even after ID changes
-                                  setFieldValue(
-                                    `items[${index}].product_name`,
-                                    selectedProduct?.product_name
-                                  );
-                                }}
-                              >
-                                <option value="">Select an option</option>
-                                {productsData
-                                  ?.filter(
-                                    (product, index, self) =>
-                                      index ===
-                                      self.findIndex(
-                                        (p) =>
-                                          p.product_name ===
-                                          product.product_name
-                                      )
-                                  )
-                                  .map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                      {option.product_name}
-                                    </option>
-                                  ))}
-                              </Field>
-
-                              <ErrorMessage
-                                name={`items[${index}].id`}
-                                component="div"
-                                className="text-[12px] font-[400] text-[#f00000]"
-                              />
-                            </div>
-
-                            {/* Serial Number Field */}
-                            <div className="w-[300px]">
-                              <label
-                                htmlFor={`items[${index}].sn`}
-                                className="text-[0.75rem] w-[300px]"
-                              >
-                                Serial Number
-                              </label>
-                              <SnSelectField
-                                serialCodesForProducts={serialCodesForProducts}
-                                snIndex={index}
-                                values={values}
-                                setFieldValue={setFieldValue}
-                                options={serialCodesForProducts[index]}
-                                productsData={productsData}
-                                setSelectedSerialNumbers={
-                                  setSelectedSerialNumbers
-                                }
-                              />
-                              {/* <Field
-                                className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px]"
-                                as="select"
-                                name={`items[${index}].sn`}
-                                onChange={(e) => {
-                                  handleSerialNumberChange(
-                                    e,
-                                    index,
-                                    setFieldValue
-                                  );
-                                }}
-                              >
-                                <option value="">Select an option</option>
-                                {serialCodesForProducts[index]?.map(
-                                  (option, i) => (
-                                    <option
-                                      key={i}
-                                      value={option.serial_number}
-                                    >
-                                      {option.serial_number}
-                                    </option>
-                                  )
-                                )}
-                              </Field> */}
-                              <ErrorMessage
-                                name={`items[${index}].sn`}
-                                component="div"
-                                className="text-[12px] font-[400] text-[#f00000]"
-                              />
-                            </div>
-
-                            {/* Amount Field */}
+                          <div className="border-b-[1px] pb-[20px] flex flex-col gap-2">
                             <div className="flex flex-col">
-                              <label
-                                htmlFor={`items[${index}].amount`}
-                                className="text-[0.75rem]"
+                              <div
+                                key={index}
+                                className="flex items-start gap-2"
                               >
-                                Amount
-                              </label>
-                              <Field
-                                className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                                name={`items[${index}].amount`}
-                                type="number"
-                                step="0.01"
-                                value={values.items[index].amount}
-                              />
-                              <ErrorMessage
-                                name={`items[${index}].amount`}
-                                component="div"
-                                className="text-[12px] font-[400] text-[#f00000]"
-                              />
-                            </div>
+                                {/* Product Name Field */}
+                                <div>
+                                  <label
+                                    htmlFor={`items[${index}].id`}
+                                    className="text-[0.75rem]"
+                                  >
+                                    Product Name
+                                  </label>
+                                  <Field
+                                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px] h-[46px]"
+                                    as="select"
+                                    name={`items[${index}].name`}
+                                    onChange={(e) => {
+                                      const selectedProduct =
+                                        productsData?.find(
+                                          (product) =>
+                                            product.id == e.target.value
+                                        );
 
-                            {/* Amount Paid Field */}
-                            <div>
-                              <label
-                                htmlFor={`items[${index}].amountPaid`}
-                                className="text-[0.75rem]"
-                              >
-                                Amount Paid
-                              </label>
-                              <Field
-                                className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                                name={`items[${index}].amountPaid`}
-                                type="number"
-                                step="1"
-                              />
-                              <ErrorMessage
-                                name={`items[${index}].amountPaid`}
-                                component="div"
-                                className="text-[12px] font-[400] text-[#f00000]"
-                              />
-                            </div>
+                                      // Set the selected product's ID and amount (pre-fill)
+                                      setFieldValue(
+                                        `items[${index}].id`,
+                                        selectedProduct?.id
+                                      );
+                                      setFieldValue(
+                                        `items[${index}].amount`,
+                                        selectedProduct?.sales_price || 0 // Pre-fill amount with product's sales_price
+                                      );
 
-                            {/* Remove Button */}
-                            <img
-                              onClick={() => {
-                                if (values.items.length !== 1) {
-                                  setSelectedSerialNumbers((prevSelected) =>
-                                    prevSelected.filter(
-                                      (serialNumber) =>
-                                        serialNumber !== values.items[index].sn
-                                    )
-                                  );
-                                  remove(index);
-                                }
-                              }}
-                              src="/delete-inv.svg"
-                              alt=""
-                              width={18}
-                              height={18}
-                              className="cursor-pointer mb-3"
-                            />
+                                      // Fetch serial numbers for the selected product
+                                      fetchSerialCodes(
+                                        selectedProduct?.product_name || "",
+                                        index
+                                      );
+
+                                      // Store the product name separately to display it even after ID changes
+                                      setFieldValue(
+                                        `items[${index}].product_name`,
+                                        selectedProduct?.product_name
+                                      );
+                                    }}
+                                  >
+                                    <option value="">Select an option</option>
+                                    {productsData
+                                      ?.filter(
+                                        (product, index, self) =>
+                                          index ===
+                                          self.findIndex(
+                                            (p) =>
+                                              p.product_name ===
+                                              product.product_name
+                                          )
+                                      )
+                                      .map((option) => (
+                                        <option
+                                          key={option.id}
+                                          value={option.id}
+                                        >
+                                          {option.product_name}
+                                        </option>
+                                      ))}
+                                  </Field>
+
+                                  <ErrorMessage
+                                    name={`items[${index}].id`}
+                                    component="div"
+                                    className="text-[12px] font-[400] text-[#f00000]"
+                                  />
+                                </div>
+
+                                {/* Serial Number Field */}
+                                <div className="w-[300px]">
+                                  <label
+                                    htmlFor={`items[${index}].sn`}
+                                    className="text-[0.75rem] w-[300px]"
+                                  >
+                                    Serial Number
+                                  </label>
+                                  <SnSelectField
+                                    serialCodesForProducts={
+                                      serialCodesForProducts
+                                    }
+                                    snIndex={index}
+                                    values={values}
+                                    setFieldValue={setFieldValue}
+                                    options={serialCodesForProducts[index]}
+                                    productsData={productsData}
+                                    searchPlaceholder="Select Sn"
+                                  />
+
+                                  <ErrorMessage
+                                    name={`items[${index}].sn`}
+                                    component="div"
+                                    className="text-[12px] font-[400] text-[#f00000]"
+                                  />
+                                </div>
+
+                                {/* Amount Field */}
+                                <div className="flex flex-col mt-2">
+                                  <label
+                                    htmlFor={`items[${index}].amount`}
+                                    className="text-[0.75rem]"
+                                  >
+                                    Amount
+                                  </label>
+                                  <Field
+                                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                                    name={`items[${index}].amount`}
+                                    type="number"
+                                    step="0.01"
+                                    value={values.items[index].amount}
+                                  />
+                                  <ErrorMessage
+                                    name={`items[${index}].amount`}
+                                    component="div"
+                                    className="text-[12px] font-[400] text-[#f00000]"
+                                  />
+                                </div>
+
+                                {/* Remove Button */}
+                                <img
+                                  onClick={() => {
+                                    if (values.items.length !== 1) {
+                                      remove(index);
+                                    }
+                                  }}
+                                  src="/delete-inv.svg"
+                                  alt=""
+                                  width={18}
+                                  height={18}
+                                  className="cursor-pointer mt-6"
+                                />
+                              </div>
+                            </div>
+                            <div className="flex flex-col ">
+                              <div className="flex items-start gap-2 ">
+                                {/* Amount Paid Field */}
+                                <div>
+                                  <label
+                                    htmlFor={`items[${index}].amountPaid`}
+                                    className="text-[0.75rem]"
+                                  >
+                                    Amount Paid
+                                  </label>
+                                  <Field
+                                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 w-[190px]"
+                                    name={`items[${index}].amountPaid`}
+                                    type="number"
+                                    step="1"
+                                  />
+                                  <ErrorMessage
+                                    name={`items[${index}].amountPaid`}
+                                    component="div"
+                                    className="text-[12px] font-[400] text-[#f00000]"
+                                  />
+                                </div>
+
+                                {/* Serial Number Field */}
+                                <div className="w-[300px]">
+                                  <label
+                                    htmlFor={`items[${index}].size`}
+                                    className="text-[0.75rem] w-[300px]"
+                                  >
+                                    Size
+                                  </label>
+                                  <SizeSelectField
+                                    serialCodesForProducts={
+                                      serialCodesForProducts
+                                    }
+                                    snIndex={index}
+                                    values={values}
+                                    setFieldValue={setFieldValue}
+                                    options={subCategoryData}
+                                    searchPlaceholder="Select Sze"
+                                    productsData={productsData}
+                                  />
+
+                                  <ErrorMessage
+                                    name={`items[${index}].size`}
+                                    component="div"
+                                    className="text-[12px] font-[400] text-[#f00000]"
+                                  />
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         ))}
 
@@ -461,6 +457,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
                             amount: 0,
                             amountPaid: 0,
                             product_name: "",
+                            size: "",
                           })
                         }
                       >

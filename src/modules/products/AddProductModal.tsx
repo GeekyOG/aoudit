@@ -27,14 +27,15 @@ import * as Yup from "yup";
 import { cn } from "../../utils/cn";
 import { useLazyGetOrdersQuery } from "../../api/ordersApi";
 import DataLoading from "../../ui/DataLoading";
+import SelectColorsField from "../../components/input/SelectColors";
 const addProductValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
   quantity: Yup.number()
     .required("Quantity is required")
     .min(1, "Quantity must be at least 1"),
-  salesPrice: Yup.number()
-    // .required("Sales price is required")
-    .min(100, "Sales price must be at least 100"),
+  salesPrice: Yup.number(),
+  // .required("Sales price is required")
+  // .min(100, "Sales price must be at least 100"),
   purchasePrice: Yup.number()
     .required("Purchase price is required")
     .min(100, "Purchase price must be at least 100"),
@@ -67,21 +68,19 @@ function AddProductModal({
   const [selectedVendorId, setSelectedVendorId] = useState("");
   const [selectedVendorError, setSelectedVendorError] = useState(false);
 
-  const [selectedSubCategory, setSelectedSubCategory] =
-    useState("Select an option");
-  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState("");
-  const [selectedSubCategoryError, setSelectedSubCategoryError] =
-    useState(false);
+  const [selectedSize, setSelectedSize] = useState("Select an option");
+  const [selectedSizeId, setSelectedSizeId] = useState("");
+  const [selectedSizeError, setSelectedSizeError] = useState(false);
 
   const [getProducts] = useLazyGetProductsQuery();
 
   useEffect(() => {
     getProducts("");
   }, []);
-  const [getCategories, { isFetching: categoryLoading, data: categoryData }] =
+  const [getCategories, { isLoading: categoryLoading, data: categoryData }] =
     useLazyGetCategoriesQuery();
 
-  const [getSupplier, { isFetching: supplierLoading, data: supplierData }] =
+  const [getSupplier, { isLoading: supplierLoading, data: supplierData }] =
     useLazyGetSupplierQuery();
 
   useEffect(() => {
@@ -93,7 +92,7 @@ function AddProductModal({
 
   const [
     getSubCategories,
-    { isFetching: subCategoryLoading, data: subCategoryData },
+    { isLoading: subCategoryLoading, data: subCategoryData },
   ] = useLazyGetSubCategoriesQuery();
 
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
@@ -114,10 +113,10 @@ function AddProductModal({
     } else {
       setSelectedCategoryError(false);
     }
-    if (selectedSubCategory === "Select an option") {
-      setSelectedSubCategoryError(true);
+    if (selectedSize === "Select an option") {
+      setSelectedSizeError(true);
     } else {
-      setSelectedSubCategoryError(false);
+      setSelectedSizeError(false);
     }
     if (selectedVendor === "Select an option") {
       setSelectedVendorError(true);
@@ -285,7 +284,7 @@ function AddProductModal({
                 );
                 if (
                   !selectedCategoryError ||
-                  !selectedSubCategoryError ||
+                  !selectedSizeError ||
                   !selectedVendorError
                 ) {
                   if (
@@ -294,12 +293,11 @@ function AddProductModal({
                   ) {
                     addProduct({
                       product_name: searchValue,
-                      price: parseFloat(values.salesPrice),
+                      price: values.salesPrice,
                       quantity: parseInt(values.quantity),
                       purchase_amount: parseFloat(values.purchasePrice),
-                      sales_price: parseFloat(values.salesPrice),
-                      subcategoryId: selectedSubCategoryId,
-                      categoryId: selectedCategoryId,
+                      sales_price: values.salesPrice,
+                      size: selectedSize,
                       vendorId: selectedVendorId,
                       serial_numbers: values.items?.map((value) => value.sn),
                     })
@@ -321,7 +319,7 @@ function AddProductModal({
               {({ touched, errors, values, setFieldValue }) => (
                 <Form>
                   <div className="mt-[50px] flex w-[100%] flex-col gap-3 lg:flex-row">
-                    <div className="w-[100%] relative">
+                    <div className="w-[100%] relative flex flex-col mt-2">
                       <label
                         htmlFor={`name`}
                         className={cn(
@@ -350,72 +348,42 @@ function AddProductModal({
                         component="div"
                         className="text-[12px] font-[400] text-[#f00000]"
                       />
-                      {/* <Input
-                      title="Product Name"
-                      errors={errors.name}
-                      touched={touched.name}
-                      name="name"
-                      placeholder="Enter Item Name"
-                      width="max-h-[40px] w-[100%]"
-                    /> */}
 
-                      {filteredOptions && showSuggestion && (
-                        <div
-                          className="bg-[#fff] shadow-lg p-[14px] absolute w-[100%] z-[10]"
-                          ref={optionsRef}
-                        >
-                          {filteredOptions?.map((value, index) => (
-                            <div
-                              className="border-b-[1px] py-[8px] cursor-pointer"
-                              key={index}
-                              onClick={() => {
-                                setSearchValue(value.productName);
-                                setShowSuggestion(false);
-                              }}
-                            >
-                              <p>{value.productName}</p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      {filteredOptions &&
+                        filteredOptions.length > 0 &&
+                        showSuggestion && (
+                          <div
+                            className="bg-[#fff]  top-[60px] shadow-lg p-[14px] absolute w-[100%] z-[10]"
+                            ref={optionsRef}
+                          >
+                            {filteredOptions?.map((value, index) => (
+                              <div
+                                className="border-b-[1px] py-[8px] cursor-pointer"
+                                key={index}
+                                onClick={() => {
+                                  setSearchValue(value.productName);
+                                  setShowSuggestion(false);
+                                  setFieldValue("name", searchValue);
+                                }}
+                              >
+                                <p>{value.productName}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                     </div>
-                    <div className=" w-[100%]">
-                      <SelectField
-                        searchPlaceholder="Enter Color"
-                        className="w-[100%]"
-                        title="Color"
-                        error={selectedCategoryError}
-                        selected={selectedCategory}
-                        setId={setSelectedCategoryId}
-                        setSelected={setSelectedCategory}
-                        isLoading={categoryLoading}
-                        options={categoryData || []}
-                      />
-                      <div
-                        className="flex  cursor-pointer items-center text-[blue]"
-                        onClick={() => setIsCategoryOpen(true)}
-                      >
-                        <p className="text-[0.75rem] font-[400]">Add Color</p>
-                        <IoIosAdd className="cursor-pointer text-[0.865rem]" />
-                      </div>
-                    </div>
+
                     <div className=" w-[100%]">
                       <SelectField
                         searchPlaceholder="Enter sub category name"
                         className="w-[100%]"
                         title="Size"
-                        error={selectedSubCategoryError}
-                        selected={selectedSubCategory}
-                        setId={setSelectedSubCategoryId}
-                        setSelected={setSelectedSubCategory}
+                        error={selectedSizeError}
+                        selected={selectedSize}
+                        setId={setSelectedSizeId}
+                        setSelected={setSelectedSize}
                         isLoading={subCategoryLoading}
-                        options={
-                          (selectedCategoryId &&
-                            subCategoryData?.filter(
-                              (item) => item.categoryId == selectedCategoryId
-                            )) ||
-                          []
-                        }
+                        options={subCategoryData || []}
                       />
                       <div
                         className="flex cursor-pointer items-center text-[blue]"

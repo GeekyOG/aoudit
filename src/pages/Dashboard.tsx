@@ -14,7 +14,11 @@ import SearchModal from "../components/dashboard/SearchModal";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const { data: ordersData, isFetching, isError } = useGetOrdersQuery("");
+  const {
+    data: ordersData,
+    isLoading: ordersLoading,
+    isError,
+  } = useGetOrdersQuery("");
   const [showAddProduct, setShowAddProduct] = useState(false);
 
   const [open, setOpen] = useState(false);
@@ -42,6 +46,11 @@ function Dashboard() {
           value={data?.totalProducts ?? 0}
           action={() => setShowAddProduct(!showAddProduct)}
         />
+        <DashboardBox
+          title="Total Items Returned"
+          value={data?.totalReturnedResult ?? 0}
+          action={() => setOpen(!open)}
+        />
       </div>
 
       <div className="mt-[26px]">
@@ -62,7 +71,7 @@ function Dashboard() {
         <DashboardTable
           columns={columns}
           data={ordersData || []}
-          isFetching={isFetching}
+          isFetching={ordersLoading}
           action={undefined}
           type={"orders"}
         />

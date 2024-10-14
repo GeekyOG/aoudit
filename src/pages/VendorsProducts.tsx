@@ -20,7 +20,7 @@ function VendorsProducts() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const { id } = useParams<{ id: string }>();
 
-  const [getProduct, { isFetching: productsLoading, data: productsData }] =
+  const [getProduct, { isLoading: productsLoading, data: productsData }] =
     useLazyGetAllProductsByVendorIdQuery();
 
   useEffect(() => {
@@ -36,29 +36,6 @@ function VendorsProducts() {
   const handleGetProducts = () => {
     getProduct("");
   };
-
-  //   const result = productsData?.reduce((acc, product) => {
-  //     const serialNumbers = JSON.parse(product.serial_numbers).length;
-
-  //     if (!acc[product.product_name]) {
-  //       acc[product.product_name] = {
-  //         product_name: product.product_name,
-  //         total_serial_numbers: serialNumbers,
-  //         category: product.Category.name,
-  //         subcategory: product.Subcategory?.name,
-  //         createdAt: product.createdAt,
-  //       };
-  //     } else {
-  //       acc[product.product_name].total_serial_numbers += serialNumbers;
-  //     }
-
-  //     return acc;
-  //   }, {});
-
-  // Convert the result object back to an array
-
-  //   const uniqueProducts = Object.values(result ?? []);
-
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 

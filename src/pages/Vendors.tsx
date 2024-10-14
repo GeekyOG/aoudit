@@ -10,7 +10,7 @@ import { useLazyGetSupplierQuery } from "../api/vendorApi";
 function Vendors() {
   const [open, setOpen] = useState(false);
 
-  const [getSupplier, { data, isFetching }] = useLazyGetSupplierQuery();
+  const [getSupplier, { data, isLoading }] = useLazyGetSupplierQuery();
 
   useEffect(() => {
     getSupplier("");
@@ -51,7 +51,7 @@ function Vendors() {
         <DashboardTable
           columns={columns}
           data={data || []}
-          isFetching={isFetching}
+          isFetching={isLoading}
           action={handleGetVendors}
           callBackAction={handleGetVendors}
           type={"vendors"}

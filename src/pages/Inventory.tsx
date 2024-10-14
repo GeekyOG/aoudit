@@ -23,10 +23,10 @@ function Inventory() {
 
   const [
     getSubCategories,
-    { isFetching: subCategoryLoading, data: subCategoryData },
+    { isLoading: subCategoryLoading, data: subCategoryData },
   ] = useLazyGetSubCategoriesQuery();
 
-  const [getCategories, { isFetching: categoryLoading, data: categoryData }] =
+  const [getCategories, { isLoading: categoryLoading, data: categoryData }] =
     useLazyGetCategoriesQuery();
 
   useEffect(() => {
@@ -37,7 +37,7 @@ function Inventory() {
     getSubCategories("");
   }, [getSubCategories]);
 
-  const [getProduct, { isFetching: productsLoading, data: productsData }] =
+  const [getProduct, { isLoading: productsLoading, data: productsData }] =
     useLazyGetProductsQuery();
 
   useEffect(() => {
@@ -69,8 +69,7 @@ function Inventory() {
       acc[product.product_name] = {
         product_name: product.product_name,
         total_serial_numbers: serialNumbers,
-        category: product.Category.name,
-        subcategory: product.Subcategory?.name,
+        size: product.size,
         createdAt: product.createdAt,
       };
     } else {

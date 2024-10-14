@@ -9,7 +9,7 @@ import React, {
   useState,
 } from "react";
 
-interface SelectFieldProps {
+interface SizeSelectFieldProps {
   hideSearch?: boolean;
 
   serialCodesForProducts: {
@@ -32,11 +32,11 @@ interface SelectFieldProps {
   width?: string;
   options: any[];
   productsData: any;
-  providedSN?: { serial_number: string; productId: string };
+  providedSN?: string;
   // setSelectedSerialNumbers: (value: any) => void;
 }
 
-const SelectField: FunctionComponent<SelectFieldProps> = ({
+const SizeSelectField: FunctionComponent<SizeSelectFieldProps> = ({
   className,
   width,
   serialCodesForProducts,
@@ -52,40 +52,16 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
   // setSelectedSerialNumbers,
 }) => {
   const [showOptions, setShowOptions] = useState(false);
-  const [snValue, setSnValue] = useState<{
-    serial_number: string;
-    productId: string;
-  }>();
+  const [snValue, setSnValue] = useState<string>();
 
   const handleSerialNumberChange = (
     value: string,
     index: number,
     setFieldValue: Function
   ) => {
-    const newSerialNumber = value;
-    const selectedCode = serialCodesForProducts[index]?.find(
-      (item) => item.serial_number === value
-    );
+    setFieldValue(`items[${index}].size`, value);
 
-    // Add the new serial number to the selected list
-    if (selectedCode) {
-      // setSelectedSerialNumbers((prevSelected) => [...values.items]);
-
-      // Set the product ID and serial number
-      setFieldValue(`items[${index}].id`, selectedCode.productId);
-      setFieldValue(`items[${index}].sn`, selectedCode.serial_number);
-
-      // Update the amount with the selected product's sales price
-      const selectedProduct = productsData.find(
-        (product) => product.id === selectedCode.productId
-      );
-      setFieldValue(
-        `items[${index}].amount`,
-        selectedProduct?.sales_price || 0
-      );
-    }
-
-    setSnValue(selectedCode);
+    setSnValue(value);
     toggleShowOptions();
   };
 
@@ -114,9 +90,7 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    if (providedSN) {
-      setSnValue(providedSN);
-    }
+    setSnValue(providedSN);
   }, [providedSN]);
 
   const handleInputChange = (e: { target: { value: string } }) => {
@@ -126,7 +100,7 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
 
   const filteredOptions = useMemo(() => {
     return options?.filter((item) =>
-      item.serial_number.toLowerCase().includes(searchTerm.toLowerCase())
+      item.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm]);
 
@@ -141,15 +115,11 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
         <div
           className="flex justify-between w-[100%] px-4px]"
           onClick={() => {
-            providedSN?.serial_number !== undefined
-              ? null
-              : toggleShowOptions();
-
-            providedSN?.serial_number !== "" ? null : toggleShowOptions();
+            toggleShowOptions();
           }}
         >
           <p className={clsx("text-[0.75rem] font-[500]")}>
-            {snValue?.serial_number ?? searchPlaceholder}
+            {snValue !== "" ? snValue : searchPlaceholder}
           </p>
           <ChevronsUpDown size={16} />
         </div>
@@ -172,15 +142,13 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
                     key={index}
                     onClick={() =>
                       handleSerialNumberChange(
-                        option.serial_number,
+                        option.name,
                         snIndex,
                         setFieldValue
                       )
                     }
                   >
-                    <p className="text-[0.75rem] font-[500]">
-                      {option?.serial_number}
-                    </p>
+                    <p className="text-[0.75rem] font-[500]">{option?.name}</p>
                   </div>
                 ))
               : options?.map((option, index) => (
@@ -189,15 +157,13 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
                     className="py-[8px] border-b-[1px] px-[8px] hover:bg-[#e3e3e3]"
                     onClick={() =>
                       handleSerialNumberChange(
-                        option.serial_number,
+                        option.name,
                         snIndex,
                         setFieldValue
                       )
                     }
                   >
-                    <p className="text-[0.75rem] font-[500] ">
-                      {option?.serial_number}
-                    </p>
+                    <p className="text-[0.75rem] font-[500] ">{option?.name}</p>
                   </div>
                 ))}
           </div>
@@ -207,4 +173,4 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
   );
 };
 
-export default SelectField;
+export default SizeSelectField;

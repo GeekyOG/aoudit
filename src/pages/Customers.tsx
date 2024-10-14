@@ -9,7 +9,7 @@ import { useLazyGetCustomersQuery } from "../api/customerApi";
 
 function Customers() {
   const [open, setOpen] = useState(false);
-  const [getCustomers, { data: customersData, isFetching, isError }] =
+  const [getCustomers, { data: customersData, isLoading, isError }] =
     useLazyGetCustomersQuery();
 
   const showDrawer = () => {
@@ -52,7 +52,7 @@ function Customers() {
         <DashboardTable
           columns={columns}
           data={customersData || []}
-          isFetching={isFetching}
+          isFetching={isLoading}
           action={undefined}
           type={"customers"}
           callBackAction={() => handleGetCustomers()}

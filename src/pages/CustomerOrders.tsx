@@ -25,7 +25,7 @@ function CustomersOrders() {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const { id } = useParams<{ id: string }>();
 
-  const [getOrder, { data: ordersData, isFetching, isError, isSuccess }] =
+  const [getOrder, { data: ordersData, isLoading, isError, isSuccess }] =
     useLazyGetAllCustomerOrdersQuery();
 
   const [getOrders] = useLazyGetOrdersQuery();
@@ -214,7 +214,7 @@ function CustomersOrders() {
             <DashboardTable
               columns={columns}
               data={fetchedData || []}
-              isFetching={isFetching}
+              isFetching={isLoading}
               action={() => getOrders("")}
               type={"orders"}
             />

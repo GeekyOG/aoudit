@@ -9,20 +9,13 @@ export const columns: ColumnsType = [
     dataIndex: "product_name",
     key: "product_name",
   },
+
   {
-    title: "Colors",
-    dataIndex: "category",
-    key: "category",
+    title: "Size",
+    dataIndex: "size",
+    key: "size",
     render: (_, row) => {
-      return <p>{row.category}</p>;
-    },
-  },
-  {
-    title: "Sizes",
-    dataIndex: "subcategory",
-    key: "subcategory",
-    render: (_, row) => {
-      return <p>{row.subcategory}</p>;
+      return <p>{row.size}</p>;
     },
   },
   // {
