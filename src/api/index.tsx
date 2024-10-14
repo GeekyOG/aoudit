@@ -8,7 +8,7 @@ import Cookies from "js-cookie";
 import { logout } from "../utils/logout";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:5000/api/",
+  baseUrl: "https://management-system-backend-72qg.onrender.com/api/",
   prepareHeaders: (headers) => {
     // Retrieve the token from cookies
     const token = Cookies.get("authToken");
