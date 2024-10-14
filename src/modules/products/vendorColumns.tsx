@@ -10,21 +10,14 @@ export const columns: ColumnsType = [
     key: "product_name",
   },
   {
-    title: "Category",
-    dataIndex: "category",
-    key: "category",
+    title: "Size",
+    dataIndex: "size",
+    key: "size",
     render: (_, row) => {
-      return <p>{row.Category.name}</p>;
+      return <p>{row.size}</p>;
     },
   },
-  {
-    title: "Sub Category",
-    dataIndex: "subcategory",
-    key: "subcategory",
-    render: (_, row) => {
-      return <p>{row.Subcategory.name}</p>;
-    },
-  },
+
   {
     title: "Purchased Amount",
     dataIndex: "purchase_amount",
