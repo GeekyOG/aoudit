@@ -83,7 +83,7 @@ const TableActionButtons: FunctionComponent<ITableActionButtonsProps> = ({
       {(showActions || isRowHovered) && (
         <div
           className={clsx(
-            "absolute bg-[#fff] w-[full] h-[40px] right-4 -top-[3px]  flex border-[1px] justify-evenly items-center rounded-[4px] overflow-hidden"
+            "absolute bg-[#fff] w-[full] h-[40px] left-0 -top-[3px]  flex border-[1px] justify-evenly items-center rounded-[4px] overflow-hidden"
           )}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
