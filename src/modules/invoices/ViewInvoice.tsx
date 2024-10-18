@@ -408,7 +408,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                         Product Name
                                       </label>
                                       <Field
-                                        className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px]"
+                                        className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px] h-[46px]"
                                         as="select"
                                         name={`items[${index}].id`}
                                         value={values.items[index].id}

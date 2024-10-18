@@ -22,6 +22,7 @@ import SnSelectField from "../../components/input/SnSelectField";
 import SizeSelectField from "../../components/input/sizeSlelectField";
 import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
 import { useLazyGetMetricsQuery } from "../../api/metrics";
+import { Switch } from "antd";
 
 // Validation schema for form validation
 const validationSchema = Yup.object({
@@ -177,6 +178,12 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
     return `${year}-${month}-${day}`;
   };
 
+  const [checked, setChecked] = useState(false);
+
+  const handleToggleModal = () => {
+    setChecked(!checked);
+  };
+
   return (
     <div>
       <div>
@@ -203,6 +210,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
 
             if (valid && uniqueSn)
               addOrder({
+                check: checked,
                 customerId: selectedCustomerId,
                 invoiceNumber: values.inv,
                 date: values.date,
@@ -260,6 +268,17 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
                 >
                   Add Customer
                 </p>
+              </div>
+
+              <div>
+                <label className="text-[0.75rem] mr-2">Borrowed</label>
+
+                <Switch
+                  className="w-[50px]"
+                  defaultChecked
+                  checked={checked}
+                  onChange={handleToggleModal}
+                />
               </div>
 
               {/* Amount Field */}

@@ -19,6 +19,7 @@ import {
   useLazyGetProfitsYearQuery,
 } from "../api/metrics";
 import { formatAmount } from "../utils/format";
+import { Link } from "react-router-dom";
 
 function Transactions() {
   const onChange: DatePickerProps["onChange"] = (date, dateString) => {};
@@ -69,25 +70,41 @@ function Transactions() {
       </Container>
 
       <Container className="flex flex-col gap-[24px] pb-[40px] md:flex-row">
-        <DashboardBox
-          title="Total Profit Today"
-          value={`${formatAmount(todayData?.totalProfit) ?? 0}`}
-        />
-        <DashboardBox
-          title="Total Profit This Week"
-          value={`${formatAmount(weekData?.totalProfit) ?? 0}`}
-        />
-        <DashboardBox
-          title="Total Profit This Quarter"
-          value={`${formatAmount(quarterData?.totalProfit) ?? 0}`}
-        />
+        <Link className="lg:w-[32%]" to="/dashboard/transactions/history/today">
+          <DashboardBox
+            title="Total Profit Today"
+            value={`${formatAmount(todayData?.totalProfit.totalProfit) ?? 0}`}
+          />
+        </Link>
+        <Link className="lg:w-[32%]" to="/dashboard/transactions/history/week">
+          <DashboardBox
+            title="Total Profit This Week"
+            value={`${formatAmount(weekData?.totalProfit.totalProfit) ?? 0}`}
+          />
+        </Link>
+
+        <Link
+          className="lg:w-[32%]"
+          to="/dashboard/transactions/history/quarter"
+        >
+          <DashboardBox
+            title="Total Profit This Quarter"
+            value={`${formatAmount(quarterData?.totalProfit.totalProfit) ?? 0}`}
+          />
+        </Link>
       </Container>
       <Container className="flex flex-col gap-[24px] pb-[40px] md:flex-row">
-        <DashboardBox
+        <Link
           className="lg:w-[32%]"
-          title="Total Profit This Year"
-          value={`${formatAmount(yearData?.totalProfit) ?? 0}`}
-        />
+          to="/dashboard/transactions/history/quarter"
+        >
+          <DashboardBox
+            className=""
+            title="Total Profit This Year"
+            value={`${formatAmount(yearData?.totalProfit.totalProfit) ?? 0}`}
+          />
+        </Link>
+
         <DashboardBox
           className="lg:w-[32%]"
           title="Stores Worth"

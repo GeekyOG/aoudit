@@ -6,30 +6,98 @@ import ProductDetails from "../ui/dashboard/ProductDetails";
 import { format } from "date-fns";
 import ViewProduct from "../modules/products/ViewProduct";
 import { formatAmount } from "../utils/format";
+import { Popover, DatePicker, Button } from "antd";
+import { ListFilter } from "lucide-react";
+import moment from "moment";
 
 function AddItem() {
   const [getProducts, { data: productsData }] = useLazyGetProductsQuery();
   const { productName } = useParams<{ productName: string }>();
+  const [filteredData, setFetchedData] = useState<any[]>([]);
 
   useEffect(() => {
     getProducts("");
   }, []);
 
-  const filteredData = productsData?.filter((product) => {
-    return product.product_name == productName;
-  });
+  useEffect(() => {
+    setFetchedData(
+      productsData?.filter((product) => {
+        return product.product_name == productName;
+      })
+    );
+  }, [productsData]);
 
   const [productDialog, setProductDialog] = useState(false);
   const [productId, setProductId] = useState("");
 
-  console.log(filteredData);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
+
+  const onChange = (date, dateString, type) => {
+    if (type === "start") {
+      setStartDate(date ? date.toDate() : null);
+    } else {
+      setEndDate(date ? date.toDate() : null);
+    }
+  };
+
+  useEffect(() => {
+    let data = productsData?.filter((product) => {
+      return product.product_name == productName;
+    });
+    // Filter by date
+    if (startDate && endDate) {
+      data = filteredData?.filter((item) => {
+        const createdAt = moment(item.createdAt);
+        return createdAt.isBetween(startDate, endDate, undefined, "[]");
+      });
+    }
+
+    setFetchedData(data);
+  }, [startDate, endDate]);
 
   return (
     <Container>
       <div>
-        <h1 className="text-[1.45rem] font-[600] text-neutral-500">
-          {productName}
-        </h1>
+        <div>
+          <div className="flex justify-between items-center">
+            <h1 className="text-[1.45rem] font-[600] text-neutral-500">
+              {productName}
+            </h1>
+
+            <Popover
+              content={
+                <div className="flex flex-col gap-3 px-[4px] py-[16px]">
+                  <DatePicker
+                    onChange={(date, dateString) =>
+                      onChange(date, dateString, "start")
+                    }
+                    placeholder="Start Date"
+                  />
+                  <DatePicker
+                    onChange={(date, dateString) =>
+                      onChange(date, dateString, "end")
+                    }
+                    placeholder="End Date"
+                  />
+
+                  <Button className="items-center text-[#fff] gap-3 bg-[#093aa4] text-[0.865rem]">
+                    Apply
+                  </Button>
+                </div>
+              }
+              title=""
+              placement="bottomLeft"
+              showArrow={false}
+            >
+              <div className="flex cursor-pointer items-center gap-[3px] rounded-md px-[8px] py-[8px] text-neutral-300 hover:text-[#093aa4]">
+                <ListFilter size={16} className="" />
+                <p className="text-[0.865rem]">Filter</p>
+              </div>
+            </Popover>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2"></div>
       </div>
       <div className="flex flex-col gap-[8px]">

@@ -26,10 +26,10 @@ import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { cn } from "../../utils/cn";
 import { useLazyGetOrdersQuery } from "../../api/ordersApi";
-import DataLoading from "../../ui/DataLoading";
-import SelectColorsField from "../../components/input/SelectColors";
+
 const addProductValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
+  date: Yup.date(),
   quantity: Yup.number()
     .required("Quantity is required")
     .min(1, "Quantity must be at least 1"),
@@ -50,6 +50,14 @@ const addProductValidation = Yup.object().shape({
     )
     .min(1, "At least one item is required"),
 });
+
+const getTodayDate = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0"); // Add leading 0 if needed
+  const day = String(today.getDate()).padStart(2, "0"); // Add leading 0 if needed
+  return `${year}-${month}-${day}`;
+};
 
 function AddProductModal({
   setShowAddProduct,
@@ -256,6 +264,7 @@ function AddProductModal({
           <div>
             <Formik
               initialValues={{
+                date: getTodayDate(),
                 name: "",
                 quantity: "",
                 purchasePrice: "",
@@ -294,6 +303,7 @@ function AddProductModal({
                     addProduct({
                       product_name: searchValue,
                       price: values.salesPrice,
+                      date: values.date,
                       quantity: parseInt(values.quantity),
                       purchase_amount: parseFloat(values.purchasePrice),
                       sales_price: values.salesPrice,
@@ -460,6 +470,29 @@ function AddProductModal({
                       </div>
                     </div>
                   </div>
+
+                  {/* Amount Field */}
+                  <div className="flex flex-col ">
+                    <label
+                      htmlFor={`date`}
+                      className="font-[500] text-[0.865rem] mt-3"
+                    >
+                      Date
+                    </label>
+                    <Field
+                      className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                      name={`date`}
+                      type="date"
+                      value={values.date}
+                    />
+                    <ErrorMessage
+                      name={`date`}
+                      component="div"
+                      className="text-[12px] font-[400] text-[#f00000]"
+                    />
+                  </div>
+
+                  {/* end */}
 
                   <hr className="my-5" />
                   <div className="flex flex-col gap-[5] ">
