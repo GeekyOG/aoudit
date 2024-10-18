@@ -2,6 +2,7 @@ import { ColumnsType } from "antd/es/table";
 import TableActionButtons from "../../ui/dashboard/TableActionButtons";
 import React from "react";
 import { format } from "date-fns";
+import { formatAmount } from "../../utils/format";
 
 export const columns: ColumnsType = [
   {
@@ -22,13 +23,13 @@ export const columns: ColumnsType = [
     title: "Purchased Amount",
     dataIndex: "purchase_amount",
     key: "purchase_amount",
-    render: (price) => <p>N{price}</p>,
+    render: (price) => <p>{formatAmount(price)}</p>,
   },
   {
     title: "Sales Amount",
     dataIndex: "sales_price",
     key: "sales_price",
-    render: (price) => <p>N{price}</p>,
+    render: (price) => <p>{formatAmount(price)}</p>,
   },
   {
     title: "Qty",

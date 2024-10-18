@@ -2,6 +2,7 @@ import { ColumnsType } from "antd/es/table";
 import React from "react";
 import { cn } from "../../utils/cn";
 import { format } from "date-fns";
+import { formatAmount } from "../../utils/format";
 
 export const columns: ColumnsType = [
   {
@@ -20,7 +21,7 @@ export const columns: ColumnsType = [
     key: "name",
     render: (_, record) => (
       <p className="font-[500] text-[0.75rem] text-[#18181B]">
-        {record.amount}
+        {formatAmount(record.amount)}
       </p>
     ),
   },
@@ -30,7 +31,7 @@ export const columns: ColumnsType = [
     key: "name",
     render: (_, record) => (
       <p className="font-[500] text-[0.75rem] text-[#18181B]">
-        {record.amount_paid}
+        {formatAmount(record.amount_paid)}
       </p>
     ),
   },

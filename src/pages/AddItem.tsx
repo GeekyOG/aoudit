@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import ProductDetails from "../ui/dashboard/ProductDetails";
 import { format } from "date-fns";
 import ViewProduct from "../modules/products/ViewProduct";
+import { formatAmount } from "../utils/format";
 
 function AddItem() {
   const [getProducts, { data: productsData }] = useLazyGetProductsQuery();
@@ -76,11 +77,11 @@ function AddItem() {
                 />
                 <ProductDetails
                   title={" Product Amount"}
-                  text={`N${item.purchase_amount}`}
+                  text={`${formatAmount(item.purchase_amount)}`}
                 />
                 <ProductDetails
                   title={" Sales Amount"}
-                  text={`N${item.sales_price}`}
+                  text={`${formatAmount(item.sales_price)}`}
                 />
                 <ProductDetails
                   title={" Purchase Date"}

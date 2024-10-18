@@ -9,16 +9,11 @@ import {
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import Button from "../../ui/Button";
-import {
-  useGetProductQuery,
-  useLazyGetProductsQuery,
-} from "../../api/productApi";
+import { useLazyGetProductsQuery } from "../../api/productApi";
 import SelectField from "../../components/input/SelectField";
 import { useGetCustomerQuery } from "../../api/customerApi";
 import * as Yup from "yup";
 import {
-  useAddOrderMutation,
-  useGetOrderQuery,
   useLazyGetOrderQuery,
   useLazyGetOrdersQuery,
   useUpdateOrderMutation,
@@ -30,20 +25,25 @@ import DataLoading from "../../ui/DataLoading";
 import SnSelectField from "../../components/input/SnSelectField";
 import SizeSelectField from "../../components/input/sizeSlelectField";
 import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
+import { useLazyGetMetricsQuery } from "../../api/metrics";
 
-const validationSchema = Yup.array().of(
-  Yup.object({
-    itemId: Yup.string().required("Item is required"),
-    id: Yup.string().required("ID is required"),
-    sn: Yup.string().required("required"),
-    size: Yup.string().required(" required"),
-    amount: Yup.number().required("required").min(1, "Amount cannot be 0"),
-    amountPaid: Yup.number()
-      .required("required")
-      .min(1, "Amount cannot be 0")
-      .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
-  })
-);
+const validationSchema = Yup.object({
+  inv: Yup.string(),
+  date: Yup.date(),
+  items: Yup.array().of(
+    Yup.object({
+      itemId: Yup.string().required("Item is required"),
+      id: Yup.string().required("ID is required"),
+      sn: Yup.string().required("required"),
+      size: Yup.string().required(" required"),
+      amount: Yup.number().required("required").min(1, "Amount cannot be 0"),
+      amountPaid: Yup.number()
+        .required("required")
+        .min(1, "Amount cannot be 0")
+        .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
+    })
+  ),
+});
 interface ViewInvoiceProps {
   setDialogOpen: Dispatch<SetStateAction<boolean>>;
   id: string;
@@ -51,14 +51,13 @@ interface ViewInvoiceProps {
 
 function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
   const [getProducts, { data: productsData }] = useLazyGetProductsQuery();
-
+  const [getMetric] = useLazyGetMetricsQuery();
   const [getOrder, { data, isLoading }] = useLazyGetOrderQuery();
 
   useEffect(() => {
     getOrder(id);
   }, []);
-  const [getSerialCodes, { data: serialCodeData }] =
-    useLazyGetSerialCodesQuery();
+
   const [getOrders] = useLazyGetOrdersQuery();
   const [selectedCustomer, setSelectedCustomer] = useState("Select an option");
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
@@ -193,9 +192,27 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
     getProducts("");
   }, []);
 
+  // Utility function to format date as YYYY-MM-DD
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0"); // Add leading 0
+    const day = String(d.getDate()).padStart(2, "0"); // Add leading 0
+    return `${year}-${month}-${day}`;
+  };
+
+  // Get today's date formatted as YYYY-MM-DD
+  const getTodayDate = () => {
+    const today = new Date();
+    return formatDate(today);
+  };
+
+  // Adjusted initialValues to prefill the date field
   const initialValues = {
     status: data ? data[0]?.Sale?.status || "" : "",
     customerId: selectedCustomerId || "",
+    inv: data ? data[0]?.Sale?.invoiceNumber || "" : "",
+    date: data ? formatDate(data[0]?.Sale?.createdAt) : getTodayDate(), // Prefill with sale date or today's date
     items: data?.map((item: any, i) => ({
       itemId: item.id || "",
       id: item.productId || "",
@@ -235,11 +252,14 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
             onSubmit={(values, { setErrors }) => {
               const valid = handleSelectFieldValidation();
               const uniqueSn = uniqueSN(values.items, setErrors);
+
               if (valid && uniqueSn)
                 updateOrder({
                   id: id,
                   status: values.status,
                   customerId: selectedCustomerId,
+                  invoiceNumber: values.inv,
+                  date: values.date,
                   items: values.items.map((item) => ({
                     id: item.itemId,
                     productId: item.id,
@@ -261,6 +281,9 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                   .then(() => {
                     getOrder(id);
                     toast.success("Successfully Updated");
+                    setDialogOpen(false);
+                    getMetric("");
+                    getOrders("");
                   })
                   .catch((error) => {
                     toast.error(error.data.message ?? "Something went wrong.");
@@ -311,7 +334,47 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                     Add Customer
                   </p>
                 </div>
+                {/* Amount Field */}
+                <div className="flex flex-col ">
+                  <label
+                    htmlFor={`inv`}
+                    className="text-[0.75rem] flex justify-between"
+                  >
+                    Invoice Number <span>(optional)</span>
+                  </label>
+                  <Field
+                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                    name={`inv`}
+                    value={values.inv}
+                  />
+                  <ErrorMessage
+                    name={`inv`}
+                    component="div"
+                    className="text-[12px] font-[400] text-[#f00000]"
+                  />
+                </div>
 
+                {/* end */}
+
+                {/* Amount Field */}
+                <div className="flex flex-col ">
+                  <label htmlFor={`date`} className="text-[0.75rem]">
+                    Date
+                  </label>
+                  <Field
+                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                    name={`date`}
+                    type="date"
+                    value={values.date}
+                  />
+                  <ErrorMessage
+                    name={`date`}
+                    component="div"
+                    className="text-[12px] font-[400] text-[#f00000]"
+                  />
+                </div>
+
+                {/* end */}
                 <div>
                   <div className="flex items-center justify-between">
                     <p className="text-[0.895rem] font-[600]">Items</p>
@@ -452,6 +515,11 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                         if (values.items.length !== 1) {
                                           setFieldValue(
                                             `items[${index}].sn`,
+                                            ""
+                                          );
+
+                                          setFieldValue(
+                                            `items[${index}].id`,
                                             ""
                                           );
 

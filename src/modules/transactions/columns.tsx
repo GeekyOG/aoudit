@@ -1,4 +1,6 @@
 import { ColumnsType } from "antd/es/table";
+import { formatAmount } from "../../utils/format";
+import React from "react";
 // import React from "react";
 
 export const columns: ColumnsType = [
@@ -15,13 +17,16 @@ export const columns: ColumnsType = [
   {
     title: "Amount",
     dataIndex: "amount",
-    key: "companyName",
+    key: "",
+    render: (value) => <p>{formatAmount(value)}</p>,
   },
   {
     title: "Paid",
     dataIndex: "amount",
-    key: "companyName",
+    key: "",
+    render: (value) => <p>{formatAmount(value)}</p>,
   },
+
   {
     title: "Status",
     dataIndex: "status",

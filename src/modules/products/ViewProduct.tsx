@@ -260,7 +260,7 @@ function ViewProduct({
     salesPrice: data?.sales_price ?? "",
 
     items: data
-      ? JSON.parse(data?.serial_numbers.length) != 0
+      ? JSON.parse(data?.serial_numbers).length != 0
         ? JSON.parse(data?.serial_numbers)?.map((item: any, i) => ({
             sn: item || "",
           })) || [{ sn: "" }]

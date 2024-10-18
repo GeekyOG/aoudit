@@ -18,18 +18,7 @@ export const columns: ColumnsType = [
       return <p>{row.size}</p>;
     },
   },
-  // {
-  //   title: "Purchased Amount",
-  //   dataIndex: "purchase_amount",
-  //   key: "purchase_amount",
-  //   render: (price) => <p>N{price}</p>,
-  // },
-  // {
-  //   title: "Sales Amount",
-  //   dataIndex: "sales_price",
-  //   key: "sales_price",
-  //   render: (price) => <p>N{price}</p>,
-  // },
+
   {
     title: "Qty",
     dataIndex: "serial_numbers",

@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import Button from "../ui/Button";
+import { logout } from "../utils/logout";
 
 const mainMenuOptions = [
   {
@@ -125,7 +126,10 @@ function Sidebar() {
             />
           ))}
           <div className="bottom-5 ml-[24px] mt-auto text-[#fff]">
-            <Button className="flex items-center gap-[10px] bg-transparent">
+            <Button
+              className="flex items-center gap-[10px] bg-transparent"
+              onClick={() => logout()}
+            >
               <LogOutIcon size={16} />
               <p className="text-[0.813rem] leading-[22.4px]">Logout</p>
             </Button>

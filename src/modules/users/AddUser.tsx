@@ -7,6 +7,7 @@ import { useLazyGetRolesQuery } from "../../api/rolesApi";
 import {
   useAddAdminUserMutation,
   useLazyGetAdminUserQuery,
+  useUpdateAdminUserMutation,
 } from "../../api/adminUsers";
 import { toast } from "react-toastify";
 
@@ -29,7 +30,7 @@ function AddUser({ open, setShowDrawer, id }: AddUserProps) {
   }, []);
 
   const [getAdminUser, { data: userData }] = useLazyGetAdminUserQuery();
-
+  const [updateAdminUser] = useUpdateAdminUserMutation();
   useEffect(() => {
     if (id) {
       getAdminUser(id);
@@ -51,19 +52,34 @@ function AddUser({ open, setShowDrawer, id }: AddUserProps) {
             phone_number: userData?.phone_number ?? "",
             roleId: userData?.Role.id ?? "",
             password: "",
+            id: "",
           }}
           enableReinitialize={true}
           onSubmit={(values) => {
-            addAdminUser(values)
-              .unwrap()
-              .then(() => {
-                toast.success("Action successful");
-                getAminUsers("");
-                onClose();
-              })
-              .catch((error) => {
-                toast.error(error.data.error);
-              });
+            values.id = id ?? "";
+            if (id) {
+              updateAdminUser(values)
+                .unwrap()
+                .then(() => {
+                  toast.success("Action successful");
+                  getAminUsers("");
+                  onClose();
+                })
+                .catch((error) => {
+                  toast.error(error.data.error);
+                });
+            } else {
+              addAdminUser(values)
+                .unwrap()
+                .then(() => {
+                  toast.success("Action successful");
+                  getAminUsers("");
+                  onClose();
+                })
+                .catch((error) => {
+                  toast.error(error.data.error);
+                });
+            }
           }}
         >
           {({ errors, touched }) => (

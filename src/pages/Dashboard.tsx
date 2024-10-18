@@ -41,6 +41,9 @@ function Dashboard() {
           value={data?.totalSales ?? 0}
           action={() => setOpen(!open)}
         />
+      </div>
+
+      <div className="flex flex-col gap-[24px] md:flex-row mt-[24px]">
         <DashboardBox
           title="Total Inventory"
           value={data?.totalProducts ?? 0}
@@ -48,11 +51,10 @@ function Dashboard() {
         />
         <DashboardBox
           title="Total Items Returned"
-          value={data?.totalReturnedResult ?? 0}
+          value={data?.returnedSalesCount ?? 0}
           action={() => setOpen(!open)}
         />
       </div>
-
       <div className="mt-[26px]">
         <div className="flex items-center justify-between text-[0.895rem] font-[500]">
           <p className="text-[1.2rem] font-[500]">Recent Sales</p>

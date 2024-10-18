@@ -18,6 +18,7 @@ import {
   useLazyGetProfitsWeekQuery,
   useLazyGetProfitsYearQuery,
 } from "../api/metrics";
+import { formatAmount } from "../utils/format";
 
 function Transactions() {
   const onChange: DatePickerProps["onChange"] = (date, dateString) => {};
@@ -55,42 +56,42 @@ function Transactions() {
       <Container className="flex flex-col gap-[24px] pb-[40px] md:flex-row">
         <DashboardBox
           title="Total Expense"
-          value={`₦${data?.total_expenses ?? 0}`}
+          value={`${formatAmount(data?.total_expenses) ?? 0}`}
         />
         <DashboardBox
           title="Total Profit"
-          value={`₦${data?.total_profit ?? 0}`}
+          value={`${formatAmount(data?.total_profit) ?? 0}`}
         />
         <DashboardBox
           title="Pending Payments"
-          value={`₦${data?.total_pending_payments ?? 0}`}
+          value={`${formatAmount(data?.total_pending_payments) ?? 0}`}
         />
       </Container>
 
       <Container className="flex flex-col gap-[24px] pb-[40px] md:flex-row">
         <DashboardBox
           title="Total Profit Today"
-          value={`₦${todayData?.totalProfit ?? 0}`}
+          value={`${formatAmount(todayData?.totalProfit) ?? 0}`}
         />
         <DashboardBox
           title="Total Profit This Week"
-          value={`₦${weekData?.totalProfit ?? 0}`}
+          value={`${formatAmount(weekData?.totalProfit) ?? 0}`}
         />
         <DashboardBox
           title="Total Profit This Quarter"
-          value={`₦${quarterData?.totalProfit ?? 0}`}
+          value={`${formatAmount(quarterData?.totalProfit) ?? 0}`}
         />
       </Container>
       <Container className="flex flex-col gap-[24px] pb-[40px] md:flex-row">
         <DashboardBox
           className="lg:w-[32%]"
           title="Total Profit This Year"
-          value={`₦${yearData?.totalProfit ?? 0}`}
+          value={`${formatAmount(yearData?.totalProfit) ?? 0}`}
         />
         <DashboardBox
           className="lg:w-[32%]"
           title="Stores Worth"
-          value={`₦${data?.total_worth ?? 0}`}
+          value={`${formatAmount(data?.total_worth) ?? 0}`}
         />
       </Container>
     </div>

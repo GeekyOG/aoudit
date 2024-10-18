@@ -11,6 +11,7 @@ import { cn } from "../../utils/cn";
 import { useLazyGetProductsQuery } from "../../api/productApi";
 import { useNavigate } from "react-router-dom";
 import ViewProduct from "../../modules/products/ViewProduct";
+import { formatAmount } from "../../utils/format";
 
 function SearchModal() {
   const [searchBySerialNumber, { data, isFetching }] =
@@ -168,11 +169,11 @@ function SearchModal() {
                         />
                         <ProductDetails
                           title={" Product Amount"}
-                          text={`N${data.product.purchase_amount}`}
+                          text={`${formatAmount(data.product.purchase_amount)}`}
                         />
                         <ProductDetails
                           title={" Sales Amount"}
-                          text={`N${data.product.sales_price}`}
+                          text={`${formatAmount(data.product.sales_price)}`}
                         />
                         <ProductDetails
                           title={" Purchase Date"}
@@ -260,11 +261,11 @@ function SearchModal() {
                         />
                         <ProductDetails
                           title={" Product Amount"}
-                          text={`N${data.saleItem.amount}`}
+                          text={`${formatAmount(data.saleItem.amount)}`}
                         />
                         <ProductDetails
                           title={" Sales Amount"}
-                          text={`N${data.saleItem.amount_paid}`}
+                          text={`${formatAmount(data.saleItem.amount_paid)}`}
                         />
                       </div>
 

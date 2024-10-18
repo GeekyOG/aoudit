@@ -6,6 +6,7 @@ import { Table } from "antd";
 import { useLazyGetOrderQuery } from "../../api/ordersApi";
 import { format } from "date-fns";
 import DataLoading from "../../ui/DataLoading";
+import { formatAmount } from "../../utils/format";
 
 function InvoiceDetails({ id }: { id: string }) {
   const [getOrder, { data, isLoading }] = useLazyGetOrderQuery();
@@ -47,6 +48,9 @@ function InvoiceDetails({ id }: { id: string }) {
           <div className="flex items-center gap-[4px]">
             <p className="font-[700] leading-[100%]">Invoice</p>
           </div>
+          <InvoiceDetailsText
+            text={`Invoice Number — ${data ? data[0]?.Sale.invoiceNumber : "--"}`}
+          />
           <div className="mt-[4px] flex gap-[30px]">
             <InvoiceDetailsText
               text={`Issue date — ${data ? format(new Date(data[0]?.createdAt), "dd, MMM, yyyy") : "--"}`}
@@ -107,12 +111,12 @@ function InvoiceDetails({ id }: { id: string }) {
             <div>
               <div className="flex max-w-[357px] gap-3 justify-between border-b-[1px] py-[10px]">
                 <p className="text-[0.688rem]">Total </p>
-                <p className="text-[0.688rem]">{`N${data[0]?.Sale?.total_amount}`}</p>
+                <p className="text-[0.688rem]">{`${formatAmount(data[0]?.Sale?.total_amount)}`}</p>
               </div>
               <div className="flex max-w-[357px] gap-3 justify-between border-b-[1px] py-[10px]">
                 <p className="text-[0.688rem] font-[600]">Amount Due</p>
                 <p className="text-[0.688rem] font-[600]">
-                  {`N${data[0]?.Sale?.total_amount}`}
+                  {`${formatAmount(data[0]?.Sale?.total_amount)}`}
                 </p>
               </div>
             </div>

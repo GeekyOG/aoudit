@@ -65,15 +65,20 @@ function Inventory() {
   const result = productsData?.reduce((acc, product) => {
     const serialNumbers = JSON.parse(product.serial_numbers).length;
 
-    if (!acc[product.product_name]) {
-      acc[product.product_name] = {
+    // Create a unique key based on product name and size
+    const productKey = `${product.product_name}-${product.size}`;
+
+    // Check if the combination of product name and size already exists in the accumulator
+    if (!acc[productKey]) {
+      acc[productKey] = {
         product_name: product.product_name,
-        total_serial_numbers: serialNumbers,
         size: product.size,
+        total_serial_numbers: serialNumbers,
         createdAt: product.createdAt,
       };
     } else {
-      acc[product.product_name].total_serial_numbers += serialNumbers;
+      // If it exists, add to the total serial numbers
+      acc[productKey].total_serial_numbers += serialNumbers;
     }
 
     return acc;

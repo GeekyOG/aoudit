@@ -10,24 +10,23 @@ import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Button from "../../ui/Button";
 import { useLazyGetProductsQuery } from "../../api/productApi";
 import SelectField from "../../components/input/SelectField";
-import {
-  useGetCustomerQuery,
-  useLazyGetCustomersQuery,
-} from "../../api/customerApi";
+import { useLazyGetCustomersQuery } from "../../api/customerApi";
 import * as Yup from "yup";
 import {
   useAddOrderMutation,
   useLazyGetOrdersQuery,
 } from "../../api/ordersApi";
-import { useLazyGetSerialCodesQuery } from "../../api/serialCodesAPi";
 import { toast } from "react-toastify";
 import AddCustomer from "../customers/AddCustomer";
 import SnSelectField from "../../components/input/SnSelectField";
 import SizeSelectField from "../../components/input/sizeSlelectField";
 import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
+import { useLazyGetMetricsQuery } from "../../api/metrics";
 
 // Validation schema for form validation
 const validationSchema = Yup.object({
+  inv: Yup.string(),
+  date: Yup.date(),
   items: Yup.array()
     .of(
       Yup.object({
@@ -35,6 +34,7 @@ const validationSchema = Yup.object({
         id: Yup.string().required("required"),
         sn: Yup.string().required("required"),
         size: Yup.string().required(" required"),
+
         amount: Yup.number().required("required").min(1, "Amount cannot be 0"),
         amountPaid: Yup.number()
           .required("required")
@@ -52,8 +52,7 @@ interface AddInvoicesProps {
 function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
   const [getProduct, { data: productsData }] = useLazyGetProductsQuery();
   const [getOrders] = useLazyGetOrdersQuery();
-  const [getSerialCodes] = useLazyGetSerialCodesQuery();
-
+  const [getMetric] = useLazyGetMetricsQuery();
   const [selectedCustomer, setSelectedCustomer] = useState("Select an option");
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedCustomerError, setSelectedCustomerError] = useState(false);
@@ -170,23 +169,43 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
     getSubCategories("");
   }, []);
 
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0"); // Add leading 0 if needed
+    const day = String(today.getDate()).padStart(2, "0"); // Add leading 0 if needed
+    return `${year}-${month}-${day}`;
+  };
+
   return (
     <div>
       <div>
         <Formik
           initialValues={{
             customerId: "",
+            inv: "",
+            date: getTodayDate(),
             items: [
-              { id: "", sn: "", amount: 0, amountPaid: 0, color: "", size: "" },
+              {
+                id: "",
+                sn: "",
+                amount: 0,
+                amountPaid: 0,
+                color: "",
+                size: "",
+              },
             ],
           }}
           validationSchema={validationSchema}
           onSubmit={(values, { setErrors }) => {
             const valid = handleSelectFieldValidation();
             const uniqueSn = uniqueSN(values.items, setErrors);
+
             if (valid && uniqueSn)
               addOrder({
                 customerId: selectedCustomerId,
+                invoiceNumber: values.inv,
+                date: values.date,
                 items: values.items.map((item) => ({
                   productId: item.id,
                   serial_number: item.sn,
@@ -207,6 +226,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
                 .then(() => {
                   toast.success("Sale added successfully");
                   setDialogOpen(false);
+                  getMetric("");
                   getOrders("");
                 })
                 .catch((error) => {
@@ -241,6 +261,48 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
                   Add Customer
                 </p>
               </div>
+
+              {/* Amount Field */}
+              <div className="flex flex-col ">
+                <label
+                  htmlFor={`inv`}
+                  className="text-[0.75rem] flex justify-between"
+                >
+                  Invoice Number <span>(optional)</span>
+                </label>
+                <Field
+                  className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                  name={`inv`}
+                  value={values.inv}
+                />
+                <ErrorMessage
+                  name={`inv`}
+                  component="div"
+                  className="text-[12px] font-[400] text-[#f00000]"
+                />
+              </div>
+
+              {/* end */}
+
+              {/* Amount Field */}
+              <div className="flex flex-col ">
+                <label htmlFor={`date`} className="text-[0.75rem]">
+                  Date
+                </label>
+                <Field
+                  className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                  name={`date`}
+                  type="date"
+                  value={values.date}
+                />
+                <ErrorMessage
+                  name={`date`}
+                  component="div"
+                  className="text-[12px] font-[400] text-[#f00000]"
+                />
+              </div>
+
+              {/* end */}
 
               <div>
                 <div className="flex items-center justify-between">
