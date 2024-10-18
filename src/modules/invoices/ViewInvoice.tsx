@@ -26,6 +26,7 @@ import SnSelectField from "../../components/input/SnSelectField";
 import SizeSelectField from "../../components/input/sizeSlelectField";
 import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
 import { useLazyGetMetricsQuery } from "../../api/metrics";
+import { formatNumber } from "../../utils/format";
 
 const validationSchema = Yup.object({
   inv: Yup.string(),
@@ -36,8 +37,8 @@ const validationSchema = Yup.object({
       id: Yup.string().required("ID is required"),
       sn: Yup.string().required("required"),
       size: Yup.string().required(" required"),
-      amount: Yup.number().required("required").min(1, "Amount cannot be 0"),
-      amountPaid: Yup.number()
+      amount: Yup.string().required("required").min(1, "Amount cannot be 0"),
+      amountPaid: Yup.string()
         .required("required")
         .min(1, "Amount cannot be 0")
         .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
@@ -498,9 +499,25 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                       <Field
                                         className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
                                         name={`items[${index}].amount`}
-                                        type="number"
-                                        step="0.01"
-                                        value={values.items[index].amount}
+                                        value={
+                                          values.items[index].amount !== 0
+                                            ? formatNumber(
+                                                values.items[index].amount
+                                              )
+                                            : 0
+                                        }
+                                        onChange={(e) => {
+                                          const formattedValue =
+                                            e.target.value.replace(
+                                              /[,a-zA-Z]/g,
+                                              ""
+                                            );
+
+                                          setFieldValue(
+                                            `items[${index}].amount`,
+                                            formattedValue
+                                          );
+                                        }}
                                       />
                                       <ErrorMessage
                                         name={`items[${index}].amount`}
@@ -552,8 +569,21 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                       <Field
                                         className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 w-[190px]"
                                         name={`items[${index}].amountPaid`}
-                                        type="number"
-                                        step="1"
+                                        value={formatNumber(
+                                          values.items[index].amountPaid
+                                        )}
+                                        onChange={(e) => {
+                                          const formattedValue =
+                                            e.target.value.replace(
+                                              /[,a-zA-Z]/g,
+                                              ""
+                                            );
+
+                                          setFieldValue(
+                                            `items[${index}].amountPaid`,
+                                            formattedValue
+                                          );
+                                        }}
                                       />
                                       <ErrorMessage
                                         name={`items[${index}].amountPaid`}

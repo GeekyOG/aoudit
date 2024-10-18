@@ -26,6 +26,7 @@ import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { cn } from "../../utils/cn";
 import { useLazyGetOrdersQuery } from "../../api/ordersApi";
+import { formatNumber } from "../../utils/format";
 
 const addProductValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
@@ -33,13 +34,10 @@ const addProductValidation = Yup.object().shape({
   quantity: Yup.number()
     .required("Quantity is required")
     .min(1, "Quantity must be at least 1"),
-  salesPrice: Yup.number(),
+  salesPrice: Yup.string(),
   // .required("Sales price is required")
   // .min(100, "Sales price must be at least 100"),
-  purchasePrice: Yup.number()
-    .required("Purchase price is required")
-    .min(100, "Purchase price must be at least 100"),
-
+  purchasePrice: Yup.string().required("Purchase price is required"),
   items: Yup.array()
     .of(
       Yup.object().shape({
@@ -418,26 +416,46 @@ function AddProductModal({
                       />
                     </div>
                     <div className=" w-[100%]">
-                      <Input
-                        name="purchasePrice"
-                        type="number"
-                        title="Purchase Price"
-                        placeholder="0"
-                        errors={errors.purchasePrice}
-                        touched={touched.purchasePrice}
-                        width="max-h-[40px] w-[100%]"
+                      <label className="text-[0.75rem]">Purchase Price</label>
+                      <Field
+                        className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                        name={`purchasePrice`}
+                        value={formatNumber(values.purchasePrice)}
+                        onChange={(e) => {
+                          const formattedValue = e.target.value.replace(
+                            /[,a-zA-Z]/g,
+                            ""
+                          );
+
+                          setFieldValue(`purchasePrice`, formattedValue);
+                        }}
+                      />
+                      <ErrorMessage
+                        name={`purchasePrice`}
+                        component="div"
+                        className="text-[12px] font-[400] text-[#f00000]"
                       />
                     </div>
 
                     <div className=" w-[100%]">
-                      <Input
-                        name="salesPrice"
-                        type="number"
-                        title="Sales Price"
-                        placeholder="0"
-                        errors={errors.salesPrice}
-                        touched={touched.salesPrice}
-                        width="max-h-[40px] w-[100%]"
+                      <label className="text-[0.75rem]">Sales Price</label>
+                      <Field
+                        className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                        name={`salesPrice`}
+                        value={formatNumber(values.salesPrice)}
+                        onChange={(e) => {
+                          const formattedValue = e.target.value.replace(
+                            /[,a-zA-Z]/g,
+                            ""
+                          );
+
+                          setFieldValue(`salesPrice`, formattedValue);
+                        }}
+                      />
+                      <ErrorMessage
+                        name={`salesPrice`}
+                        component="div"
+                        className="text-[12px] font-[400] text-[#f00000]"
                       />
                     </div>
                   </div>

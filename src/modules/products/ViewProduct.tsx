@@ -408,26 +408,46 @@ function ViewProduct({
                       />
                     </div>
                     <div className=" w-[100%]">
-                      <Input
-                        name="purchasePrice"
-                        type="number"
-                        title="Purchase Price"
-                        placeholder="0"
-                        errors={errors.purchasePrice}
-                        touched={touched.purchasePrice}
-                        width="max-h-[40px] w-[100%]"
+                      <label className="text-[0.75rem]">Purchase Price</label>
+                      <Field
+                        className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                        name={`purchasePrice`}
+                        value={formatNumber(values.purchasePrice)}
+                        onChange={(e) => {
+                          const formattedValue = e.target.value.replace(
+                            /[,a-zA-Z]/g,
+                            ""
+                          );
+
+                          setFieldValue(`purchasePrice`, formattedValue);
+                        }}
+                      />
+                      <ErrorMessage
+                        name={`purchasePrice`}
+                        component="div"
+                        className="text-[12px] font-[400] text-[#f00000]"
                       />
                     </div>
 
                     <div className=" w-[100%]">
-                      <Input
-                        name="salesPrice"
-                        type="number"
-                        title="Sales Price"
-                        placeholder="0"
-                        errors={errors.salesPrice}
-                        touched={touched.salesPrice}
-                        width="max-h-[40px] w-[100%]"
+                      <label className="text-[0.75rem]">Sales Price</label>
+                      <Field
+                        className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                        name={`salesPrice`}
+                        value={formatNumber(values.salesPrice)}
+                        onChange={(e) => {
+                          const formattedValue = e.target.value.replace(
+                            /[,a-zA-Z]/g,
+                            ""
+                          );
+
+                          setFieldValue(`salesPrice`, formattedValue);
+                        }}
+                      />
+                      <ErrorMessage
+                        name={`salesPrice`}
+                        component="div"
+                        className="text-[12px] font-[400] text-[#f00000]"
                       />
                     </div>
                   </div>
