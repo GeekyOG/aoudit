@@ -1,4 +1,7 @@
 export function formatAmount(amount: number) {
+  if (isNaN(amount)) {
+    return "--";
+  }
   return Number(amount).toLocaleString("en-NG", {
     style: "currency",
     currency: "NGN",
