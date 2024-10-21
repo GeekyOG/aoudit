@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Container from "../ui/Container";
 import DashboardTable from "../components/dashboard/DashboardTable";
 import Button from "../ui/Button";
@@ -24,6 +24,14 @@ function Customers() {
     handleGetCustomers();
   }, [getCustomers]);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredOptions = useMemo(() => {
+    return customersData?.filter((item) =>
+      item?.first_name?.toLowerCase().includes(searchTerm?.toLowerCase())
+    );
+  }, [customersData, searchTerm]);
+
   return (
     <div>
       <div>
@@ -38,6 +46,7 @@ function Customers() {
             <div className="flex cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
               <Search size={16} className="text-neutral-300" />
               <input
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className=" py-[2px] text-[0.865rem]"
                 placeholder="Search by name..."
               />
@@ -51,7 +60,7 @@ function Customers() {
       <Container>
         <DashboardTable
           columns={columns}
-          data={customersData || []}
+          data={filteredOptions || customersData || []}
           isFetching={isLoading}
           action={undefined}
           type={"customers"}

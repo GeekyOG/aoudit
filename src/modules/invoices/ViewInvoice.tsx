@@ -545,7 +545,6 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                             ""
                                           );
                                           remove(index);
-                                          console.log(values.items);
                                         }
                                       }}
                                       src="/delete-inv.svg"

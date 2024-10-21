@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Container from "../ui/Container";
 import DashboardTable from "../components/dashboard/DashboardTable";
 import Button from "../ui/Button";
@@ -90,6 +90,16 @@ function CustomersOrders() {
     }
   }, [id]);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredOptions = useMemo(() => {
+    return fetchedData?.filter((item) =>
+      item?.Product.product_name
+        ?.toLowerCase()
+        .includes(searchTerm?.toLowerCase())
+    );
+  }, [fetchedData, searchTerm]);
+
   return (
     <div>
       {customerLoading && (
@@ -137,6 +147,16 @@ function CustomersOrders() {
                 Purchase History
               </h1>
             </Container>
+            <Container>
+              <div className="lg:hidden flex cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
+                <Search size={16} className="text-neutral-300" />
+                <input
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className=" py-[2px] text-[0.865rem]"
+                  placeholder="Search by product name"
+                />
+              </div>
+            </Container>
             <Container className="flex items-center justify-between">
               <div className="flex gap-[5px]">
                 {Tabs.map((tab, i) => (
@@ -159,8 +179,9 @@ function CustomersOrders() {
                 <div className="lg:flex hidden cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
                   <Search size={16} className="text-neutral-300" />
                   <input
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className=" py-[2px] text-[0.865rem]"
-                    placeholder="Search by name..."
+                    placeholder="Search by product name"
                   />
                 </div>
 
@@ -213,7 +234,7 @@ function CustomersOrders() {
           <Container>
             <DashboardTable
               columns={columns}
-              data={fetchedData || []}
+              data={filteredOptions || fetchedData || []}
               isFetching={isLoading}
               action={() => getOrders("")}
               type={"orders"}

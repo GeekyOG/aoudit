@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DashboardTable from "../components/dashboard/DashboardTable";
 import Container from "../ui/Container";
 import Button from "../ui/Button";
@@ -85,7 +85,15 @@ function Inventory() {
   }, {});
 
   // Convert the result object back to an array
-  const uniqueProducts = Object.values(result ?? []);
+  const uniqueProducts: any[] = Object.values(result ?? []);
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredOptions = useMemo(() => {
+    return uniqueProducts?.filter((item) =>
+      item?.product_name?.toLowerCase().includes(searchTerm?.toLowerCase())
+    );
+  }, [uniqueProducts, searchTerm]);
 
   return (
     <div>
@@ -110,6 +118,7 @@ function Inventory() {
             <div className="flex cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
               <Search size={16} className="text-neutral-300" />
               <input
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className=" py-[2px] text-[0.865rem]"
                 placeholder="Search by name..."
               />
@@ -148,7 +157,7 @@ function Inventory() {
             type="inventory"
             action={() => {}}
             columns={columns}
-            data={uniqueProducts || []}
+            data={filteredOptions || uniqueProducts || []}
             isFetching={productsLoading}
             callBackAction={handleGetProducts}
           />

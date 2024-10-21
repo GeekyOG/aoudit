@@ -63,10 +63,12 @@ function Transactions() {
           title="Total Profit"
           value={`${formatAmount(data?.total_profit) ?? 0}`}
         />
-        <DashboardBox
-          title="Pending Payments"
-          value={`${formatAmount(data?.total_pending_payments) ?? 0}`}
-        />
+        <Link to="/dashboard/transactions/pending" className="w-[100%]">
+          <DashboardBox
+            title="Pending Payments"
+            value={`${formatAmount(data?.total_pending_payments) ?? 0}`}
+          />
+        </Link>
       </Container>
 
       <Container className="flex flex-col gap-[24px] pb-[40px] md:flex-row">

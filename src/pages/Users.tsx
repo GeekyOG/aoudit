@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DashboardTable from "../components/dashboard/DashboardTable";
 import Container from "../ui/Container";
 import Button from "../ui/Button";
@@ -20,6 +20,14 @@ function Users() {
   const showDrawer = () => {
     setOpen(!open);
   };
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredOptions = useMemo(() => {
+    return adminUsers?.filter((item) =>
+      item?.email?.toLowerCase().includes(searchTerm?.toLowerCase())
+    );
+  }, [adminUsers, searchTerm]);
   return (
     <div>
       <div>
@@ -34,8 +42,9 @@ function Users() {
             <div className="flex cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
               <Search size={16} className="text-neutral-300" />
               <input
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className=" py-[2px] text-[0.865rem]"
-                placeholder="Search by name..."
+                placeholder="Search by email..."
               />
             </div>
             <Button onClick={showDrawer} className="flex h-[36px] items-center">
@@ -47,7 +56,7 @@ function Users() {
       <Container>
         <DashboardTable
           columns={columns}
-          data={adminUsers || []}
+          data={filteredOptions || adminUsers || []}
           isFetching={isLoading}
           action={() => getAdminUsers("")}
           type={"users"}

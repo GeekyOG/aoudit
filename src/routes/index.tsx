@@ -10,6 +10,7 @@ import AddItem from "../pages/AddItem";
 import UnAuthorizedPage from "../pages/UnAuthorizedPage";
 import RequirePermission from "./RequirePermission";
 import TransactionHistory from "../pages/TransactionHistory";
+import PendingPayments from "../pages/PendingPayments";
 const Customers = Loadable(lazy(() => import("../pages/Customers")));
 const Dashboard = Loadable(lazy(() => import("../pages/Dashboard")));
 const Inventory = Loadable(lazy(() => import("../pages/Inventory")));
@@ -55,6 +56,15 @@ const router = createBrowserRouter([
         element: (
           <RequirePermission permission="view_reports">
             <Transactions />
+          </RequirePermission>
+        ),
+      },
+
+      {
+        path: "/dashboard/transactions/pending",
+        element: (
+          <RequirePermission permission="view_reports">
+            <PendingPayments />
           </RequirePermission>
         ),
       },

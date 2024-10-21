@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 import * as Yup from "yup";
 import { nameValidation } from "../../constants/validationConstants";
 import { useLazyGetOrdersQuery } from "../../api/ordersApi";
+import { formatNumber } from "../../utils/format";
 const productValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
   quantity: Yup.number()

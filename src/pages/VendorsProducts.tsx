@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import DashboardTable from "../components/dashboard/DashboardTable";
 import Container from "../ui/Container";
 import Button from "../ui/Button";
@@ -69,7 +69,13 @@ function VendorsProducts() {
 
     setFetchedData(filteredData);
   }, [endDate, startDate, productsData]);
+  const [searchTerm, setSearchTerm] = useState("");
 
+  const filteredOptions = useMemo(() => {
+    return productsData?.filter((item) =>
+      item?.product_name?.toLowerCase().includes(searchTerm?.toLowerCase())
+    );
+  }, [productsData, searchTerm]);
   return (
     <div>
       {SupplierLoading && (
@@ -138,6 +144,7 @@ function VendorsProducts() {
                 <div className="flex cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
                   <Search size={16} className="text-neutral-300" />
                   <input
+                    onChange={(e) => setSearchTerm(e.target.value)}
                     className=" py-[2px] text-[0.865rem]"
                     placeholder="Search by name..."
                   />
@@ -188,7 +195,7 @@ function VendorsProducts() {
               type="product"
               action={""}
               columns={columns}
-              data={fetchedData || []}
+              data={filteredOptions || fetchedData || []}
               isFetching={productsLoading}
               callBackAction={handleGetProducts}
             />

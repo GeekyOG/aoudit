@@ -94,8 +94,6 @@ function TransactionHistory() {
     setFetchedData(filteredData);
   }, [activeTab, startDate, endDate, ordersData]);
 
-  console.log(todayData?.totalProfit?.sales);
-
   return (
     <div>
       <div className="">

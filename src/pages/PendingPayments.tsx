@@ -5,12 +5,12 @@ import Button from "../ui/Button";
 import AddInvoices from "../modules/invoices/AddInvoices";
 import { Popover, DatePicker, DatePickerProps } from "antd";
 import { Search, ListFilter, Download } from "lucide-react";
-import { useLazyGetOrdersQuery } from "../api/ordersApi";
-import { columns } from "../modules/invoices/columns";
 import { handleExportCSV } from "../utils/export";
 import { cn } from "../utils/cn";
 import moment from "moment";
-function Invoices() {
+import { useLazyGetPendingQuery } from "../api/metrics";
+import { columns } from "../modules/transactions/pendingColumn";
+function TransactionHistory() {
   const [open, setOpen] = useState(false);
   const [fetchedData, setFetchedData] = useState<any[]>([]);
   const [activeTab, setTab] = useState("All");
@@ -18,24 +18,22 @@ function Invoices() {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
-  const [getOrders, { data: ordersData, isLoading, isError, isSuccess }] =
-    useLazyGetOrdersQuery();
+  const [getPending, { data: pendingData, isLoading, isSuccess }] =
+    useLazyGetPendingQuery();
 
   // Fetch orders when the component mounts
   useEffect(() => {
-    getOrders(""); // Fetch orders without filters initially
-  }, [getOrders]);
+    getPending(""); // Fetch orders without filters initially
+  }, [getPending]);
 
   // Update fetched data once orders are successfully retrieved
   useEffect(() => {
-    if (isSuccess && ordersData) {
-      setFetchedData(ordersData); // Set the fetched orders
+    if (isSuccess && pendingData) {
+      setFetchedData(pendingData);
     }
-  }, [isSuccess, ordersData]);
+  }, [isSuccess, pendingData]);
 
-  // Handle tab switching and filtering based on the status
-
-  const Tabs = ["All", "Completed", "Pending", "Returned", "Borrowed"];
+  const Tabs = [`All Pending Transactions`];
 
   const onChange = (date, dateString, type) => {
     if (type === "start") {
@@ -44,15 +42,9 @@ function Invoices() {
       setEndDate(date ? date.toDate() : null);
     }
   };
-  useEffect(() => {
-    let filteredData = ordersData;
 
-    // Filter by status
-    if (activeTab !== "All") {
-      filteredData = filteredData?.filter((item) => {
-        return item.Sale.status === activeTab.toLowerCase();
-      });
-    }
+  useEffect(() => {
+    let filteredData = pendingData?.sales;
 
     // Filter by date
     if (startDate && endDate) {
@@ -63,12 +55,12 @@ function Invoices() {
     }
 
     setFetchedData(filteredData);
-  }, [activeTab, startDate, endDate, ordersData]);
+  }, [activeTab, startDate, endDate, pendingData]);
 
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredOptions = useMemo(() => {
-    return fetchedData?.filter((item) =>
+    return pendingData?.sales?.filter((item) =>
       item?.Sale.Customer.first_name
         ?.toLowerCase()
         .includes(searchTerm?.toLowerCase())
@@ -91,7 +83,7 @@ function Invoices() {
                     : "text-neutral-300"
                 )}
               >
-                <p className="text-[0.865rem] ">{tab}</p>
+                <p className="text-[0.865rem] capitalize">{tab}</p>
               </button>
             ))}
           </div>
@@ -154,8 +146,8 @@ function Invoices() {
           columns={columns}
           data={filteredOptions || fetchedData || []}
           isFetching={isLoading}
-          action={() => getOrders("")}
-          type={"orders"}
+          action={() => {}}
+          type={""}
         />
       </Container>
 
@@ -164,4 +156,4 @@ function Invoices() {
   );
 }
 
-export default Invoices;
+export default TransactionHistory;
