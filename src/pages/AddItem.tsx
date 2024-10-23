@@ -173,7 +173,7 @@ function AddItem() {
                   />
                   <ProductDetails
                     title={" Purchase Date"}
-                    text={`${format(new Date(item.createdAt), "dd, MMM, yyyy")}`}
+                    text={`${format(new Date(item.date), "dd, MMM, yyyy")}`}
                   />
                 </div>
               </div>
@@ -232,7 +232,7 @@ function AddItem() {
                   />
                   <ProductDetails
                     title={" Purchase Date"}
-                    text={`${format(new Date(item.createdAt), "dd, MMM, yyyy")}`}
+                    text={`${format(new Date(item.date), "dd, MMM, yyyy")}`}
                   />
                 </div>
               </div>
