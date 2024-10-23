@@ -29,7 +29,7 @@ function AddVendor({ open, setShowDrawer, id, callback }: AddVendorProps) {
   const [getSupplier, { data, isLoading: SupplierLoading }] =
     useLazyGetSupplierQuery();
 
-  const [getSuppliers, { isFetching, isError }] = useLazyGetSuppliersQuery();
+  const [getSuppliers] = useLazyGetSuppliersQuery();
 
   useEffect(() => {
     if (id) {

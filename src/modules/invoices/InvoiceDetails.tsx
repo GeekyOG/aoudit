@@ -34,7 +34,7 @@ function InvoiceDetails({ id }: { id: string }) {
               <img src="/favicon.png" height={35} width={35} alt="" />
               <div>
                 <p className="text-[0.75rem] font-[700] leading-[14.52px]">
-                  Aoudit
+                  SammyTech
                 </p>
                 {/* <p className="text-[0.625rem] text-[#717171]">
               sales@voliefinance.com
@@ -53,7 +53,7 @@ function InvoiceDetails({ id }: { id: string }) {
           />
           <div className="mt-[4px] flex gap-[30px]">
             <InvoiceDetailsText
-              text={`Issue date — ${data ? format(new Date(data[0]?.createdAt), "dd, MMM, yyyy") : "--"}`}
+              text={`Issue date — ${data ? format(new Date(data[0]?.date), "dd, MMM, yyyy") : "--"}`}
             />
           </div>
           <div className="mt-[20px] flex justify-between">

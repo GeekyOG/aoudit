@@ -57,7 +57,7 @@ function Invoices() {
     // Filter by date
     if (startDate && endDate) {
       filteredData = filteredData?.filter((item) => {
-        const createdAt = moment(item.createdAt);
+        const createdAt = moment(item.date);
         return createdAt.isBetween(startDate, endDate, undefined, "[]");
       });
     }

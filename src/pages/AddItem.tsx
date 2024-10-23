@@ -48,7 +48,7 @@ function AddItem() {
     // Filter by date
     if (startDate && endDate) {
       data = filteredData?.filter((item) => {
-        const createdAt = moment(item.createdAt);
+        const createdAt = moment(item.date);
         return createdAt.isBetween(startDate, endDate, undefined, "[]");
       });
     }
@@ -60,7 +60,9 @@ function AddItem() {
 
   const filteredOptions = useMemo(() => {
     return filteredData?.filter((item) =>
-      item?.Vendor.first_name?.toLowerCase().includes(searchTerm?.toLowerCase())
+      item?.Vendor?.first_name
+        ?.toLowerCase()
+        .includes(searchTerm?.toLowerCase())
     );
   }, [filteredData, searchTerm]);
 
@@ -128,11 +130,11 @@ function AddItem() {
                 <div className="flex flex-col gap-2 mt-[10px]">
                   <ProductDetails
                     title={" Business name"}
-                    text={item.Vendor.first_name}
+                    text={item?.Vendor?.first_name ?? "--"}
                   />
                   <ProductDetails
                     title={" Full name"}
-                    text={item.Vendor.last_name ?? "--"}
+                    text={item?.Vendor?.last_name ?? "--"}
                   />
                   <ProductDetails
                     title={" Phone number"}

@@ -147,7 +147,18 @@ function SearchModal() {
                           Item Details
                         </p>
                         <p className="text-[0.865rem] bg-secondary-600 p-[6px] max-w-[150px]">
-                          Item still in store
+                          {data.saleItem?.Sale.status == "borrowed" &&
+                            "Item borrowed"}
+                          {data.saleItem?.Sale.status == "completed" &&
+                            "Item Sold"}
+
+                          {data.saleItem?.Sale.status == "pending" &&
+                            "Item pending payment"}
+
+                          {data.saleItem?.Sale.status != "borrowed" &&
+                            data.saleItem?.Sale.status !== "completed" &&
+                            data.saleItem?.Sale.status !== "pending" &&
+                            "Item in store"}
                         </p>
                       </div>
 
@@ -228,7 +239,18 @@ function SearchModal() {
                           Item Details
                         </p>
                         <p className="text-[0.865rem] bg-secondary-600 p-[6px] max-w-[150px]">
-                          Item still in store
+                          {data.saleItem?.Sale.status == "borrowed" &&
+                            "Item borrowed"}
+                          {data.saleItem?.Sale.status == "completed" &&
+                            "Item Sold"}
+
+                          {data.saleItem?.Sale.status == "pending" &&
+                            "Item pending payment"}
+
+                          {data.saleItem?.Sale.status != "borrowed" &&
+                            data.saleItem?.Sale.status !== "completed" &&
+                            data.saleItem?.Sale.status !== "pending" &&
+                            "Item in store"}
                         </p>
                       </div>
 
@@ -245,12 +267,12 @@ function SearchModal() {
                     <p
                       className={cn(
                         "text-[0.865rem]  p-[6px] max-w-[130px] text-[#000] mt-[12px]",
-                        data.saleItem.Sale.status == "completed"
+                        data.saleItem?.Sale.status == "completed"
                           ? "bg-green-300"
                           : "bg-secondary-550"
                       )}
                     >
-                      Status: {data.saleItem.Sale.status}
+                      Status: {data.saleItem?.Sale.status}
                     </p>
 
                     <div className="mt-[20px]">

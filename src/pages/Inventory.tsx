@@ -74,7 +74,7 @@ function Inventory() {
         product_name: product.product_name,
         size: product.size,
         total_serial_numbers: serialNumbers,
-        createdAt: product.createdAt,
+        createdAt: product.date,
       };
     } else {
       // If it exists, add to the total serial numbers

@@ -63,8 +63,8 @@ export const columns: ColumnsType = [
 
   {
     title: "Date added",
-    dataIndex: "createdAt",
-    key: "createdAt",
+    dataIndex: "date",
+    key: "date",
     render: (date) => {
       const formattedDate = format(new Date(date), "dd, MMM, yyyy");
       return formattedDate;

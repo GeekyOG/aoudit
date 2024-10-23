@@ -213,7 +213,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
     status: data ? data[0]?.Sale?.status || "" : "",
     customerId: selectedCustomerId || "",
     inv: data ? data[0]?.Sale?.invoiceNumber || "" : "",
-    date: data ? formatDate(data[0]?.Sale?.createdAt) : getTodayDate(), // Prefill with sale date or today's date
+    date: data ? formatDate(data[0]?.Sale?.date) : getTodayDate(), // Prefill with sale date or today's date
     items: data?.map((item: any, i) => ({
       itemId: item.id || "",
       id: item.productId || "",
@@ -408,6 +408,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                       >
                                         Product Name
                                       </label>
+
                                       <Field
                                         className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px] h-[46px]"
                                         as="select"

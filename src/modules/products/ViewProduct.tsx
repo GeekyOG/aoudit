@@ -254,8 +254,32 @@ function ViewProduct({
     return true;
   };
 
+  // Utility function to format date as YYYY-MM-DD
+  const formatDate = (date) => {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0"); // Add leading 0
+    const day = String(d.getDate()).padStart(2, "0"); // Add leading 0
+    return `${year}-${month}-${day}`;
+  };
+
+  // Get today's date formatted as YYYY-MM-DD
+  const getTodayDate = () => {
+    const today = new Date();
+    return formatDate(today);
+  };
+
+  useEffect(() => {
+    if (data) {
+      setSelectedVendorId(data.vendorId);
+
+      console.log(selectedVendorId);
+    }
+  }, [data]);
+
   const initialValues = {
     name: data?.product_name ?? "",
+    date: data ? formatDate(data?.date) : getTodayDate(), // Prefill with sale date or today's date
     quantity: data ? (JSON.parse(data?.serial_numbers).length ?? "") : "",
     purchasePrice: data?.purchase_amount ?? "",
     salesPrice: data?.sales_price ?? "",
@@ -337,6 +361,7 @@ function ViewProduct({
                 updateProduct({
                   body: {
                     product_name: values.name,
+                    date: values.date,
                     price: parseFloat(values.salesPrice),
                     quantity: parseInt(values.quantity),
                     purchase_amount: parseFloat(values.purchasePrice),
@@ -466,7 +491,7 @@ function ViewProduct({
                         options={
                           supplierData?.map((item) => {
                             return {
-                              name: `${item.firstName} ${item.lastName}`,
+                              name: `${item.first_name}`,
                               id: item.id,
                             };
                           }) || []
@@ -481,6 +506,29 @@ function ViewProduct({
                       </div>
                     </div>
                   </div>
+
+                  {/* Amount Field */}
+                  <div className="flex flex-col ">
+                    <label
+                      htmlFor={`date`}
+                      className="font-[500] text-[0.865rem] mt-3"
+                    >
+                      Date
+                    </label>
+                    <Field
+                      className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
+                      name={`date`}
+                      type="date"
+                      value={values.date}
+                    />
+                    <ErrorMessage
+                      name={`date`}
+                      component="div"
+                      className="text-[12px] font-[400] text-[#f00000]"
+                    />
+                  </div>
+
+                  {/* end */}
 
                   <hr className="my-5" />
                   <div className="flex flex-col gap-[5] ">

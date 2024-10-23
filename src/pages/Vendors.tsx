@@ -5,19 +5,22 @@ import Button from "../ui/Button";
 import AddVendor from "../modules/vendors/AddVendor";
 import { columns } from "../modules/vendors/columns";
 import { Search } from "lucide-react";
-import { useLazyGetSupplierQuery } from "../api/vendorApi";
+import {
+  useLazyGetSupplierQuery,
+  useLazyGetSuppliersQuery,
+} from "../api/vendorApi";
 
 function Vendors() {
   const [open, setOpen] = useState(false);
 
-  const [getSupplier, { data, isLoading }] = useLazyGetSupplierQuery();
+  const [getSuppliers, { data, isLoading }] = useLazyGetSuppliersQuery();
 
   useEffect(() => {
-    getSupplier("");
-  }, [getSupplier]);
+    getSuppliers("");
+  }, [getSuppliers]);
 
   const handleGetVendors = () => {
-    getSupplier("");
+    getSuppliers("");
   };
 
   const showDrawer = () => {

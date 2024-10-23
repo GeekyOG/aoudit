@@ -37,6 +37,8 @@ function LoginForm() {
               JSON.stringify(response.role.Permissions)
             );
 
+            localStorage.setItem("user", JSON.stringify(response.user));
+
             Cookies.set("authToken", accessToken, {
               sameSite: "Strict",
               secure: true,

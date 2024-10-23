@@ -79,6 +79,10 @@ function Sidebar() {
   const storedPermissions = localStorage.getItem("permissions");
   const permissions = storedPermissions ? JSON.parse(storedPermissions) : null;
 
+  const userData = JSON.parse(localStorage.getItem("user") ?? "");
+
+  console.log(userData.firstname);
+
   // Filter permitted menu items based on user's permissions
   useEffect(() => {
     if (permissions) {
@@ -105,10 +109,14 @@ function Sidebar() {
         <div className="border-b-[1px] px-[20px] py-[17px]">
           <div className="flex h-[76px] w-[100%] items-center gap-[8px] rounded-[12px] px-[12px]">
             <div className="flex h-[44px] w-[44px] items-center justify-center rounded-[50%] bg-[#fff]">
-              <p className="text-[1.25rem] font-[700] text-[#000]">AO</p>
+              <p className="text-[1.25rem] font-[700] text-[#000]">
+                {userData.firstname.slice(0, 1)} {userData.lastname.slice(0, 1)}
+              </p>
             </div>
             <div>
-              <p className="text-[0.75rem] font-[500] text-[#fff]">Aoudit</p>
+              <p className="text-[0.75rem] font-[500] text-[#fff]">
+                {userData.firstname} {userData.lastname}
+              </p>
             </div>
           </div>
         </div>
