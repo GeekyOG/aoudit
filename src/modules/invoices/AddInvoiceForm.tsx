@@ -184,6 +184,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
   const handleToggleModal = () => {
     setChecked(!checked);
   };
+  const userData = JSON.parse(localStorage.getItem("user") ?? "");
 
   return (
     <div>
@@ -215,6 +216,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
                 customerId: selectedCustomerId,
                 invoiceNumber: values.inv,
                 date: values.date,
+                soldBy: `${userData.firstname} ${userData.lastname}`,
                 items: values.items.map((item) => ({
                   productId: item.id,
                   serial_number: item.sn,
@@ -236,6 +238,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
                   toast.success("Sale added successfully");
                   setDialogOpen(false);
                   getMetric("");
+                  getProduct("");
                   getOrders("");
                 })
                 .catch((error) => {

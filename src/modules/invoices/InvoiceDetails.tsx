@@ -53,7 +53,7 @@ function InvoiceDetails({ id }: { id: string }) {
           />
           <div className="mt-[4px] flex gap-[30px]">
             <InvoiceDetailsText
-              text={`Issue date — ${data ? format(new Date(data[0]?.date), "dd, MMM, yyyy") : "--"}`}
+              text={`Issue date — ${data ? format(new Date(data[0]?.Sale.date), "dd, MMM, yyyy") : "--"}`}
             />
           </div>
           <div className="mt-[20px] flex justify-between">

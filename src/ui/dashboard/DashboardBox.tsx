@@ -2,15 +2,23 @@ import React from "react";
 import { IoIosAdd } from "react-icons/io";
 import { Link } from "react-router-dom";
 import { cn } from "../../utils/cn";
+import { ArrowLeftRight, ArrowRight } from "lucide-react";
 
 interface DashboardBoxProps {
   title: string;
   value: number | string;
   action?: () => void;
   className?: string;
+  link?: string;
 }
 
-function DashboardBox({ title, value, action, className }: DashboardBoxProps) {
+function DashboardBox({
+  title,
+  value,
+  action,
+  className,
+  link,
+}: DashboardBoxProps) {
   return (
     <div
       className={cn(
@@ -32,6 +40,14 @@ function DashboardBox({ title, value, action, className }: DashboardBoxProps) {
       </div>
 
       <p className="text-[1.25rem] font-[500] text-neutral-400">{value}</p>
+      {link && (
+        <div className="flex text-blue-400 items-center">
+          <Link to={link} className="text-[0.865rem] font-[500]">
+            View All
+          </Link>
+          <ArrowRight size={16} />
+        </div>
+      )}
     </div>
   );
 }

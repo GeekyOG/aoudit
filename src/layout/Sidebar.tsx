@@ -47,6 +47,12 @@ const mainMenuOptions = [
     slug: "read_product",
   },
   {
+    text: "Order List",
+    url: "/dashboard/orderlist",
+    icon: <Store size={16} />,
+    slug: "read_product",
+  },
+  {
     text: "Vendors",
     url: "/dashboard/vendors",
     icon: <UserCheck size={16} />,
@@ -81,8 +87,6 @@ function Sidebar() {
 
   const userData = JSON.parse(localStorage.getItem("user") ?? "");
 
-  console.log(userData.firstname);
-
   // Filter permitted menu items based on user's permissions
   useEffect(() => {
     if (permissions) {
@@ -102,8 +106,8 @@ function Sidebar() {
   }, [user]); // User as dependency to avoid re-running on every render
 
   return (
-    <div className="hidden h-[100vh] w-[250px] flex-none border-r-[1px] lg:block overflow-scroll">
-      <div className="fixed bottom-0 top-0 w-[250px] bg-[#282830]">
+    <div className="hidden h-[100vh] w-[250px] flex-none border-r-[1px] lg:block overflow-y-scroll bg-[#282830] no-scrollbar">
+      <div className=" fixed bottom-0 top-0 overflow-y-scroll w-[250px] bg-[#282830]">
         <div className="border-b-[1px] px-[28px] pb-[20px] pt-[24px]"></div>
 
         <div className="border-b-[1px] px-[20px] py-[17px]">

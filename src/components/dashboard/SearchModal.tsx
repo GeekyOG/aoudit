@@ -83,6 +83,14 @@ function SearchModal() {
 
   const navigate = useNavigate();
 
+  const [id, setId] = useState("");
+
+  useEffect(() => {
+    if (data?.product) {
+      setId(data.product.id);
+    }
+  }, [data]);
+
   return (
     <div>
       <div className="mb-[16px] flex">
@@ -362,7 +370,7 @@ function SearchModal() {
 
       {productDialog && (
         <ViewProduct
-          id={data?.product?.id}
+          id={data.saleItem ? data?.saleItem?.productId : data.product.id}
           setShowAddProduct={setProductDialog}
         />
       )}

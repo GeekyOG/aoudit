@@ -20,7 +20,7 @@ import {
 } from "../../api/ordersApi";
 import InvoiceModal from "../../modules/invoices/InvoiceModal";
 import InvoiceDetails from "../../modules/invoices/InvoiceDetails";
-import { X } from "lucide-react";
+import { IdCard, X } from "lucide-react";
 import { handleDownload } from "../../utils/export";
 import Button from "../../ui/Button";
 import { useNavigate } from "react-router-dom";
@@ -209,7 +209,8 @@ function ActionButtons({
           {" "}
           <TableActionButtons
             setShow={() => {
-              navigate(`/dashboard/product/${id}/`);
+              const productParam = encodeURIComponent(id);
+              navigate(`/dashboard/product/${productParam}/`);
             }}
           />
         </>

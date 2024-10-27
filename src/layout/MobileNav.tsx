@@ -49,6 +49,12 @@ const mainMenuOptions = [
     slug: "read_product",
   },
   {
+    text: "Order List",
+    url: "/dashboard/orderlist",
+    icon: <Store size={16} />,
+    slug: "read_product",
+  },
+  {
     text: "Vendors",
     url: "/dashboard/vendors",
     icon: <UserCheck size={16} />,

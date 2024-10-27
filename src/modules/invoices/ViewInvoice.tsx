@@ -31,20 +31,25 @@ import { formatNumber } from "../../utils/format";
 const validationSchema = Yup.object({
   inv: Yup.string(),
   date: Yup.date(),
-  items: Yup.array().of(
-    Yup.object({
-      itemId: Yup.string().required("Item is required"),
-      id: Yup.string().required("ID is required"),
-      sn: Yup.string().required("required"),
-      size: Yup.string().required(" required"),
-      amount: Yup.string().required("required").min(1, "Amount cannot be 0"),
-      amountPaid: Yup.string()
-        .required("required")
-        .min(1, "Amount cannot be 0")
-        .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
-    })
-  ),
+  items: Yup.array()
+    .of(
+      Yup.object({
+        itemId: Yup.string().required("Item is required"),
+        id: Yup.string().required("Item is required"),
+        sn: Yup.string().required("Serial Number is required"),
+        size: Yup.string().required("Size is required"),
+        amount: Yup.number()
+          .required("Amount is required")
+          .min(1, "Amount cannot be 0"),
+        amountPaid: Yup.number()
+          .required("Amount Paid is required")
+          .min(1, "Amount Paid cannot be 0")
+          .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
+      })
+    )
+    .min(1, "At least one item is required"),
 });
+
 interface ViewInvoiceProps {
   setDialogOpen: Dispatch<SetStateAction<boolean>>;
   id: string;
@@ -284,6 +289,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                     toast.success("Successfully Updated");
                     setDialogOpen(false);
                     getMetric("");
+                    getProducts("");
                     getOrders("");
                   })
                   .catch((error) => {
@@ -292,7 +298,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
             }}
           >
             {({ values, setFieldValue }) => (
-              <Form className="flex flex-col gap-[15px]">
+              <Form className="flex flex-col gap-[15px] min-w-[400px]">
                 <div className="flex-col">
                   <p className="text-[0.895rem] font-[600]">Status</p>
                   <Field
@@ -530,23 +536,15 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                     {/* Remove Button */}
                                     <img
                                       onClick={() => {
-                                        if (values.items.length !== 1) {
-                                          setFieldValue(
-                                            `items[${index}].sn`,
-                                            ""
-                                          );
+                                        setFieldValue(`items[${index}].sn`, "");
 
-                                          setFieldValue(
-                                            `items[${index}].id`,
-                                            ""
-                                          );
+                                        setFieldValue(`items[${index}].id`, "");
 
-                                          setFieldValue(
-                                            `items[${index}].size`,
-                                            ""
-                                          );
-                                          remove(index);
-                                        }
+                                        setFieldValue(
+                                          `items[${index}].size`,
+                                          ""
+                                        );
+                                        remove(index);
                                       }}
                                       src="/delete-inv.svg"
                                       alt=""

@@ -35,7 +35,7 @@ export const columns: ColumnsType = [
     title: "Qty",
     dataIndex: "serial_numbers",
     key: "serial_numbers",
-    render: (_, row) => <p>{JSON.parse(row.serial_numbers).length}</p>,
+    render: (_, row) => <p>{row.quantity}</p>,
   },
 
   {

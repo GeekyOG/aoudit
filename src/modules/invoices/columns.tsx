@@ -25,12 +25,12 @@ export const columns: ColumnsType = [
     ),
   },
   {
-    title: "Email",
+    title: "Sold By",
     dataIndex: "email",
     key: "email",
     render: (_, record) => (
-      <p className="font-[500] text-[0.75rem] text-[#18181B]">
-        {record.Sale.Customer.email}
+      <p className="font-[500] text-[0.75rem] max-w-[150px] text-[#18181B]">
+        {record.Sale.soldBy}
       </p>
     ),
   },
@@ -65,8 +65,8 @@ export const columns: ColumnsType = [
     title: "Date added",
     dataIndex: "date",
     key: "date",
-    render: (date) => {
-      const formattedDate = format(new Date(date), "dd, MMM, yyyy");
+    render: (_, record) => {
+      const formattedDate = format(new Date(record.Sale.date), "dd, MMM, yyyy");
       return formattedDate;
     },
   },

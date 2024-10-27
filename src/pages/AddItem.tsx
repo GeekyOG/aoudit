@@ -154,7 +154,7 @@ function AddItem() {
                     }}
                     className="bg-[#000] text-neutral p-[6px]"
                   >
-                    view details
+                    edit details
                   </button>
                 </div>
 
@@ -171,10 +171,21 @@ function AddItem() {
                     title={" Sales Amount"}
                     text={`${formatAmount(item.sales_price)}`}
                   />
+
+                  <ProductDetails
+                    title={"Total Qty Purchased"}
+                    text={`${item.quantity}`}
+                  />
                   <ProductDetails
                     title={" Purchase Date"}
                     text={`${format(new Date(item.date), "dd, MMM, yyyy")}`}
                   />
+                </div>
+                <div className="mt-[10px]">
+                  <p className="font-[600]">Serial Numbers</p>
+                  {JSON.parse(item.serial_numbers).map((item) => (
+                    <p className="text-[0.75rem] mt-[8px]">{item}</p>
+                  ))}
                 </div>
               </div>
             </div>
@@ -213,7 +224,7 @@ function AddItem() {
                     }}
                     className="bg-[#000] text-neutral p-[6px]"
                   >
-                    view details
+                    edit details
                   </button>
                 </div>
 
@@ -231,9 +242,19 @@ function AddItem() {
                     text={`${formatAmount(item.sales_price)}`}
                   />
                   <ProductDetails
+                    title={"Total Qty Purchased"}
+                    text={`${item.quantity}`}
+                  />
+                  <ProductDetails
                     title={" Purchase Date"}
                     text={`${format(new Date(item.date), "dd, MMM, yyyy")}`}
                   />
+                </div>
+                <div className="mt-[10px]">
+                  <p className="font-[600]">Serial Numbers</p>
+                  {JSON.parse(item.serial_numbers).map((item) => (
+                    <p className="text-[0.75rem] mt-[8px]">{item}</p>
+                  ))}
                 </div>
               </div>
             </div>

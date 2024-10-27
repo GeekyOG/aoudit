@@ -19,7 +19,7 @@ const Login = Loadable(lazy(() => import("../pages/Login")));
 const Register = Loadable(lazy(() => import("../pages/Register")));
 const Transactions = Loadable(lazy(() => import("../pages/Transactions")));
 const Vendors = Loadable(lazy(() => import("../pages/Vendors")));
-const WholeSale = Loadable(lazy(() => import("../pages/WholeSale")));
+const OrderList = Loadable(lazy(() => import("../pages/OrderList")));
 const Users = Loadable(lazy(() => import("../pages/Users")));
 const VendorsProducts = Loadable(
   lazy(() => import("../pages/VendorsProducts"))
@@ -106,6 +106,14 @@ const router = createBrowserRouter([
         element: (
           <RequirePermission permission="read_product">
             <Inventory />
+          </RequirePermission>
+        ),
+      },
+      {
+        path: "/dashboard/orderlist",
+        element: (
+          <RequirePermission permission="read_product">
+            <OrderList />
           </RequirePermission>
         ),
       },
