@@ -38,7 +38,7 @@ export default function DashbosrdHeader() {
         <div className="flex items-center">
           <img src="/favicon.png" className="w-[70px]" />
           <p className="text-[1.5rem] font-[600] text-neutral-700 -ml-3">
-            SammyTech
+            Bees Gadget
           </p>
         </div>
 

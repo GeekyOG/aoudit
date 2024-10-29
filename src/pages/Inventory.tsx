@@ -73,6 +73,7 @@ function Inventory() {
       acc[productKey] = {
         product_name: product.product_name,
         size: product.size,
+        addedBy: product.addedBy,
         total_serial_numbers: serialNumbers,
         createdAt: product.date,
       };

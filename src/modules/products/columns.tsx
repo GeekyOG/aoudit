@@ -20,6 +20,15 @@ export const columns: ColumnsType = [
   },
 
   {
+    title: "Entered By",
+    dataIndex: "addedBy",
+    key: "addedBy",
+    render: (_, row) => {
+      return <p>{row.addedBy}</p>;
+    },
+  },
+
+  {
     title: "Qty",
     dataIndex: "serial_numbers",
     key: "serial_numbers",

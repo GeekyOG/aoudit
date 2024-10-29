@@ -238,6 +238,7 @@ function AddProductModal({
 
     return true;
   };
+  const userData = JSON.parse(localStorage.getItem("user") ?? "");
 
   return (
     <div className="fixed bottom-0 left-0 right-0 top-0 z-10 flex w-[100vw] justify-center bg-[#000000a3] px-3">
@@ -307,6 +308,7 @@ function AddProductModal({
                       sales_price: values.salesPrice,
                       size: selectedSize,
                       vendorId: selectedVendorId,
+                      addedBy: `${userData.firstname} ${userData.lastname}`,
                       serial_numbers: values.items?.map((value) => value.sn),
                     })
                       .unwrap()
