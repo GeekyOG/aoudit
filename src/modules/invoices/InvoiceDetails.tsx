@@ -34,7 +34,7 @@ function InvoiceDetails({ id }: { id: string }) {
               <img src="/favicon.png" height={35} width={35} alt="" />
               <div>
                 <p className="text-[0.75rem] font-[700] leading-[14.52px]">
-                  Bees Gadget
+                  Aoudit
                 </p>
                 {/* <p className="text-[0.625rem] text-[#717171]">
               sales@voliefinance.com
@@ -63,7 +63,7 @@ function InvoiceDetails({ id }: { id: string }) {
               </p>
 
               <div className="mt-[10px]">
-                <InvoiceFormText text={"Bees Gadget"} className="font-[800]" />
+                <InvoiceFormText text={"Aoudit"} className="font-[800]" />
 
                 {/* <InvoiceFormText text={"--"} />
             <InvoiceFormText text={` "--" , "--"},"--"}`} />
