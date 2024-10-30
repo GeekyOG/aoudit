@@ -54,7 +54,7 @@ function DashboardTable({
       <Table
         columns={type ? columnWithAction : columns}
         dataSource={data}
-        className="w-[100%] border-[1px]"
+        className="w-[100%] border-[1px] overflow-x-scroll no-scrollbar"
         loading={isFetching}
         rowKey="id"
         rowClassName={() => "custom-table-row"}

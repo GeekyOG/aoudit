@@ -12,7 +12,7 @@ const Container: FunctionComponent<ContainerProps> = ({
   className,
 }) => (
   <div
-    className={clsx("lg:px-50px mx-auto max-w-[1110px] px-[24px]", className)}
+    className={clsx("lg:px-50px mx-auto max-w-[1110px] px-[14px]", className)}
   >
     {children}
   </div>

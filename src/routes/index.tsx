@@ -11,6 +11,7 @@ import UnAuthorizedPage from "../pages/UnAuthorizedPage";
 import RequirePermission from "./RequirePermission";
 import TransactionHistory from "../pages/TransactionHistory";
 import PendingPayments from "../pages/PendingPayments";
+import DevicePage from "../pages/DevicePage";
 const Customers = Loadable(lazy(() => import("../pages/Customers")));
 const Dashboard = Loadable(lazy(() => import("../pages/Dashboard")));
 const Inventory = Loadable(lazy(() => import("../pages/Inventory")));
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
       { index: true, element: <Login /> },
       { path: "login", element: <Login /> },
     ],
+  },
+  {
+    path: "/device",
+    element: <DevicePage />,
   },
   {
     path: "/dashboard",

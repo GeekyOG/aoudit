@@ -42,7 +42,7 @@ export default function DashbosrdHeader() {
           </p>
         </div>
 
-        <div className="flex cursor-pointer items-center gap-[10px]">
+        <div className="hidden lg:flex cursor-pointer items-center gap-[10px] ">
           <Button
             className="2s flex items-center rounded-[4px] py-2 bg-[#a40909] transition ease-in-out hover:scale-[1.05]"
             onClick={() => setOpen(!open)}
