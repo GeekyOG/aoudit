@@ -11,6 +11,7 @@ import { cn } from "../utils/cn";
 import moment from "moment";
 import { useParams } from "react-router-dom";
 import {
+  useLazyGetProfitsPrevMonthQuery,
   useLazyGetProfitsQuarterQuery,
   useLazyGetProfitsTodayQuery,
   useLazyGetProfitsWeekQuery,
@@ -58,13 +59,15 @@ function TransactionHistory() {
   const [getProfitsQuarter, { data: quarterData }] =
     useLazyGetProfitsQuarterQuery();
   const [getProfitsYear, { data: yearData }] = useLazyGetProfitsYearQuery();
-
+  const [getProfitsPrevMonth, { data: prevMonthData }] =
+    useLazyGetProfitsPrevMonthQuery();
   useEffect(() => {
     getProfitsYear("");
     getProfitsYear("");
     getProfitsQuarter("");
     getProfitsWeek("");
     getProfitsToday("");
+    getProfitsPrevMonth("");
   }, [
     getProfitsYear,
     getProfitsYear,
@@ -175,6 +178,7 @@ function TransactionHistory() {
             (period == "week" && weekData?.totalProfit?.sales) ||
             (period == "quarter" && quarterData?.totalProfit?.sales) ||
             (period == "year" && yearData?.totalProfit?.sales) ||
+            (period == "Previous month" && prevMonthData?.totalProfit?.sales) ||
             []
           }
           isFetching={isLoading}

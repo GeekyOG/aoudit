@@ -43,6 +43,18 @@ export const metricsApi = createApi({
       }),
     }),
 
+    getProfitsMonth: builder.query({
+      query: () => ({
+        url: "/profits?filter=month",
+      }),
+    }),
+
+    getProfitsPrevMonth: builder.query({
+      query: () => ({
+        url: "/profits?filter=previousMonth",
+      }),
+    }),
+
     getProfitsYear: builder.query({
       query: () => ({
         url: "/profits?filter=year",
@@ -73,4 +85,6 @@ export const {
   useLazyGetProfitsWeekQuery,
   useLazyGetProfitsYearQuery,
   useLazyGetPendingQuery,
+  useLazyGetProfitsMonthQuery,
+  useLazyGetProfitsPrevMonthQuery,
 } = metricsApi;

@@ -13,6 +13,8 @@ import {
   useGetProfitsWeekQuery,
   useGetProfitsYearQuery,
   useLazyGetFinancialSummaryQuery,
+  useLazyGetProfitsMonthQuery,
+  useLazyGetProfitsPrevMonthQuery,
   useLazyGetProfitsQuarterQuery,
   useLazyGetProfitsTodayQuery,
   useLazyGetProfitsWeekQuery,
@@ -31,7 +33,10 @@ function Transactions() {
   const [getProfitsQuarter, { data: quarterData }] =
     useLazyGetProfitsQuarterQuery();
   const [getProfitsYear, { data: yearData }] = useLazyGetProfitsYearQuery();
+  const [getProfitsMonth, { data: monthData }] = useLazyGetProfitsMonthQuery();
 
+  const [getProfitsPrevMonth, { data: prevMonthData }] =
+    useLazyGetProfitsPrevMonthQuery();
   useEffect(() => {
     getProfitsYear("");
     getProfitsYear("");
@@ -39,6 +44,8 @@ function Transactions() {
     getProfitsWeek("");
     getProfitsToday("");
     getFinancialSummary("");
+    getProfitsMonth("");
+    getProfitsPrevMonth("");
   }, [
     getProfitsYear,
     getProfitsYear,
@@ -96,10 +103,7 @@ function Transactions() {
         </Link>
       </Container>
       <Container className="flex flex-col gap-[24px] pb-[40px] md:flex-row">
-        <Link
-          className="lg:w-[32%]"
-          to="/dashboard/transactions/history/quarter"
-        >
+        <Link className="w-[100%]" to="/dashboard/transactions/history/quarter">
           <DashboardBox
             className=""
             title="Total Profit This Year"
@@ -107,8 +111,19 @@ function Transactions() {
           />
         </Link>
 
+        <Link
+          className="w-[100%]"
+          to="/dashboard/transactions/history/Previous month"
+        >
+          <DashboardBox
+            className=""
+            title="Total Profit Previous Month"
+            value={`${formatAmount(prevMonthData?.totalProfit.totalProfit) ?? 0}`}
+          />
+        </Link>
+
         <DashboardBox
-          className="lg:w-[32%]"
+          className="w-[100%]"
           title="Stores Worth"
           value={`${formatAmount(data?.total_worth) ?? 0}`}
         />

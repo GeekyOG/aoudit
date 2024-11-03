@@ -3,15 +3,47 @@ import { toast } from "react-toastify";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { RefObject } from "react";
+import { format } from "date-fns";
 interface handleExportCSVProps {
   data: any[];
   fileName: string;
 }
 
 export const handleExportCSV = ({ data, fileName }: handleExportCSVProps) => {
-  const filteredData = data.map(({ ...rest }) => rest);
+  const headers = [
+    "Customer",
+    "Product Name",
+    "Purchase Amount",
+    "Amount Sold",
+    "Profit",
+    "Date",
+  ];
+  const filteredData = data.map(({ ...rest }) => {
+    const customerNames =
+      `${rest.Sale.Customer.first_name} ${rest.Sale.Customer.last_name}`.trim();
+    const productName = rest.Product.product_name;
+    const purchaseAmount = rest.Product.purchase_amount;
+    const salesAmount = rest.Sale.total_paid;
+    const profit = salesAmount - purchaseAmount;
+    const date = format(new Date(rest.Sale.date), "dd, MMM, yyyy");
 
-  const csv = Papa.unparse(filteredData);
+    // Return array of values for each row
+    return [
+      customerNames,
+      productName,
+      purchaseAmount,
+      salesAmount,
+      profit,
+      date,
+    ];
+  });
+
+  // Prepend headers as the first row
+  const csvData = [headers, ...filteredData];
+
+  // Logic to export `csvData` as a CSV file goes here
+
+  const csv = Papa.unparse(csvData);
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 
