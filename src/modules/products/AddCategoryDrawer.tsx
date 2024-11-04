@@ -75,7 +75,7 @@ function AddCategory({ open, setShowDrawer, id }: AddCategoryProps) {
                     });
                 }
               } catch (error) {
-                toast.error(error.data.error);
+                toast.error(error.data.message);
               } finally {
                 // setShowDrawer(false);
               }

@@ -41,7 +41,7 @@ function EditCategory({ open, setShowDrawer, id }: EditCategoryProps) {
                 resetForm();
               })
               .catch((error) => {
-                toast.error(error.data.error);
+                toast.error(error.data.message);
               });
           }}
         >

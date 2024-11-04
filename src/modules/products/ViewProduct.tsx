@@ -380,7 +380,7 @@ function ViewProduct({
                     setShowAddProduct(false);
                   })
                   .catch((error) => {
-                    toast.error(error.data.error ?? "Something went wrong.");
+                    toast.error(error.data.message ?? "Something went wrong.");
                   });
             }}
           >

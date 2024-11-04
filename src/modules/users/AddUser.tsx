@@ -66,7 +66,7 @@ function AddUser({ open, setShowDrawer, id }: AddUserProps) {
                   onClose();
                 })
                 .catch((error) => {
-                  toast.error(error.data.error);
+                  toast.error(error.data.message);
                 });
             } else {
               addAdminUser(values)
@@ -77,7 +77,7 @@ function AddUser({ open, setShowDrawer, id }: AddUserProps) {
                   onClose();
                 })
                 .catch((error) => {
-                  toast.error(error.data.error);
+                  toast.error(error.data.message);
                 });
             }
           }}

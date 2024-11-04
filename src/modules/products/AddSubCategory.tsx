@@ -110,7 +110,7 @@ function AddSubCategory({ open, setShowDrawer, id }: AddSubCategoryProps) {
                   });
               }
             } catch (error) {
-              toast.error(error.data.error);
+              toast.error(error.data.message);
             } finally {
               resetForm();
               onClose();
