@@ -318,7 +318,9 @@ function AddProductModal({
                         setShowAddProduct(false);
                       })
                       .catch((error) => {
-                        toast.error(error.data.msg ?? "Something went wrong.");
+                        toast.error(
+                          error.data.message ?? "Something went wrong."
+                        );
                       });
                   }
                 }
