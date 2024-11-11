@@ -1,17 +1,8 @@
 import React, { useEffect } from "react";
-import DashboardTable from "../components/dashboard/DashboardTable";
 import Container from "../ui/Container";
 import DashboardBox from "../ui/dashboard/DashboardBox";
-import { Download, ListFilter, Search } from "lucide-react";
-import Button from "../ui/Button";
-import { DatePicker, DatePickerProps, Popover } from "antd";
-import { columns } from "../modules/transactions/columns";
+import { DatePickerProps } from "antd";
 import {
-  useGetFinancialSummaryQuery,
-  useGetProfitsQuarterQuery,
-  useGetProfitsTodayQuery,
-  useGetProfitsWeekQuery,
-  useGetProfitsYearQuery,
   useLazyGetFinancialSummaryQuery,
   useLazyGetProfitsMonthQuery,
   useLazyGetProfitsPrevMonthQuery,
@@ -22,10 +13,14 @@ import {
 } from "../api/metrics";
 import { formatAmount } from "../utils/format";
 import { Link } from "react-router-dom";
+import {
+  useGetExpensePrevMonthQuery,
+  useLazyGetExpensePrevMonthQuery,
+  useLazyGetExpenseTodayQuery,
+  useLazyGetExpenseWeekQuery,
+} from "../api/expensesApi";
 
 function Transactions() {
-  const onChange: DatePickerProps["onChange"] = (date, dateString) => {};
-
   const [getFinancialSummary, { data, isLoading }] =
     useLazyGetFinancialSummaryQuery();
   const [getProfitsToday, { data: todayData }] = useLazyGetProfitsTodayQuery();
@@ -54,6 +49,18 @@ function Transactions() {
     getProfitsToday,
     getFinancialSummary,
   ]);
+
+  const [getExpensesToday, { data: expensesToday }] =
+    useLazyGetExpenseTodayQuery();
+  const [getExpensesPrevMonth, { data: prevMthExpenses }] =
+    useLazyGetExpensePrevMonthQuery();
+  const [getExpenseWeek, { data: weekExpense }] = useLazyGetExpenseWeekQuery();
+  useEffect(() => {
+    getExpensesToday("");
+    getExpensesPrevMonth("");
+    getExpenseWeek("");
+  }, [getExpensesToday, getExpensesPrevMonth, getExpenseWeek]);
+
   return (
     <div>
       <Container>
@@ -127,6 +134,34 @@ function Transactions() {
           title="Stores Worth"
           value={`${formatAmount(data?.total_worth) ?? 0}`}
         />
+      </Container>
+
+      <p className="ml-[24px] text-[1.25rem] font-[500]">Extra Expenses</p>
+      <Container className="flex flex-col gap-[24px] pb-[40px] md:flex-row">
+        <Link className="w-[100%]" to="/dashboard/expenses/history/today">
+          <DashboardBox
+            className=""
+            title="Total Expenses Today"
+            value={`${formatAmount(expensesToday?.totalExpense.totalExpense) ?? 0}`}
+          />
+        </Link>
+        <Link className="w-[100%]" to="/dashboard/expenses/history/week">
+          <DashboardBox
+            className=""
+            title="Total Expenses This Week"
+            value={`${formatAmount(weekExpense?.totalExpense.totalExpense) ?? 0}`}
+          />
+        </Link>
+        <Link
+          className="w-[100%]"
+          to="/dashboard/expenses/history/Previous month"
+        >
+          <DashboardBox
+            className=""
+            title="Total Expenses Previous Month"
+            value={`${formatAmount(prevMthExpenses?.totalExpense.totalExpense) ?? 0}`}
+          />
+        </Link>
       </Container>
     </div>
   );

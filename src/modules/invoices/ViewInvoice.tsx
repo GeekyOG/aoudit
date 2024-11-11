@@ -420,6 +420,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                         as="select"
                                         name={`items[${index}].id`}
                                         value={values.items[index].id}
+                                        disabled
                                         onChange={(e) => {
                                           const selectedProduct =
                                             productsData?.find(

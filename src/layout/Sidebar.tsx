@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   LayoutGrid,
   LogOutIcon,
+  Receipt,
   ReceiptText,
   Store,
   UserCheck,
@@ -57,6 +58,12 @@ const mainMenuOptions = [
     url: "/dashboard/vendors",
     icon: <UserCheck size={16} />,
     slug: "read_vendor",
+  },
+  {
+    text: "Expenses",
+    url: "/dashboard/expenses",
+    icon: <Receipt size={16} />,
+    slug: "view_reports",
   },
   {
     text: "Manage users",

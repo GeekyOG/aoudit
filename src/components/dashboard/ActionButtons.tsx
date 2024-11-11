@@ -24,6 +24,7 @@ import { IdCard, X } from "lucide-react";
 import { handleDownload } from "../../utils/export";
 import Button from "../../ui/Button";
 import { useNavigate } from "react-router-dom";
+import AddExpense from "../../modules/expenses/AddExpense";
 
 interface ActionButtonsProps {
   id: string;
@@ -45,6 +46,7 @@ function ActionButtons({
   const [showCategory, setShowCategory] = useState(false);
   const [showSubCategory, setShowSubCategory] = useState(false);
   const [productDialog, setProductDialog] = useState(false);
+  const [showExpense, setShowExpense] = useState(false);
 
   const [showDialog, setShowDialog] = useState(false);
   const [dialogTitle, setDialogTitle] = useState("");
@@ -203,7 +205,7 @@ function ActionButtons({
   const navigate = useNavigate();
 
   return (
-    <>
+    <div className="z-[100]">
       {type == "inventory" && (
         <>
           {" "}
@@ -236,6 +238,28 @@ function ActionButtons({
               setShowDrawer={setShowCustomer}
             />
           )}
+        </>
+      )}
+
+      {type === "expenses" && (
+        <>
+          <TableActionButtons
+            setShow={() => {
+              setShowExpense(true);
+            }}
+            handleEdit={() => {
+              setShowExpense(true);
+            }}
+            handleDelete={() => {
+              handleDeleteCustomerDialog();
+            }}
+          />
+
+          <AddExpense
+            id={id}
+            open={showExpense}
+            setShowDrawer={setShowExpense}
+          />
         </>
       )}
 
@@ -419,7 +443,7 @@ function ActionButtons({
           }
         />
       )}
-    </>
+    </div>
   );
 }
 

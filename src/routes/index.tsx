@@ -12,6 +12,7 @@ import RequirePermission from "./RequirePermission";
 import TransactionHistory from "../pages/TransactionHistory";
 import PendingPayments from "../pages/PendingPayments";
 import DevicePage from "../pages/DevicePage";
+import ExpensesHistory from "../pages/ExpensesHistory";
 const Customers = Loadable(lazy(() => import("../pages/Customers")));
 const Dashboard = Loadable(lazy(() => import("../pages/Dashboard")));
 const Inventory = Loadable(lazy(() => import("../pages/Inventory")));
@@ -22,6 +23,7 @@ const Transactions = Loadable(lazy(() => import("../pages/Transactions")));
 const Vendors = Loadable(lazy(() => import("../pages/Vendors")));
 const OrderList = Loadable(lazy(() => import("../pages/OrderList")));
 const Users = Loadable(lazy(() => import("../pages/Users")));
+const Expenses = Loadable(lazy(() => import("../pages/Expenses")));
 const VendorsProducts = Loadable(
   lazy(() => import("../pages/VendorsProducts"))
 );
@@ -142,10 +144,14 @@ const router = createBrowserRouter([
           </RequirePermission>
         ),
       },
-      // {
-      //   path: "/dashboard/wholesale",
-      //   element: <WholeSale />,
-      // },
+      {
+        path: "/dashboard/expenses",
+        element: <Expenses />,
+      },
+      {
+        path: "/dashboard/expenses/history/:period",
+        element: <ExpensesHistory />,
+      },
       {
         path: "/dashboard/users",
         element: (

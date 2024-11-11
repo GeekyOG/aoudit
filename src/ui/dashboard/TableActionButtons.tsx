@@ -71,7 +71,7 @@ const TableActionButtons: FunctionComponent<ITableActionButtonsProps> = ({
   }, []);
 
   return (
-    <div className="relative">
+    <div className="relative  z-[100]">
       <div
         className="bg-neutral-450 cursor-pointer p-[10px] rounded max-w-[40px]"
         onMouseEnter={handleMouseEnter}

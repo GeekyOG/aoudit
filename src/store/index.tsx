@@ -11,6 +11,7 @@ import { adminUsersAPi } from "../api/adminUsers";
 import { rolesApi } from "../api/rolesApi";
 import { ordersApi } from "../api/ordersApi";
 import { serialCodesApi } from "../api/serialCodesAPi";
+import { expensesApi } from "../api/expensesApi";
 
 export const store = configureStore({
   reducer: {
@@ -25,6 +26,7 @@ export const store = configureStore({
     [rolesApi.reducerPath]: rolesApi.reducer,
     [ordersApi.reducerPath]: ordersApi.reducer,
     [serialCodesApi.reducerPath]: serialCodesApi.reducer,
+    [expensesApi.reducerPath]: expensesApi.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -39,7 +41,8 @@ export const store = configureStore({
       adminUsersAPi.middleware,
       rolesApi.middleware,
       ordersApi.middleware,
-      serialCodesApi.middleware
+      serialCodesApi.middleware,
+      expensesApi.middleware
     ),
 });
 

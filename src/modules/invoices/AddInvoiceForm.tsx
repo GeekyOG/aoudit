@@ -24,6 +24,7 @@ import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
 import { useLazyGetMetricsQuery } from "../../api/metrics";
 import { Switch } from "antd";
 import { formatNumber } from "../../utils/format";
+import SelectProductField from "../../components/input/selectProductField";
 
 // Validation schema for form validation
 const validationSchema = Yup.object({
@@ -148,7 +149,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
     }))
   );
 
-  const fetchSerialCodes = async (productId: string, index: number) => {
+  const fetchSerialCodes = (productId: string, index: number) => {
     if (productId) {
       const response = result?.filter((item) => item.productName === productId);
       setSerialCodesForProducts((prevState) => {
@@ -351,7 +352,7 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
                                   >
                                     Product Name
                                   </label>
-                                  <Field
+                                  {/* <Field
                                     className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px] h-[46px]"
                                     as="select"
                                     name={`items[${index}].name`}
@@ -404,7 +405,24 @@ function AddInvoices({ setDialogOpen }: AddInvoicesProps) {
                                           {option.product_name}
                                         </option>
                                       ))}
-                                  </Field>
+                                  </Field> */}
+
+                                  <SelectProductField
+                                    snIndex={index}
+                                    values={values}
+                                    setFieldValue={setFieldValue}
+                                    options={productsData?.filter(
+                                      (product, index, self) =>
+                                        index ===
+                                        self.findIndex(
+                                          (p) =>
+                                            p.product_name ===
+                                            product.product_name
+                                        )
+                                    )}
+                                    searchPlaceholder="Select Item"
+                                    fetchSerialCodes={fetchSerialCodes}
+                                  />
 
                                   <ErrorMessage
                                     name={`items[${index}].id`}

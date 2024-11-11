@@ -17,7 +17,10 @@ import AddSubCategory from "./AddSubCategory";
 import AddVendor from "../vendors/AddVendor";
 import { useLazyGetCategoriesQuery } from "../../api/categoriesApi";
 import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
-import { useLazyGetSupplierQuery } from "../../api/vendorApi";
+import {
+  useLazyGetSupplierQuery,
+  useLazyGetSuppliersQuery,
+} from "../../api/vendorApi";
 import {
   useAddProductMutation,
   useLazyGetProductsQuery,
@@ -86,12 +89,12 @@ function AddProductModal({
   const [getCategories, { isLoading: categoryLoading, data: categoryData }] =
     useLazyGetCategoriesQuery();
 
-  const [getSupplier, { isLoading: supplierLoading, data: supplierData }] =
-    useLazyGetSupplierQuery();
+  const [getSuppliers, { isLoading: supplierLoading, data: supplierData }] =
+    useLazyGetSuppliersQuery();
 
   useEffect(() => {
-    getSupplier("");
-  }, [getSupplier]);
+    getSuppliers("");
+  }, [getSuppliers]);
 
   const [addProduct, { isLoading: addProductLoading }] =
     useAddProductMutation();
@@ -475,7 +478,7 @@ function AddProductModal({
                         options={
                           supplierData?.map((item) => {
                             return {
-                              name: `${item.first_name}`,
+                              name: `${item.first_name} ${item.last_name}`,
                               id: item.id,
                             };
                           }) || []
