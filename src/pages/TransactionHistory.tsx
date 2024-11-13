@@ -89,13 +89,15 @@ function TransactionHistory() {
     // Filter by date
     if (startDate && endDate) {
       filteredData = filteredData?.filter((item) => {
-        const createdAt = moment(item.createdAt);
+        const createdAt = moment(item.Sale.date);
         return createdAt.isBetween(startDate, endDate, undefined, "[]");
       });
     }
 
     setFetchedData(filteredData);
   }, [activeTab, startDate, endDate, ordersData]);
+
+
 
   return (
     <div>

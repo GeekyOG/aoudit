@@ -41,7 +41,6 @@ const validationSchema = Yup.object({
         amount: Yup.string().required("required").min(1, "Amount cannot be 0"),
         amountPaid: Yup.string()
           .required("required")
-          .min(1, "Amount cannot be 0")
           .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
       })
     )

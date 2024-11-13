@@ -25,6 +25,10 @@ import { handleDownload } from "../../utils/export";
 import Button from "../../ui/Button";
 import { useNavigate } from "react-router-dom";
 import AddExpense from "../../modules/expenses/AddExpense";
+import {
+  useDeleteExpenseMutation,
+  useLazyGetExpenseQuery,
+} from "../../api/expensesApi";
 
 interface ActionButtonsProps {
   id: string;
@@ -198,6 +202,28 @@ function ActionButtons({
     );
   };
 
+  const [deleteExpense, { isLoading: deleteExpenseLoading }] =
+    useDeleteExpenseMutation();
+
+  const [getExpenses] = useLazyGetExpenseQuery();
+
+  const handleDeleteExpense = () => {
+    deleteExpense(id)
+      .unwrap()
+      .then(() => {
+        toast.success("Action Successful");
+        getExpenses("");
+      });
+  };
+
+  const handleDeleteExpenseDialog = () => {
+    setShowDialog(true);
+    setDialogTitle("Delete Expense Permanently");
+    setDialogContent(
+      "Deleting this Expense, this Expense would would not longer be displayed on your website. Please note this action cannot be undone"
+    );
+  };
+
   const pdfRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadInvoice = () => handleDownload(pdfRef);
@@ -251,7 +277,7 @@ function ActionButtons({
               setShowExpense(true);
             }}
             handleDelete={() => {
-              handleDeleteCustomerDialog();
+              handleDeleteExpenseDialog();
             }}
           />
 
@@ -426,6 +452,7 @@ function ActionButtons({
             (type == "product" && handleDeleteProduct) ||
             (type == "users" && handleDeleteUser) ||
             (type == "orders" && handleDeleteOrder) ||
+            (type == "expenses" && handleDeleteExpense) ||
             function (): void {
               throw new Error("Function not implemented.");
             }
@@ -439,7 +466,8 @@ function ActionButtons({
             SubcategoryLoading ||
             deleteProductLoading ||
             deleteUserLoading ||
-            deleteOrderLoading
+            deleteOrderLoading ||
+            deleteExpenseLoading
           }
         />
       )}

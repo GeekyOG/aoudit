@@ -141,11 +141,9 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
         <div
           className="flex justify-between w-[100%] px-4px]"
           onClick={() => {
-            providedSN?.serial_number !== undefined
-              ? null
-              : toggleShowOptions();
+            toggleShowOptions();
 
-            providedSN?.serial_number !== "" ? null : toggleShowOptions();
+            // providedSN?.serial_number !== "" ? null : toggleShowOptions();
           }}
         >
           <p className={clsx("text-[0.75rem] font-[500]")}>

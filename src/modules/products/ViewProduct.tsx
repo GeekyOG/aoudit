@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ErrorMessage,
   Field,
@@ -30,6 +30,7 @@ import * as Yup from "yup";
 import { nameValidation } from "../../constants/validationConstants";
 import { useLazyGetOrdersQuery } from "../../api/ordersApi";
 import { formatNumber } from "../../utils/format";
+import { cn } from "../../utils/cn";
 const productValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
   quantity: Yup.number()
@@ -293,6 +294,31 @@ function ViewProduct({
       : [{ sn: "" }],
   };
 
+  const result: { productName: any }[] = Array.from(
+    new Set(productsData?.map((product) => product.product_name))
+  ).map((productName) => ({
+    productName,
+  }));
+
+  const optionsRef = useRef<HTMLDivElement>(null);
+
+  console.log(data?.product_name ?? "");
+
+  const [searchValue, setSearchValue] = useState(data?.product_name ?? "");
+  const [showSuggestion, setShowSuggestion] = useState(false);
+
+  useEffect(() => {
+    setSearchValue(data?.product_name ?? "");
+  }, [data]);
+  const filteredOptions = useMemo(() => {
+    if (result) {
+      return result.filter((item) =>
+        item.productName.toLowerCase().includes(searchValue.toLowerCase())
+      );
+    }
+    return [];
+  }, [result, searchValue]);
+
   return (
     <div className="fixed bottom-0 left-0 right-0 top-0 z-[100] flex w-[100vw] justify-center bg-[#000000a3] px-3">
       <Container className="no-scrollbar mt-[30px] h-[calc(100vh-50px)] max-w-[100vw] overflow-y-scroll rounded-md bg-[#fff] p-[50px] lg:max-w-[1000px] lg:px-[100px]">
@@ -360,7 +386,7 @@ function ViewProduct({
               if (uniqueSn)
                 updateProduct({
                   body: {
-                    product_name: values.name,
+                    product_name: searchValue,
                     date: values.date,
                     price: parseFloat(values.salesPrice),
                     quantity: parseInt(values.quantity),
@@ -388,15 +414,58 @@ function ViewProduct({
               return (
                 <Form>
                   <div className="mt-[50px] flex w-[100%] flex-col gap-3 lg:flex-row">
-                    <div className="w-[100%]">
-                      <Input
-                        title="Product Name"
-                        name="name"
-                        placeholder="Enter Item Name"
-                        width="max-h-[40px] w-[100%]"
-                        errors={errors.name}
-                        touched={touched.name}
+                    <div className="w-[100%] relative flex flex-col mt-2">
+                      <label
+                        htmlFor={`name`}
+                        className={cn(
+                          "text-[0.865rem] font-[600]",
+                          errors.name && "text-[red]"
+                        )}
+                      >
+                        Product Name
+                      </label>
+                      <Field
+                        className={cn(
+                          "border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2",
+                          errors.name && "border-[red]"
+                        )}
+                        name={`name`}
+                        type=""
+                        value={searchValue}
+                        onChange={(e) => {
+                          setShowSuggestion(true);
+                          setSearchValue(e.target.value);
+                          setFieldValue("name", e.target.value);
+                        }}
                       />
+                      <ErrorMessage
+                        name={`name`}
+                        component="div"
+                        className="text-[12px] font-[400] text-[#f00000]"
+                      />
+
+                      {filteredOptions &&
+                        filteredOptions.length > 0 &&
+                        showSuggestion && (
+                          <div
+                            className="bg-[#fff]  top-[60px] shadow-lg p-[14px] absolute w-[100%] z-[10]"
+                            ref={optionsRef}
+                          >
+                            {filteredOptions?.map((value, index) => (
+                              <div
+                                className="border-b-[1px] py-[8px] cursor-pointer"
+                                key={index}
+                                onClick={() => {
+                                  setSearchValue(value.productName);
+                                  setShowSuggestion(false);
+                                  setFieldValue("name", searchValue);
+                                }}
+                              >
+                                <p>{value.productName}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                     </div>
 
                     <div className=" w-[100%]">

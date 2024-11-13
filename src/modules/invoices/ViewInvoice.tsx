@@ -27,6 +27,7 @@ import SizeSelectField from "../../components/input/sizeSlelectField";
 import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
 import { useLazyGetMetricsQuery } from "../../api/metrics";
 import { formatNumber } from "../../utils/format";
+import SelectProductField from "../../components/input/selectProductField";
 
 const validationSchema = Yup.object({
   inv: Yup.string(),
@@ -43,7 +44,6 @@ const validationSchema = Yup.object({
           .min(1, "Amount cannot be 0"),
         amountPaid: Yup.number()
           .required("Amount Paid is required")
-          .min(1, "Amount Paid cannot be 0")
           .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
       })
     )
@@ -397,6 +397,14 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                               productId: item?.productId,
                             };
 
+                            const providedItem = {
+                              product_name: item.id
+                                ? productsData.find((p) => p.id === item.id)
+                                    .product_name
+                                : "",
+                              productId: item.id,
+                            };
+
                             const providedSize = item?.size;
 
                             return (
@@ -415,7 +423,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                         Product Name
                                       </label>
 
-                                      <Field
+                                      {/* <Field
                                         className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px] h-[46px]"
                                         as="select"
                                         name={`items[${index}].id`}
@@ -459,7 +467,25 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                               {option.product_name}
                                             </option>
                                           ))}
-                                      </Field>
+                                      </Field>  */}
+
+                                      <SelectProductField
+                                        snIndex={index}
+                                        values={values}
+                                        setFieldValue={setFieldValue}
+                                        options={productsData?.filter(
+                                          (product, index, self) =>
+                                            index ===
+                                            self.findIndex(
+                                              (p) =>
+                                                p.product_name ===
+                                                product.product_name
+                                            )
+                                        )}
+                                        searchPlaceholder="Select Item"
+                                        fetchSerialCodes={fetchSerialCodes}
+                                        providedItem={providedItem}
+                                      />
 
                                       <ErrorMessage
                                         name={`items[${index}].id`}
