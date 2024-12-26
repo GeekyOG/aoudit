@@ -164,6 +164,10 @@ function AddItem() {
                     text={item.product_name}
                   />
                   <ProductDetails
+                    title={" Description"}
+                    text={item.description ?? "--"}
+                  />
+                  <ProductDetails
                     title={" Product Amount"}
                     text={`${formatAmount(item.purchase_amount)}`}
                   />
@@ -232,6 +236,10 @@ function AddItem() {
                   <ProductDetails
                     title={" Product name"}
                     text={item.product_name}
+                  />
+                  <ProductDetails
+                    title={" Description"}
+                    text={item.description ?? "--"}
                   />
                   <ProductDetails
                     title={" Product Amount"}

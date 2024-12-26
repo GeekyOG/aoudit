@@ -49,8 +49,6 @@ const SelectedProductName: FunctionComponent<SelectedProductNameProps> = ({
   const [showOptions, setShowOptions] = useState(false);
   const [snValue, setSnValue] = useState<string>();
 
-  //   console.log(providedName);
-
   const handleSerialNumberChange = (
     value: string,
     index: number,

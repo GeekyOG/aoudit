@@ -38,15 +38,15 @@ function DialogContainer({
             <div
               className={cn(
                 "ml-auto flex h-[48px] w-[48px]  items-center justify-center rounded-[8px] border-[1px] cursor-pointer",
-                (type = "archive" && "border-[#FFE299]"),
-                (type = "delete" && "border-[#FA9E9E]")
+                type == "archive" && "border-[#FFE299]",
+                type == "delete" && "border-[#FA9E9E]"
               )}
               onClick={() => setDialogOpen(false)}
             >
               <X
                 className={cn(
-                  (type = "archive" && "text-[#FFE299] "),
-                  (type = "delete" && "text-[#FA9E9E]")
+                  type == "archive" && "text-[#FFE299] ",
+                  type == "delete" && "text-[#FA9E9E]"
                 )}
               />
             </div>

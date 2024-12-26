@@ -12,12 +12,15 @@ import { useLazyGetProductsQuery } from "../../api/productApi";
 import { useNavigate } from "react-router-dom";
 import ViewProduct from "../../modules/products/ViewProduct";
 import { formatAmount } from "../../utils/format";
+import InvoiceModal from "../../modules/invoices/InvoiceModal";
 
 function SearchModal() {
   const [searchBySerialNumber, { data, isFetching }] =
     useLazySearchBySerialNumberQuery();
   const [searchValue, setSearchValue] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [open, setOpen] = useState(false);
+
   const [getOrders, { data: ordersData, isError, isSuccess }] =
     useLazyGetOrdersQuery();
 
@@ -66,8 +69,6 @@ function SearchModal() {
     if (searchValue !== "") {
       setShowSearch(true);
       searchBySerialNumber(searchValue.trim());
-
-      setSearchValue("");
     }
   };
 
@@ -178,6 +179,17 @@ function SearchModal() {
                       >
                         view details
                       </button>
+
+                      {data.saleItem?.Sale.status != "borrowed" &&
+                        data.saleItem?.Sale.status !== "completed" &&
+                        data.saleItem?.Sale.status !== "pending" && (
+                          <button
+                            onClick={() => setOpen(!open)}
+                            className="bg-[#000] text-neutral p-[6px]"
+                          >
+                            Sell Item
+                          </button>
+                        )}
                     </div>
 
                     <div className="mt-[20px]">
@@ -372,6 +384,14 @@ function SearchModal() {
         <ViewProduct
           id={data.saleItem ? data?.saleItem?.productId : data.product.id}
           setShowAddProduct={setProductDialog}
+        />
+      )}
+
+      {open && (
+        <InvoiceModal
+          setDialogOpen={setOpen}
+          sn={searchValue}
+          id={data.saleItem ? data?.saleItem?.productId : data.product.id}
         />
       )}
     </div>

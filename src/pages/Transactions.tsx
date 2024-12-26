@@ -4,6 +4,7 @@ import DashboardBox from "../ui/dashboard/DashboardBox";
 import { DatePickerProps } from "antd";
 import {
   useLazyGetFinancialSummaryQuery,
+  useLazyGetPendingQuery,
   useLazyGetProfitsMonthQuery,
   useLazyGetProfitsPrevMonthQuery,
   useLazyGetProfitsQuarterQuery,
@@ -50,6 +51,22 @@ function Transactions() {
     getFinancialSummary,
   ]);
 
+  const [getPending, { data: pendingData }] = useLazyGetPendingQuery();
+
+  useEffect(() => {
+    getPending("");
+  }, [getPending]);
+
+  const totalAmountSum = pendingData?.sales.reduce(
+    (sum, sale) => parseInt(sum) + parseInt(sale.amount),
+    0
+  );
+
+  const totalPaidSum = pendingData?.sales.reduce(
+    (sum, sale) => parseInt(sum) + parseInt(sale.amount_paid),
+    0
+  );
+
   const [getExpensesToday, { data: expensesToday }] =
     useLazyGetExpenseTodayQuery();
   const [getExpensesPrevMonth, { data: prevMthExpenses }] =
@@ -80,7 +97,7 @@ function Transactions() {
         <Link to="/dashboard/transactions/pending" className="w-[100%]">
           <DashboardBox
             title="Pending Payments"
-            value={`${formatAmount(data?.total_pending_payments) ?? 0}`}
+            value={`${formatAmount(totalAmountSum - totalPaidSum) ?? 0}`}
           />
         </Link>
       </Container>

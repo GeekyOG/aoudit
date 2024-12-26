@@ -80,6 +80,10 @@ const SelectField: FunctionComponent<SelectFieldProps> = ({
         (product) => product.id === selectedCode.productId
       );
       setFieldValue(
+        `items[${index}].description`,
+        selectedProduct?.description
+      );
+      setFieldValue(
         `items[${index}].amount`,
         selectedProduct?.sales_price || 0
       );

@@ -37,6 +37,7 @@ const productValidation = Yup.object().shape({
 
     .min(1, "Quantity must be at least 1"),
   salesPrice: Yup.number(),
+  description: Yup.string().optional(),
   // .required("Sales price is required")
   purchasePrice: Yup.number()
     .required("Purchase price is required")
@@ -273,13 +274,12 @@ function ViewProduct({
   useEffect(() => {
     if (data) {
       setSelectedVendorId(data.vendorId);
-
-      console.log(selectedVendorId);
     }
   }, [data]);
 
   const initialValues = {
     name: data?.product_name ?? "",
+    description: data?.description ?? "",
     date: data ? formatDate(data?.date) : getTodayDate(), // Prefill with sale date or today's date
     quantity: data ? (JSON.parse(data?.serial_numbers).length ?? "") : "",
     purchasePrice: data?.purchase_amount ?? "",
@@ -301,8 +301,6 @@ function ViewProduct({
   }));
 
   const optionsRef = useRef<HTMLDivElement>(null);
-
-  console.log(data?.product_name ?? "");
 
   const [searchValue, setSearchValue] = useState(data?.product_name ?? "");
   const [showSuggestion, setShowSuggestion] = useState(false);
@@ -387,6 +385,7 @@ function ViewProduct({
                 updateProduct({
                   body: {
                     product_name: searchValue,
+                    description: values.description,
                     date: values.date,
                     price: parseFloat(values.salesPrice),
                     quantity: parseInt(values.quantity),
@@ -573,6 +572,20 @@ function ViewProduct({
                         <p className="text-[0.75rem] font-[400]">Add Vendor</p>
                         <IoIosAdd className="text-[0.865rem] " />
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 flex w-[100%] gap-3">
+                    <div className=" w-[100%]">
+                      <Input
+                        name="description"
+                        as="textarea"
+                        title="Description"
+                        placeholder="Enter short description"
+                        errors={errors.description}
+                        touched={touched.description}
+                        width="max-h-[200px] w-[100%] p-[12px]"
+                      />
                     </div>
                   </div>
 

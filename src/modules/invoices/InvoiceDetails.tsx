@@ -34,7 +34,7 @@ function InvoiceDetails({ id }: { id: string }) {
               <img src="/favicon.png" height={35} width={35} alt="" />
               <div>
                 <p className="text-[0.75rem] font-[700] leading-[14.52px]">
-                  Aoudit
+                  SammyTech
                 </p>
                 {/* <p className="text-[0.625rem] text-[#717171]">
               sales@voliefinance.com
@@ -63,7 +63,7 @@ function InvoiceDetails({ id }: { id: string }) {
               </p>
 
               <div className="mt-[10px]">
-                <InvoiceFormText text={"Aoudit"} className="font-[800]" />
+                <InvoiceFormText text={"SammyTech"} className="font-[800]" />
 
                 {/* <InvoiceFormText text={"--"} />
             <InvoiceFormText text={` "--" , "--"},"--"}`} />
@@ -111,12 +111,12 @@ function InvoiceDetails({ id }: { id: string }) {
             <div>
               <div className="flex max-w-[357px] gap-3 justify-between border-b-[1px] py-[10px]">
                 <p className="text-[0.688rem]">Total </p>
-                <p className="text-[0.688rem]">{`${formatAmount(data[0]?.Sale?.total_amount)}`}</p>
+                <p className="text-[0.688rem]">{`${formatAmount(data.reduce((sum, item) => sum + item.amount, 0))}`}</p>
               </div>
               <div className="flex max-w-[357px] gap-3 justify-between border-b-[1px] py-[10px]">
                 <p className="text-[0.688rem] font-[600]">Amount Due</p>
                 <p className="text-[0.688rem] font-[600]">
-                  {`${formatAmount(data[0]?.Sale?.total_amount)}`}
+                  {`${formatAmount(data.reduce((sum, item) => sum + item.amount_paid, 0))}`}
                 </p>
               </div>
             </div>

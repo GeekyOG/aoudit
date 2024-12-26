@@ -38,6 +38,7 @@ const addProductValidation = Yup.object().shape({
     .required("Quantity is required")
     .min(1, "Quantity must be at least 1"),
   salesPrice: Yup.string(),
+  description: Yup.string().optional(),
   // .required("Sales price is required")
   // .min(100, "Sales price must be at least 100"),
   purchasePrice: Yup.string().required("Purchase price is required"),
@@ -123,7 +124,7 @@ function AddProductModal({
       setSelectedCategoryError(false);
     }
     if (selectedSize === "Select an option") {
-      setSelectedSizeError(true);
+      setSelectedSize("");
     } else {
       setSelectedSizeError(false);
     }
@@ -270,6 +271,7 @@ function AddProductModal({
                 name: "",
                 quantity: "",
                 purchasePrice: "",
+                description: "",
                 salesPrice: 0,
                 items: [{ sn: "" }],
               }}
@@ -309,6 +311,7 @@ function AddProductModal({
                       quantity: parseInt(values.quantity),
                       purchase_amount: parseFloat(values.purchasePrice),
                       sales_price: values.salesPrice,
+                      description: values.description,
                       size: selectedSize,
                       vendorId: selectedVendorId,
                       addedBy: `${userData.firstname} ${userData.lastname}`,
@@ -494,6 +497,20 @@ function AddProductModal({
                     </div>
                   </div>
 
+                  <div className="mt-5 flex w-[100%] gap-3">
+                    <div className=" w-[100%]">
+                      <Input
+                        name="description"
+                        as="textarea"
+                        title="Description"
+                        placeholder="Enter short description"
+                        errors={errors.description}
+                        touched={touched.description}
+                        width="max-h-[200px] w-[100%] p-[12px]"
+                      />
+                    </div>
+                  </div>
+
                   {/* Amount Field */}
                   <div className="flex flex-col ">
                     <label
@@ -595,7 +612,7 @@ function AddProductModal({
             setShowDrawer={setIsSubCategoryOpen}
           />
           <AddVendor
-            callback={() => getSupplier("")}
+            callback={() => getSuppliers("")}
             open={isVendorOpen}
             setShowDrawer={setIsVendorOpen}
           />

@@ -13,6 +13,7 @@ import { useLazyGetProductsQuery } from "../api/productApi";
 import { useLazyGetSubCategoriesQuery } from "../api/subCategories";
 import AddCategory from "../modules/products/AddCategoryDrawer";
 import AddSubCategory from "../modules/products/AddSubCategory";
+import moment from "moment";
 
 const Tabs = ["Products"];
 
@@ -66,7 +67,7 @@ function Inventory() {
     const serialNumbers = JSON.parse(product.serial_numbers).length;
 
     // Create a unique key based on product name and size
-    const productKey = `${product.product_name}-${product.size}`;
+    const productKey = `${product.product_name}`;
 
     // Check if the combination of product name and size already exists in the accumulator
     if (!acc[productKey]) {
@@ -74,6 +75,7 @@ function Inventory() {
         product_name: product.product_name,
         size: product.size,
         addedBy: product.addedBy,
+        description: product.description,
         total_serial_numbers: serialNumbers,
         createdAt: product.date,
       };
@@ -85,8 +87,12 @@ function Inventory() {
     return acc;
   }, {});
 
+  const sortedResult = Object.values(result ?? []).sort((a: any, b: any) =>
+    moment(b.createdAt).isBefore(a.createdAt) ? -1 : 1
+  );
+
   // Convert the result object back to an array
-  const uniqueProducts: any[] = Object.values(result ?? []);
+  const uniqueProducts: any[] = Object.values(sortedResult ?? []);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -158,7 +164,11 @@ function Inventory() {
             type="inventory"
             action={() => {}}
             columns={columns}
-            data={filteredOptions || uniqueProducts || []}
+            data={
+              filteredOptions.filter((item) => item.total_serial_numbers > 0) ||
+              uniqueProducts.filter((item) => item.total_serial_numbers > 0) ||
+              []
+            }
             isFetching={productsLoading}
             callBackAction={handleGetProducts}
           />

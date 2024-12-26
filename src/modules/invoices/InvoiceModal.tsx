@@ -8,10 +8,12 @@ function InvoiceModal({
   setDialogOpen,
   view,
   id,
+  sn,
 }: {
   setDialogOpen: Dispatch<SetStateAction<boolean>>;
   view?: boolean;
   id?: string;
+  sn?: string;
 }) {
   return (
     <div className="fixed left-0 right-0 top-0 z-[100] h-[100vh] overflow-y-scroll bg-[#00000065] px-[28px] pt-[48px] flex justify-center pb-[28px]">
@@ -44,7 +46,13 @@ function InvoiceModal({
                   <ViewInvoice setDialogOpen={setDialogOpen} id={id ?? ""} />
                 )}
 
-                {!view && <AddInvoiceForm setDialogOpen={setDialogOpen} />}
+                {!view && (
+                  <AddInvoiceForm
+                    setDialogOpen={setDialogOpen}
+                    sn={sn}
+                    id={id}
+                  />
+                )}
               </div>
             </div>
           </div>

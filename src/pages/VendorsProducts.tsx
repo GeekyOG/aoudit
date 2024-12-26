@@ -195,7 +195,7 @@ function VendorsProducts() {
               type="product"
               action={""}
               columns={columns}
-              data={filteredOptions || fetchedData || []}
+              data={fetchedData || filteredOptions || []}
               isFetching={productsLoading}
               callBackAction={handleGetProducts}
             />

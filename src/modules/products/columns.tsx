@@ -8,6 +8,13 @@ export const columns: ColumnsType = [
     title: "Product Name",
     dataIndex: "product_name",
     key: "product_name",
+    render: (_, row) => {
+      return (
+        <div>
+          <p>{row.product_name}</p>
+        </div>
+      );
+    },
   },
 
   {

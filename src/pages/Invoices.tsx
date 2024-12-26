@@ -29,7 +29,13 @@ function Invoices() {
   // Update fetched data once orders are successfully retrieved
   useEffect(() => {
     if (isSuccess && ordersData) {
-      setFetchedData(ordersData); // Set the fetched orders
+      const sortedResult = Object.values(ordersData ?? []).sort(
+        (a: any, b: any) => {
+          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+        }
+      );
+
+      setFetchedData(sortedResult); // Set the fetched orders
     }
   }, [isSuccess, ordersData]);
 
@@ -45,7 +51,12 @@ function Invoices() {
     }
   };
   useEffect(() => {
-    let filteredData = ordersData;
+    const sortedResult: any = Object.values(ordersData ?? []).sort(
+      (a: any, b: any) => {
+        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+      }
+    );
+    let filteredData = sortedResult;
 
     // Filter by status
     if (activeTab !== "All") {
@@ -58,8 +69,6 @@ function Invoices() {
     if (startDate && endDate) {
       filteredData = filteredData?.filter((item) => {
         const date = moment(item.Sale.date);
-
-        console.log(date);
 
         return date.isBetween(startDate, endDate, undefined, "[]");
       });
