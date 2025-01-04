@@ -16,6 +16,7 @@ export const handleExportCSV = ({ data, fileName }: handleExportCSVProps) => {
     "Purchase Amount",
     "Amount Sold",
     "Profit",
+    "Status",
     "Date",
   ];
   const filteredData = data.map(({ ...rest }) => {
@@ -23,9 +24,10 @@ export const handleExportCSV = ({ data, fileName }: handleExportCSVProps) => {
       `${rest.Sale.Customer.first_name} ${rest.Sale.Customer.last_name}`.trim();
     const productName = rest.Product.product_name;
     const purchaseAmount = rest.Product.purchase_amount;
-    const salesAmount = rest.Sale.total_paid;
-    const profit = salesAmount - purchaseAmount;
-    const date = format(new Date(rest.Sale.date), "dd, MMM, yyyy");
+    const salesAmount = rest.Sale.amount_paid ?? rest.amount_paid;
+    const profit = parseInt(salesAmount) - parseInt(purchaseAmount);
+    const status = rest.Sale.status;
+    const date = new Date(rest.Sale.date).toDateString();
 
     // Return array of values for each row
     return [
@@ -34,6 +36,7 @@ export const handleExportCSV = ({ data, fileName }: handleExportCSVProps) => {
       purchaseAmount,
       salesAmount,
       profit,
+      status,
       date,
     ];
   });

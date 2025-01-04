@@ -66,7 +66,7 @@ function OrderList() {
     const serialNumbers = JSON.parse(product.serial_numbers).length;
 
     // Create a unique key based on product name and size
-    const productKey = `${product.product_name}-${product.size}`;
+    const productKey = `${product.product_name}`;
 
     // Check if the combination of product name and size already exists in the accumulator
     if (!acc[productKey]) {
@@ -74,6 +74,7 @@ function OrderList() {
         product_name: product.product_name,
         size: product.size,
         addedBy: product.addedBy,
+        description: product.description,
         total_serial_numbers: serialNumbers,
         createdAt: product.date,
       };

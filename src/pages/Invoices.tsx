@@ -78,13 +78,20 @@ function Invoices() {
   }, [activeTab, startDate, endDate, ordersData]);
 
   const [searchTerm, setSearchTerm] = useState("");
-
   const filteredOptions = useMemo(() => {
-    return fetchedData?.filter((item) =>
-      item?.Sale.Customer.first_name
+    return fetchedData?.filter((item) => {
+      const customerNameMatch = item?.Sale?.Customer?.first_name
         ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase())
-    );
+        .includes(searchTerm?.toLowerCase());
+      const productNameMatch = item?.Product?.product_name
+        ?.toLowerCase()
+        .includes(searchTerm?.toLowerCase());
+
+      const imeiMatch = item?.serial_number
+        ?.toLowerCase()
+        .includes(searchTerm?.toLowerCase());
+      return customerNameMatch || productNameMatch || imeiMatch;
+    });
   }, [fetchedData, searchTerm]);
 
   return (
@@ -114,7 +121,7 @@ function Invoices() {
               <input
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className=" py-[2px] text-[0.865rem]"
-                placeholder="Search by name..."
+                placeholder="Enter name, product name or imie"
               />
             </div>
 

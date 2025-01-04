@@ -18,7 +18,6 @@ import {
   useLazyGetOrdersQuery,
   useUpdateOrderMutation,
 } from "../../api/ordersApi";
-import { useLazyGetSerialCodesQuery } from "../../api/serialCodesAPi";
 import { toast } from "react-toastify";
 import AddCustomer from "../customers/AddCustomer";
 import DataLoading from "../../ui/DataLoading";
@@ -633,7 +632,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                         values={values}
                                         setFieldValue={setFieldValue}
                                         options={subCategoryData}
-                                        searchPlaceholder="Select Size"
+                                        searchPlaceholder="Select Sze"
                                         productsData={productsData}
                                         providedSN={providedSize}
                                       />

@@ -6,7 +6,7 @@ function Header() {
   return (
     <div className="h-[100px] border-b-[2px] bg-[#fff]">
       <Container className="flex h-[100%] items-center justify-between">
-        <p className="text-[1.5rem] font-[600] text-neutral-400">SammyTech</p>
+        <p className="text-[1.5rem] font-[600] text-neutral-400">Aoudit</p>
 
         <div className="flex gap-[5px] text-[1.05rem]">
           <p className="text-neutral-400">Got Account?</p>

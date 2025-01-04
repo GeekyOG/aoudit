@@ -176,9 +176,15 @@ function AddItem() {
                     text={`${formatAmount(item.sales_price)}`}
                   />
 
+                  <ProductDetails title={" Size"} text={item.size} />
+
                   <ProductDetails
                     title={"Total Qty Purchased"}
                     text={`${item.quantity}`}
+                  />
+                  <ProductDetails
+                    title={"Available Quantity"}
+                    text={`${JSON.parse(item.serial_numbers).length}`}
                   />
                   <ProductDetails
                     title={" Purchase Date"}
@@ -252,6 +258,10 @@ function AddItem() {
                   <ProductDetails
                     title={"Total Qty Purchased"}
                     text={`${item.quantity}`}
+                  />
+                  <ProductDetails
+                    title={"Available Quantity"}
+                    text={`${JSON.parse(item.serial_numbers).length}`}
                   />
                   <ProductDetails
                     title={" Purchase Date"}

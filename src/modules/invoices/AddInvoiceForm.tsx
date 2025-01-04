@@ -37,7 +37,7 @@ const validationSchema = Yup.object({
         id: Yup.string().required("required"),
         sn: Yup.string().required("required"),
         size: Yup.string().required(" required"),
-        description: Yup.string(),
+        description: Yup.string().optional(),
         amount: Yup.string().required("required").min(1, "Amount cannot be 0"),
         amountPaid: Yup.string()
           .required("required")
@@ -51,9 +51,17 @@ interface AddInvoicesProps {
   setDialogOpen: Dispatch<SetStateAction<boolean>>;
   sn?: string;
   id?: string;
+  description?: string;
+  size?: string;
 }
 
-function AddInvoices({ setDialogOpen, sn, id }: AddInvoicesProps) {
+function AddInvoices({
+  setDialogOpen,
+  sn,
+  id,
+  description,
+  size,
+}: AddInvoicesProps) {
   const [getProduct, { data: productsData }] = useLazyGetProductsQuery();
   const [getOrders] = useLazyGetOrdersQuery();
   const [getMetric] = useLazyGetMetricsQuery();
@@ -196,7 +204,8 @@ function AddInvoices({ setDialogOpen, sn, id }: AddInvoicesProps) {
           amount: 0,
           amountPaid: 0,
           color: "",
-          size: "",
+          size: size || "",
+          description: description || "",
         },
       ]
     : [
@@ -209,6 +218,8 @@ function AddInvoices({ setDialogOpen, sn, id }: AddInvoicesProps) {
           size: "",
         },
       ];
+
+  console.log(description);
 
   return (
     <div>
@@ -544,6 +555,7 @@ function AddInvoices({ setDialogOpen, sn, id }: AddInvoicesProps) {
                                       options={subCategoryData}
                                       searchPlaceholder="Select Sze"
                                       productsData={productsData}
+                                      providedSN={providedSize}
                                     />
 
                                     <ErrorMessage
@@ -565,11 +577,6 @@ function AddInvoices({ setDialogOpen, sn, id }: AddInvoicesProps) {
                                     disabled
                                     name={`items[${index}].description`}
                                     type=""
-                                  />
-                                  <ErrorMessage
-                                    name={`items[${index}].amount`}
-                                    component="div"
-                                    className="text-[12px] font-[400] text-[#f00000]"
                                   />
                                 </div>
                               </div>

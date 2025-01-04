@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import ViewProduct from "../../modules/products/ViewProduct";
 import { formatAmount } from "../../utils/format";
 import InvoiceModal from "../../modules/invoices/InvoiceModal";
+import { useLazyGetAllSalesQuery } from "../../api/metrics";
 
 function SearchModal() {
   const [searchBySerialNumber, { data, isFetching }] =
@@ -22,7 +23,7 @@ function SearchModal() {
   const [open, setOpen] = useState(false);
 
   const [getOrders, { data: ordersData, isError, isSuccess }] =
-    useLazyGetOrdersQuery();
+    useLazyGetAllSalesQuery();
 
   const [getProduct, { isFetching: productsLoading, data: productsData }] =
     useLazyGetProductsQuery();
@@ -282,18 +283,29 @@ function SearchModal() {
                       >
                         view details
                       </button>
+
+                      {data.saleItem?.Sale.status == "returned" && (
+                        <button
+                          onClick={() => setOpen(!open)}
+                          className="bg-[#000] text-neutral p-[6px]"
+                        >
+                          Sell Item
+                        </button>
+                      )}
                     </div>
 
-                    <p
-                      className={cn(
-                        "text-[0.865rem]  p-[6px] max-w-[130px] text-[#000] mt-[12px]",
-                        data.saleItem?.Sale.status == "completed"
-                          ? "bg-green-300"
-                          : "bg-secondary-550"
-                      )}
-                    >
-                      Status: {data.saleItem?.Sale.status}
-                    </p>
+                    {data.saleItem?.Sale.status !== "returned" && (
+                      <p
+                        className={cn(
+                          "text-[0.865rem]  p-[6px] max-w-[130px] text-[#000] mt-[12px]",
+                          data.saleItem?.Sale.status == "completed"
+                            ? "bg-green-300"
+                            : "bg-secondary-550"
+                        )}
+                      >
+                        Status: {data.saleItem?.Sale.status}
+                      </p>
+                    )}
 
                     <div className="mt-[20px]">
                       <div className="flex flex-col gap-2">
@@ -391,6 +403,12 @@ function SearchModal() {
         <InvoiceModal
           setDialogOpen={setOpen}
           sn={searchValue}
+          description={
+            data.saleItem
+              ? data?.saleItem?.description
+              : data.product.description
+          }
+          size={data.saleItem ? data?.saleItem?.size : data.product.size}
           id={data.saleItem ? data?.saleItem?.productId : data.product.id}
         />
       )}

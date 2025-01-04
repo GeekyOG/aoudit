@@ -1,16 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Container from "../ui/Container";
 import DashboardTable from "../components/dashboard/DashboardTable";
 import Button from "../ui/Button";
 import AddInvoices from "../modules/invoices/AddInvoices";
 import { Popover, DatePicker, DatePickerProps } from "antd";
 import { Search, ListFilter, Download } from "lucide-react";
-import { useLazyGetOrdersQuery } from "../api/ordersApi";
 import { handleExportCSV } from "../utils/export";
 import { cn } from "../utils/cn";
 import moment from "moment";
 import { useParams } from "react-router-dom";
 import {
+  useLazyGetAllSalesQuery,
   useLazyGetProfitsPrevMonthQuery,
   useLazyGetProfitsQuarterQuery,
   useLazyGetProfitsTodayQuery,
@@ -28,7 +28,7 @@ function TransactionHistory() {
   const [endDate, setEndDate] = useState<Date | null>(null);
 
   const [getOrders, { data: ordersData, isLoading, isError, isSuccess }] =
-    useLazyGetOrdersQuery();
+    useLazyGetAllSalesQuery();
 
   // Fetch orders when the component mounts
   useEffect(() => {
@@ -97,7 +97,22 @@ function TransactionHistory() {
     setFetchedData(filteredData);
   }, [activeTab, startDate, endDate, ordersData]);
 
+  const [searchTerm, setSearchTerm] = useState("");
+  const filteredOptions = useMemo(() => {
+    return fetchedData?.filter((item) => {
+      const customerNameMatch = item?.Sale?.Customer?.first_name
+        ?.toLowerCase()
+        .includes(searchTerm?.toLowerCase());
+      const productNameMatch = item?.Product?.product_name
+        ?.toLowerCase()
+        .includes(searchTerm?.toLowerCase());
 
+      const imeiMatch = item?.serial_number
+        ?.toLowerCase()
+        .includes(searchTerm?.toLowerCase());
+      return customerNameMatch || productNameMatch || imeiMatch;
+    });
+  }, [fetchedData, searchTerm]);
 
   return (
     <div>
@@ -124,6 +139,7 @@ function TransactionHistory() {
             <div className="lg:flex hidden cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
               <Search size={16} className="text-neutral-300" />
               <input
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className=" py-[2px] text-[0.865rem]"
                 placeholder="Search by name..."
               />
@@ -176,6 +192,7 @@ function TransactionHistory() {
         <DashboardTable
           columns={columns}
           data={
+            filteredOptions ||
             (period == "today" && todayData?.totalProfit?.sales) ||
             (period == "week" && weekData?.totalProfit?.sales) ||
             (period == "quarter" && quarterData?.totalProfit?.sales) ||

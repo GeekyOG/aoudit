@@ -23,6 +23,12 @@ export const metricsApi = createApi({
       }),
     }),
 
+    getAllSales: builder.query({
+      query: () => ({
+        url: "/profits/all",
+      }),
+    }),
+
     // For custom date range:
     // GET /api/sales/profit?startDate=2024-01-01&endDate=2024-01-31
     getProfitsToday: builder.query({
@@ -87,4 +93,6 @@ export const {
   useLazyGetPendingQuery,
   useLazyGetProfitsMonthQuery,
   useLazyGetProfitsPrevMonthQuery,
+  useGetAllSalesQuery,
+  useLazyGetAllSalesQuery,
 } = metricsApi;
