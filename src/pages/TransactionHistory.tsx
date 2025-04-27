@@ -31,6 +31,14 @@ function TransactionHistory() {
   const [getOrders, { data: ordersData, isLoading, isError, isSuccess }] =
     useLazyGetAllSalesQuery();
 
+  // Update fetched data once orders are successfully retrieved
+  useEffect(() => {
+    getOrders("");
+    if (isSuccess && ordersData) {
+      setFetchedData(ordersData); // Set the fetched orders
+    }
+  }, [isSuccess, ordersData]);
+
   // Handle tab switching and filtering based on the status
 
   const Tabs = [`All ${period == "today" ? period : `this ${period}`}`];
@@ -155,13 +163,13 @@ function TransactionHistory() {
         imei.toLowerCase().includes(lowerSearch)
       );
     });
-  }, [baseData, searchTerm]);
+  }, [baseData, searchTerm, fetchedData]);
 
-  const totalPurchaseAmount =
-    filteredOptions?.reduce(
-      (sum, item) => sum + (item.amount - item.Product.purchase_amount),
-      0
-    ) || 0;
+  const dataToUse = startDate && endDate ? fetchedData : baseData || [];
+
+  const totalPurchaseAmount = dataToUse.reduce((sum, item) => {
+    return sum + (item.amount - (item.Product?.purchase_amount || 0));
+  }, 0);
 
   return (
     <div>
@@ -245,7 +253,13 @@ function TransactionHistory() {
       <Container>
         <DashboardTable
           columns={columns}
-          data={filteredOptions.length > 0 ? filteredOptions : tableData}
+          data={
+            fetchedData?.length > 0
+              ? fetchedData
+              : filteredOptions.length > 0
+                ? filteredOptions
+                : tableData
+          }
           isFetching={isLoading}
           action={() => getOrders("")}
           type=""
