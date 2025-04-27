@@ -596,6 +596,7 @@ function AddInvoices({
                             amountPaid: 0,
                             product_name: "",
                             size: "",
+                            description: "",
                           })
                         }
                       >

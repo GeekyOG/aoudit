@@ -13,6 +13,7 @@ import DataLoading from "../ui/DataLoading";
 import { Popover, DatePicker } from "antd";
 import moment from "moment";
 import { useLazyGetSupplierQuery } from "../api/vendorApi";
+import { formatAmount } from "../utils/format";
 
 const Tabs = ["All Products"];
 
@@ -38,6 +39,13 @@ function VendorsProducts() {
   };
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  interface Product {
+    purchase_amount: number;
+    quantity: number;
+    [key: string]: any;
+  }
+
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   const onChange = (date, dateString, type) => {
     if (type === "start") {
@@ -76,6 +84,30 @@ function VendorsProducts() {
       item?.product_name?.toLowerCase().includes(searchTerm?.toLowerCase())
     );
   }, [productsData, searchTerm]);
+
+  useEffect(() => {
+    let filtered = productsData;
+
+    if (startDate && endDate) {
+      filtered = filtered?.filter((product) =>
+        moment(product.date).isBetween(startDate, endDate, undefined, "[]")
+      );
+    }
+
+    if (searchTerm) {
+      filtered = filtered?.filter((product) =>
+        product.product_name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    setFilteredProducts(filtered);
+  }, [productsData, startDate, endDate, searchTerm]);
+
+  const totalPurchaseAmount =
+    filteredProducts?.reduce(
+      (sum, item) => sum + item.purchase_amount * item.quantity,
+      0
+    ) || 0;
   return (
     <div>
       {SupplierLoading && (
@@ -121,6 +153,9 @@ function VendorsProducts() {
             <Container className="py-[20px]">
               <h1 className="text-[1.35rem] font-[700] text-neutral-500">
                 Purchase History
+              </h1>
+              <h1 className="text-[1rem] font-[700] text-neutral-500">
+                SUM TOTAL: {formatAmount(totalPurchaseAmount)}
               </h1>
             </Container>
 
@@ -195,7 +230,7 @@ function VendorsProducts() {
               type="product"
               action={""}
               columns={columns}
-              data={fetchedData || filteredOptions || []}
+              data={filteredProducts || filteredOptions || []}
               isFetching={productsLoading}
               callBackAction={handleGetProducts}
             />

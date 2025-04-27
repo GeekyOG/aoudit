@@ -62,6 +62,41 @@ export const handleExportCSV = ({ data, fileName }: handleExportCSVProps) => {
   }
 };
 
+export const handleExportStockCSV = ({
+  data,
+  fileName,
+}: handleExportCSVProps) => {
+  const headers = ["Product Name", "Size", "Qty"];
+  const filteredData = data.map(({ ...rest }) => {
+    const productName = rest.product_name;
+    const size = rest.size;
+    const qty = rest.total_serial_numbers;
+
+    // Return array of values for each row
+    return [productName, size, qty];
+  });
+
+  // Prepend headers as the first row
+  const csvData = [headers, ...filteredData];
+
+  // Logic to export `csvData` as a CSV file goes here
+
+  const csv = Papa.unparse(csvData);
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+  const link = document.createElement("a");
+  if (link.download !== undefined) {
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+};
+
 export const handleDownload = (pdfRef: RefObject<HTMLDivElement>) => {
   const element = pdfRef?.current;
   if (!element) return;

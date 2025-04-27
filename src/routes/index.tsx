@@ -13,6 +13,8 @@ import TransactionHistory from "../pages/TransactionHistory";
 import PendingPayments from "../pages/PendingPayments";
 import DevicePage from "../pages/DevicePage";
 import ExpensesHistory from "../pages/ExpensesHistory";
+import ClosingStock from "../pages/ClosingStock";
+import OpeningStock from "../pages/OpenStock";
 const Customers = Loadable(lazy(() => import("../pages/Customers")));
 const Dashboard = Loadable(lazy(() => import("../pages/Dashboard")));
 const Inventory = Loadable(lazy(() => import("../pages/Inventory")));
@@ -115,6 +117,14 @@ const router = createBrowserRouter([
             <Inventory />
           </RequirePermission>
         ),
+      },
+      {
+        path: "/dashboard/opening-stock",
+        element: <OpeningStock />,
+      },
+      {
+        path: "/dashboard/closing-stock",
+        element: <ClosingStock />,
       },
       {
         path: "/dashboard/orderlist",

@@ -11,6 +11,12 @@ export const productsApi = createApi({
       }),
     }),
 
+    getStockReport: builder.query({
+      query: () => ({
+        url: "products/products/stock-report",
+      }),
+    }),
+
     addProduct: builder.mutation({
       query: (body) => ({
         url: "/products/add",
@@ -58,4 +64,6 @@ export const {
   useGetProductQuery,
   useLazyGetProductQuery,
   useUpdateProductMutation,
+  useGetStockReportQuery,
+  useLazyGetStockReportQuery,
 } = productsApi;

@@ -18,6 +18,7 @@ import {
   useLazyGetProfitsYearQuery,
 } from "../api/metrics";
 import { columns } from "../modules/transactions/historyColumn";
+import { formatAmount } from "../utils/format";
 function TransactionHistory() {
   const { period } = useParams<{ period: string }>();
   const [open, setOpen] = useState(false);
@@ -29,18 +30,6 @@ function TransactionHistory() {
 
   const [getOrders, { data: ordersData, isLoading, isError, isSuccess }] =
     useLazyGetAllSalesQuery();
-
-  // Fetch orders when the component mounts
-  useEffect(() => {
-    getOrders(""); // Fetch orders without filters initially
-  }, [getOrders]);
-
-  // Update fetched data once orders are successfully retrieved
-  useEffect(() => {
-    if (isSuccess && ordersData) {
-      setFetchedData(ordersData); // Set the fetched orders
-    }
-  }, [isSuccess, ordersData]);
 
   // Handle tab switching and filtering based on the status
 
@@ -62,18 +51,27 @@ function TransactionHistory() {
   const [getProfitsPrevMonth, { data: prevMonthData }] =
     useLazyGetProfitsPrevMonthQuery();
   useEffect(() => {
-    getProfitsYear("");
-    getProfitsYear("");
-    getProfitsQuarter("");
-    getProfitsWeek("");
-    getProfitsToday("");
-    getProfitsPrevMonth("");
+    if (period === "today") {
+      getProfitsToday("");
+    } else if (period === "week") {
+      getProfitsWeek("");
+    } else if (period === "quarter") {
+      getProfitsQuarter("");
+    } else if (period === "year") {
+      getProfitsYear("");
+    } else if (period === "Previous month") {
+      getProfitsPrevMonth("");
+    } else {
+      getOrders(""); // fallback if period is unknown or you want to fetch all orders
+    }
   }, [
-    getProfitsYear,
-    getProfitsYear,
-    getProfitsQuarter,
-    getProfitsWeek,
+    period,
     getProfitsToday,
+    getProfitsWeek,
+    getProfitsQuarter,
+    getProfitsYear,
+    getProfitsPrevMonth,
+    getOrders,
   ]);
 
   useEffect(() => {
@@ -98,25 +96,81 @@ function TransactionHistory() {
   }, [activeTab, startDate, endDate, ordersData]);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const filteredOptions = useMemo(() => {
-    return fetchedData?.filter((item) => {
-      const customerNameMatch = item?.Sale?.Customer?.first_name
-        ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase());
-      const productNameMatch = item?.Product?.product_name
-        ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase());
 
-      const imeiMatch = item?.serial_number
-        ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase());
-      return customerNameMatch || productNameMatch || imeiMatch;
+  let tableData: any[] = [];
+
+  if (period === "today" && todayData?.totalProfit?.sales) {
+    tableData = todayData.totalProfit.sales;
+  } else if (period === "week" && weekData?.totalProfit?.sales) {
+    tableData = weekData.totalProfit.sales;
+  } else if (period === "quarter" && quarterData?.totalProfit?.sales) {
+    tableData = quarterData.totalProfit.sales;
+  } else if (period === "year" && yearData?.totalProfit?.sales) {
+    tableData = yearData.totalProfit.sales;
+  } else if (period === "Previous month" && prevMonthData?.totalProfit?.sales) {
+    tableData = prevMonthData.totalProfit.sales;
+  } else {
+    tableData = fetchedData || [];
+  }
+
+  const baseData = useMemo(() => {
+    if (period === "today" && todayData?.totalProfit?.sales) {
+      return todayData.totalProfit.sales;
+    } else if (period === "week" && weekData?.totalProfit?.sales) {
+      return weekData.totalProfit.sales;
+    } else if (period === "quarter" && quarterData?.totalProfit?.sales) {
+      return quarterData.totalProfit.sales;
+    } else if (period === "year" && yearData?.totalProfit?.sales) {
+      return yearData.totalProfit.sales;
+    } else if (
+      period === "Previous month" &&
+      prevMonthData?.totalProfit?.sales
+    ) {
+      return prevMonthData.totalProfit.sales;
+    } else {
+      return fetchedData || [];
+    }
+  }, [
+    period,
+    todayData,
+    weekData,
+    quarterData,
+    yearData,
+    prevMonthData,
+    fetchedData,
+  ]);
+  const filteredOptions = useMemo(() => {
+    if (!searchTerm) return baseData;
+
+    return baseData?.filter((item) => {
+      const customerName = item?.Sale?.Customer?.first_name || "";
+      const productName = item?.Product?.product_name || "";
+      const imei = item?.serial_number || "";
+
+      const lowerSearch = searchTerm.toLowerCase();
+
+      return (
+        customerName.toLowerCase().includes(lowerSearch) ||
+        productName.toLowerCase().includes(lowerSearch) ||
+        imei.toLowerCase().includes(lowerSearch)
+      );
     });
-  }, [fetchedData, searchTerm]);
+  }, [baseData, searchTerm]);
+
+  const totalPurchaseAmount =
+    filteredOptions?.reduce(
+      (sum, item) => sum + (item.amount - item.Product.purchase_amount),
+      0
+    ) || 0;
 
   return (
     <div>
       <div className="">
+        <Container>
+          <h1 className="text-[1rem] font-[700] text-neutral-500">
+            SUM TOTAL: {formatAmount(totalPurchaseAmount)}
+          </h1>
+        </Container>
         <Container className="flex items-center justify-between">
           <div className="flex gap-[5px]">
             {Tabs.map((tab, i) => (
@@ -191,18 +245,10 @@ function TransactionHistory() {
       <Container>
         <DashboardTable
           columns={columns}
-          data={
-            filteredOptions ||
-            (period == "today" && todayData?.totalProfit?.sales) ||
-            (period == "week" && weekData?.totalProfit?.sales) ||
-            (period == "quarter" && quarterData?.totalProfit?.sales) ||
-            (period == "year" && yearData?.totalProfit?.sales) ||
-            (period == "Previous month" && prevMonthData?.totalProfit?.sales) ||
-            []
-          }
+          data={filteredOptions.length > 0 ? filteredOptions : tableData}
           isFetching={isLoading}
           action={() => getOrders("")}
-          type={""}
+          type=""
         />
       </Container>
 
