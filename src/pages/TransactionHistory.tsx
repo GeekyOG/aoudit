@@ -165,7 +165,7 @@ function TransactionHistory() {
     });
   }, [baseData, searchTerm, fetchedData]);
 
-  const dataToUse = startDate && endDate ? fetchedData : baseData || [];
+  const dataToUse = startDate && endDate ? fetchedData : filteredOptions || [];
 
   const totalPurchaseAmount = dataToUse.reduce((sum, item) => {
     return sum + (item.amount - (item.Product?.purchase_amount || 0));
@@ -254,7 +254,7 @@ function TransactionHistory() {
         <DashboardTable
           columns={columns}
           data={
-            fetchedData?.length > 0
+            startDate && endDate
               ? fetchedData
               : filteredOptions.length > 0
                 ? filteredOptions

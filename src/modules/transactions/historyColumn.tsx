@@ -1,6 +1,8 @@
 import { ColumnsType } from "antd/es/table";
 import { formatAmount } from "../../utils/format";
 import React from "react";
+import { format } from "date-fns";
+
 // import React from "react";
 
 export const columns: ColumnsType = [
@@ -46,5 +48,14 @@ export const columns: ColumnsType = [
     render: (_, record) => (
       <p>{formatAmount(record.amount - record.Product.purchase_amount)}</p>
     ),
+  },
+  {
+    title: "Date added",
+    dataIndex: "createdAt",
+    key: "createdAt",
+    render: (_, record) => {
+      const formattedDate = format(new Date(record.Sale.date), "dd, MMM, yyyy");
+      return formattedDate;
+    },
   },
 ];

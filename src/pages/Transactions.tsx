@@ -127,7 +127,7 @@ function Transactions() {
         </Link>
       </Container>
       <Container className="flex flex-col gap-[24px] pb-[40px] md:flex-row">
-        <Link className="w-[100%]" to="/dashboard/transactions/history/quarter">
+        <Link className="w-[100%]" to="/dashboard/transactions/history/year">
           <DashboardBox
             className=""
             title="Total Profit This Year"
