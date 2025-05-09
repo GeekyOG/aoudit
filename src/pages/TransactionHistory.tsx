@@ -83,7 +83,12 @@ function TransactionHistory() {
   ]);
 
   useEffect(() => {
-    let filteredData = ordersData;
+    const sortedResult: any = Object.values(ordersData ?? []).sort(
+      (a: any, b: any) => {
+        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+      }
+    );
+    let filteredData = sortedResult;
 
     // Filter by status
     if (activeTab !== "All") {
@@ -108,33 +113,73 @@ function TransactionHistory() {
   let tableData: any[] = [];
 
   if (period === "today" && todayData?.totalProfit?.sales) {
-    tableData = todayData.totalProfit.sales;
+    tableData = Object.values(todayData.totalProfit.sales ?? []).sort(
+      (a: any, b: any) => {
+        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+      }
+    );
   } else if (period === "week" && weekData?.totalProfit?.sales) {
-    tableData = weekData.totalProfit.sales;
+    tableData = Object.values(weekData.totalProfit.sales ?? []).sort(
+      (a: any, b: any) => {
+        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+      }
+    );
   } else if (period === "quarter" && quarterData?.totalProfit?.sales) {
-    tableData = quarterData.totalProfit.sales;
+    tableData = Object.values(quarterData.totalProfit.sales ?? []).sort(
+      (a: any, b: any) => {
+        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+      }
+    );
   } else if (period === "year" && yearData?.totalProfit?.sales) {
-    tableData = yearData.totalProfit.sales;
+    tableData = Object.values(yearData.totalProfit.sales ?? []).sort(
+      (a: any, b: any) => {
+        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+      }
+    );
   } else if (period === "Previous month" && prevMonthData?.totalProfit?.sales) {
-    tableData = prevMonthData.totalProfit.sales;
+    tableData = Object.values(prevMonthData.totalProfit.sales ?? []).sort(
+      (a: any, b: any) => {
+        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+      }
+    );
   } else {
     tableData = fetchedData || [];
   }
 
   const baseData = useMemo(() => {
     if (period === "today" && todayData?.totalProfit?.sales) {
-      return todayData.totalProfit.sales;
+      return Object.values(todayData.totalProfit.sales ?? []).sort(
+        (a: any, b: any) => {
+          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+        }
+      );
     } else if (period === "week" && weekData?.totalProfit?.sales) {
-      return weekData.totalProfit.sales;
+      return Object.values(weekData.totalProfit.sales ?? []).sort(
+        (a: any, b: any) => {
+          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+        }
+      );
     } else if (period === "quarter" && quarterData?.totalProfit?.sales) {
-      return quarterData.totalProfit.sales;
+      return Object.values(quarterData.totalProfit.sales ?? []).sort(
+        (a: any, b: any) => {
+          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+        }
+      );
     } else if (period === "year" && yearData?.totalProfit?.sales) {
-      return yearData.totalProfit.sales;
+      return Object.values(yearData.totalProfit.sales ?? []).sort(
+        (a: any, b: any) => {
+          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+        }
+      );
     } else if (
       period === "Previous month" &&
       prevMonthData?.totalProfit?.sales
     ) {
-      return prevMonthData.totalProfit.sales;
+      return Object.values(prevMonthData.totalProfit.sales ?? []).sort(
+        (a: any, b: any) => {
+          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+        }
+      );
     } else {
       return fetchedData || [];
     }
@@ -150,7 +195,13 @@ function TransactionHistory() {
   const filteredOptions = useMemo(() => {
     if (!searchTerm) return baseData;
 
-    return baseData?.filter((item) => {
+    const sortedResult: any = Object.values(baseData ?? []).sort(
+      (a: any, b: any) => {
+        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+      }
+    );
+
+    return sortedResult?.filter((item) => {
       const customerName = item?.Sale?.Customer?.first_name || "";
       const productName = item?.Product?.product_name || "";
       const imei = item?.serial_number || "";

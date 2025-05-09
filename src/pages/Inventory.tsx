@@ -164,11 +164,7 @@ function Inventory() {
             type="inventory"
             action={() => {}}
             columns={columns}
-            data={
-              filteredOptions.filter((item) => item.total_serial_numbers > 0) ||
-              uniqueProducts.filter((item) => item.total_serial_numbers > 0) ||
-              []
-            }
+            data={filteredOptions || uniqueProducts || []}
             isFetching={productsLoading}
             callBackAction={handleGetProducts}
           />
