@@ -47,18 +47,18 @@ const mainMenuOptions = [
     icon: <Store size={16} />,
     slug: "read_product",
   },
-  {
-    text: "Opening Stock",
-    url: "/dashboard/opening-stock",
-    icon: <Store size={16} />,
-    slug: "read_product",
-  },
-  {
-    text: "Closing Stock",
-    url: "/dashboard/closing-stock",
-    icon: <Store size={16} />,
-    slug: "read_product",
-  },
+  // {
+  //   text: "Opening Stock",
+  //   url: "/dashboard/opening-stock",
+  //   icon: <Store size={16} />,
+  //   slug: "read_product",
+  // },
+  // {
+  //   text: "Closing Stock",
+  //   url: "/dashboard/closing-stock",
+  //   icon: <Store size={16} />,
+  //   slug: "read_product",
+  // },
   {
     text: "Vendors",
     url: "/dashboard/vendors",
