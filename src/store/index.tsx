@@ -12,6 +12,7 @@ import { rolesApi } from "../api/rolesApi";
 import { ordersApi } from "../api/ordersApi";
 import { serialCodesApi } from "../api/serialCodesAPi";
 import { expensesApi } from "../api/expensesApi";
+import { auditApi } from "../api/audit";
 
 export const store = configureStore({
   reducer: {
@@ -27,6 +28,7 @@ export const store = configureStore({
     [ordersApi.reducerPath]: ordersApi.reducer,
     [serialCodesApi.reducerPath]: serialCodesApi.reducer,
     [expensesApi.reducerPath]: expensesApi.reducer,
+    [auditApi.reducerPath]: auditApi.reducer,
   },
 
   middleware: (getDefaultMiddleware) =>
@@ -42,7 +44,8 @@ export const store = configureStore({
       rolesApi.middleware,
       ordersApi.middleware,
       serialCodesApi.middleware,
-      expensesApi.middleware
+      expensesApi.middleware,
+      auditApi.middleware
     ),
 });
 

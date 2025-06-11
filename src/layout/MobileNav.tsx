@@ -4,6 +4,7 @@ import clsx from "clsx";
 import {
   ArrowLeftRight,
   LayoutGrid,
+  Logs,
   MenuIcon,
   Receipt,
   ReceiptText,
@@ -72,6 +73,12 @@ const mainMenuOptions = [
     url: "/dashboard/users",
     icon: <Users size={16} />,
     slug: "create_user",
+  },
+  {
+    test: "Audit log",
+    url: "/dashboard/auditlog",
+    icon: <Logs size={16} />,
+    slug: "view_reports",
   },
 ];
 

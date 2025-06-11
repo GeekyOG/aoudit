@@ -22,7 +22,10 @@ function OpeningStock() {
     { isFetching: productsLoading, data: productsData, isSuccess },
   ] = useLazyGetStockReportQuery();
 
-  const stocks = JSON.parse(productsData?.openingStock || "[]");
+  const stocks =
+    typeof productsData?.openingStock === "string"
+      ? JSON.parse(productsData.openingStock)
+      : productsData?.openingStock || [];
 
   useEffect(() => {
     getProduct("");

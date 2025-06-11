@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   LayoutGrid,
   LogOutIcon,
+  Logs,
   Receipt,
   ReceiptText,
   Store,
@@ -15,6 +16,8 @@ import {
 } from "lucide-react";
 import Button from "../ui/Button";
 import { logout } from "../utils/logout";
+import test from "node:test";
+import { url } from "inspector";
 
 const mainMenuOptions = [
   {
@@ -47,18 +50,18 @@ const mainMenuOptions = [
     icon: <Store size={16} />,
     slug: "read_product",
   },
-  // {
-  //   text: "Opening Stock",
-  //   url: "/dashboard/opening-stock",
-  //   icon: <Store size={16} />,
-  //   slug: "read_product",
-  // },
-  // {
-  //   text: "Closing Stock",
-  //   url: "/dashboard/closing-stock",
-  //   icon: <Store size={16} />,
-  //   slug: "read_product",
-  // },
+  {
+    text: "Opening Stock",
+    url: "/dashboard/opening-stock",
+    icon: <Store size={16} />,
+    slug: "read_product",
+  },
+  {
+    text: "Closing Stock",
+    url: "/dashboard/closing-stock",
+    icon: <Store size={16} />,
+    slug: "read_product",
+  },
   {
     text: "Vendors",
     url: "/dashboard/vendors",
@@ -76,6 +79,12 @@ const mainMenuOptions = [
     url: "/dashboard/users",
     icon: <Users size={16} />,
     slug: "create_user",
+  },
+  {
+    text: "Audit Logs",
+    url: "/dashboard/auditlog",
+    icon: <Logs size={16} />,
+    slug: "view_reports",
   },
 ];
 

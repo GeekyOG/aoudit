@@ -6,9 +6,35 @@ export const ordersApi = createApi({
   reducerPath: "ordersApi",
   endpoints: (builder) => ({
     getOrders: builder.query({
-      query: () => ({
-        url: "/sales",
-      }),
+      query: ({
+        page = 1,
+        limit = 10,
+        status,
+        startDate,
+        endDate,
+        search,
+      }: {
+        page?: number;
+        limit?: number;
+        status?: string;
+        startDate?: string;
+        endDate?: string;
+        search?: string;
+      }) => {
+        const params = new URLSearchParams();
+
+        params.append("page", page.toString());
+        params.append("limit", limit.toString());
+
+        if (status) params.append("status", status);
+        if (startDate) params.append("startDate", startDate);
+        if (endDate) params.append("endDate", endDate);
+        if (search) params.append("search", search);
+
+        return {
+          url: `/sales?${params.toString()}`,
+        };
+      },
     }),
 
     addOrder: builder.mutation({

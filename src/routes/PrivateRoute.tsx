@@ -15,9 +15,9 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (device == "This is a mobile device.") {
-      navigate("/device");
-    }
+    // if (device == "This is a mobile device.") {
+    //   navigate("/device");
+    // }
 
     if (!user) {
       navigate("/");

@@ -3,8 +3,14 @@ import Container from "../ui/Container";
 import DashboardTable from "../components/dashboard/DashboardTable";
 import Button from "../ui/Button";
 import AddInvoices from "../modules/invoices/AddInvoices";
-import { Popover, DatePicker, DatePickerProps } from "antd";
-import { Search, ListFilter, Download } from "lucide-react";
+import { Popover, DatePicker } from "antd";
+import {
+  Search,
+  ListFilter,
+  Download,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { useLazyGetOrdersQuery } from "../api/ordersApi";
 import { columns } from "../modules/invoices/columns";
 import { handleExportCSV } from "../utils/export";
@@ -14,25 +20,56 @@ function Invoices() {
   const [open, setOpen] = useState(false);
   const [fetchedData, setFetchedData] = useState<any[]>([]);
   const [activeTab, setTab] = useState("All");
+  const [search, setSearch] = useState("");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-  const [getOrders, { data: ordersData, isLoading, isError, isSuccess }] =
+  const [getOrders, { data: ordersData, isFetching, isSuccess }] =
     useLazyGetOrdersQuery();
+
+  const totalPages = ordersData?.pagination?.totalPages || 1;
+
+  const handleNext = () => {
+    if (page < totalPages) setPage((prev) => prev + 1);
+  };
+
+  const handlePrev = () => {
+    if (page > 1) setPage((prev) => prev - 1);
+  };
 
   // Fetch orders when the component mounts
   useEffect(() => {
-    getOrders(""); // Fetch orders without filters initially
-  }, [getOrders]);
+    if (activeTab == "All") {
+      getOrders({
+        page,
+        limit,
+        startDate,
+        endDate,
+        search,
+      });
+    } else {
+      getOrders({
+        page,
+        limit,
+        status: activeTab,
+        startDate,
+        endDate,
+        search,
+      });
+    }
+
+    // Fetch orders without filters initially
+  }, [getOrders, page, limit, activeTab, startDate, endDate, search]);
 
   // Update fetched data once orders are successfully retrieved
   useEffect(() => {
     if (isSuccess && ordersData) {
-      const sortedResult = Object.values(ordersData ?? []).sort(
-        (a: any, b: any) => {
-          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        }
+      const sortedResult = Object.values(ordersData?.data ?? []).sort(
+        (a: any, b: any) =>
+          moment(b.Sale.date).valueOf() - moment(a.Sale.date).valueOf()
       );
 
       setFetchedData(sortedResult); // Set the fetched orders
@@ -51,48 +88,32 @@ function Invoices() {
     }
   };
   useEffect(() => {
-    const sortedResult: any = Object.values(ordersData ?? []).sort(
-      (a: any, b: any) => {
-        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      }
+    const sortByDateDesc = (a: any, b: any) =>
+      moment(b.Sale.date).valueOf() - moment(a.Sale.date).valueOf();
+
+    let filteredData: any[] = Object.values(ordersData?.data ?? []).sort(
+      sortByDateDesc
     );
-    let filteredData = sortedResult;
 
     // Filter by status
     if (activeTab !== "All") {
-      filteredData = filteredData?.filter((item) => {
-        return item.Sale.status === activeTab.toLowerCase();
-      });
+      filteredData = filteredData
+        .filter((item) => item.Sale.status === activeTab.toLowerCase())
+        .sort(sortByDateDesc);
     }
 
-    // Filter by date
+    // Filter by date range
     if (startDate && endDate) {
-      filteredData = filteredData?.filter((item) => {
-        const date = moment(item.Sale.date);
-
-        return date.isBetween(startDate, endDate, undefined, "[]");
-      });
+      filteredData = filteredData
+        .filter((item) => {
+          const date = moment(item.Sale.date);
+          return date.isBetween(startDate, endDate, undefined, "[]"); // inclusive range
+        })
+        .sort(sortByDateDesc);
     }
 
     setFetchedData(filteredData);
   }, [activeTab, startDate, endDate, ordersData]);
-
-  const [searchTerm, setSearchTerm] = useState("");
-  const filteredOptions = useMemo(() => {
-    return fetchedData?.filter((item) => {
-      const customerNameMatch = item?.Sale?.Customer?.first_name
-        ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase());
-      const productNameMatch = item?.Product?.product_name
-        ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase());
-
-      const imeiMatch = item?.serial_number
-        ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase());
-      return customerNameMatch || productNameMatch || imeiMatch;
-    });
-  }, [fetchedData, searchTerm]);
 
   return (
     <div>
@@ -119,7 +140,7 @@ function Invoices() {
             <div className="lg:flex hidden cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
               <Search size={16} className="text-neutral-300" />
               <input
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 className=" py-[2px] text-[0.865rem]"
                 placeholder="Enter name, product name or imie"
               />
@@ -171,11 +192,31 @@ function Invoices() {
       <Container>
         <DashboardTable
           columns={columns}
-          data={filteredOptions || fetchedData || []}
-          isFetching={isLoading}
-          action={() => getOrders("")}
+          data={fetchedData || []}
+          isFetching={isFetching}
+          action={() => getOrders({ page, limit })}
           type={"orders"}
+          hidePagination
         />
+        <div className="mt-6 flex justify-between items-center max-w-[200px]">
+          <button
+            onClick={handlePrev}
+            disabled={page === 1}
+            className="px-2 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            <ChevronLeft />
+          </button>
+          <span className="text-sm text-gray-700">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={handleNext}
+            disabled={page === totalPages}
+            className="px-2 py-2 bg-gray-200 rounded disabled:opacity-50"
+          >
+            <ChevronRight />
+          </button>
+        </div>
       </Container>
 
       <AddInvoices open={open} setShowDrawer={setOpen} />

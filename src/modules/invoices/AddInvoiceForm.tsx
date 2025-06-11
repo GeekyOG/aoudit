@@ -265,7 +265,7 @@ function AddInvoices({
                   setDialogOpen(false);
                   getMetric("");
                   getProduct("");
-                  getOrders("");
+                  getOrders({});
                 })
                 .catch((error) => {
                   toast.error(error.data.message ?? "Something went wrong.");

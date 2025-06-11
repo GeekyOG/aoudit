@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import Container from "../ui/Container";
 import DashboardBox from "../ui/dashboard/DashboardBox";
 import DashboardTable from "../components/dashboard/DashboardTable";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGetMetricsQuery } from "../api/metrics";
-import { useGetOrdersQuery, useLazyGetOrdersQuery } from "../api/ordersApi";
+import { useGetOrdersQuery } from "../api/ordersApi";
 import { columns } from "../modules/invoices/columns";
 import AddCustomer from "../modules/customers/AddCustomer";
 import InvoiceModal from "../modules/invoices/InvoiceModal";
@@ -15,16 +15,16 @@ import { useLazyGetProductsQuery } from "../api/productApi";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const {
-    data: ordersData,
-    isLoading: ordersLoading,
-    isError,
-  } = useGetOrdersQuery("");
+
+  const { data: ordersData, isLoading: ordersLoading } = useGetOrdersQuery({
+    page: 1,
+    limit: 10,
+  });
   const [showAddProduct, setShowAddProduct] = useState(false);
 
   const [open, setOpen] = useState(false);
   const [openAddCustomers, setOpenAddCustomers] = useState(false);
-  const { data, isLoading } = useGetMetricsQuery("");
+  const { data } = useGetMetricsQuery("");
 
   const [getProducts, { isFetching: productsLoading, data: productsData }] =
     useLazyGetProductsQuery();
@@ -32,13 +32,16 @@ function Dashboard() {
   const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
-    getProducts("");
+    getProducts({});
 
     if (productsData) {
-      const totalSerialNumbersLength = productsData.reduce((total, product) => {
-        const serialNumbersArray = JSON.parse(product.serial_numbers);
-        return total + serialNumbersArray.length;
-      }, 0);
+      const totalSerialNumbersLength = productsData?.reduce(
+        (total, product) => {
+          const serialNumbersArray = JSON.parse(product.serial_numbers);
+          return total + serialNumbersArray.length;
+        },
+        0
+      );
 
       setTotalItems(totalSerialNumbersLength);
     }
@@ -96,7 +99,7 @@ function Dashboard() {
 
         <DashboardTable
           columns={columns}
-          data={ordersData || []}
+          data={ordersData?.data || []}
           isFetching={ordersLoading}
           action={undefined}
           type={"orders"}

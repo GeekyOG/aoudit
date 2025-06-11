@@ -19,3 +19,19 @@ export const formatNumber = (number) => {
   const formattedNumber = parsedNumber.toLocaleString("en-NG");
   return formattedNumber;
 };
+
+export function formatSnakeCase(text: string) {
+  if (!text) return "";
+
+  if (text.includes("_")) {
+    return text
+      .split("_")
+      .map(
+        (word: string) =>
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join(" ");
+  }
+
+  return text;
+}

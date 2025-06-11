@@ -20,7 +20,7 @@ import {
 } from "../../api/ordersApi";
 import InvoiceModal from "../../modules/invoices/InvoiceModal";
 import InvoiceDetails from "../../modules/invoices/InvoiceDetails";
-import { IdCard, X } from "lucide-react";
+import { X } from "lucide-react";
 import { handleDownload } from "../../utils/export";
 import Button from "../../ui/Button";
 import { useNavigate } from "react-router-dom";
@@ -29,6 +29,8 @@ import {
   useDeleteExpenseMutation,
   useLazyGetExpenseQuery,
 } from "../../api/expensesApi";
+import Modal from "antd/es/modal/Modal";
+import AuditModel from "./AuditModal";
 
 interface ActionButtonsProps {
   id: string;
@@ -230,8 +232,20 @@ function ActionButtons({
 
   const navigate = useNavigate();
 
+  const [showAudit, setShowAudit] = useState(false);
+
   return (
     <div className="z-[100]">
+      {type == "audit" && (
+        <>
+          {" "}
+          <TableActionButtons
+            setShow={() => {
+              setShowAudit(true);
+            }}
+          />
+        </>
+      )}
       {type == "inventory" && (
         <>
           {" "}
@@ -437,6 +451,8 @@ function ActionButtons({
           )}
         </>
       )}
+
+      {showAudit && <AuditModel id={id} setDialogOpen={setShowAudit} />}
 
       {showDialog && (
         <DialogContainer

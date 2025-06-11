@@ -67,9 +67,15 @@ export const metricsApi = createApi({
       }),
     }),
 
-    getProfitsCustom: builder.query({
+    getSerialNumbers: builder.query({
       query: () => ({
-        url: "/profits?startDate=2024-01-01&endDate=2024-01-31",
+        url: "/serial-numbers",
+      }),
+    }),
+
+    getProfitsCustom: builder.query({
+      query: ({ startDate, endDate }) => ({
+        url: `/profits?startDate=${startDate}&endDate=${endDate}`,
       }),
     }),
   }),
@@ -95,4 +101,6 @@ export const {
   useLazyGetProfitsPrevMonthQuery,
   useGetAllSalesQuery,
   useLazyGetAllSalesQuery,
+  useGetSerialNumbersQuery,
+  useLazyGetSerialNumbersQuery,
 } = metricsApi;

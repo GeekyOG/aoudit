@@ -30,6 +30,7 @@ import * as Yup from "yup";
 import { cn } from "../../utils/cn";
 import { useLazyGetOrdersQuery } from "../../api/ordersApi";
 import { formatNumber } from "../../utils/format";
+import { useGetSerialNumbersQuery } from "../../api/metrics";
 
 const addProductValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
@@ -138,6 +139,19 @@ function AddProductModal({
   const [searchValue, setSearchValue] = useState("");
   const [showSuggestion, setShowSuggestion] = useState(false);
 
+  const { data: serial_number } = useGetSerialNumbersQuery("");
+
+  const parsedProductSerials = serial_number?.productSerialNumbers.flatMap(
+    (entry) => {
+      try {
+        const parsed = JSON.parse(entry);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+  );
+
   const [
     getOrders,
     { data: ordersData, isError, isSuccess, isLoading: ordersLoading },
@@ -147,7 +161,7 @@ function AddProductModal({
     useLazyGetProductsQuery();
 
   useEffect(() => {
-    getOrders("");
+    getOrders({});
     getProduct("");
   }, [getProduct, getOrders]);
 
@@ -190,9 +204,7 @@ function AddProductModal({
 
     // Check if SN exists in salesResult or productResult
     const snExistsInOtherSources = data.filter((item) =>
-      [...salesResult, ...productResult].some(
-        (existingItem) => existingItem.serial_number === item.sn
-      )
+      parsedProductSerials.some((existingItem) => existingItem === item.sn)
     );
 
     const errors: FormikErrors<{
@@ -277,7 +289,7 @@ function AddProductModal({
               }}
               validationSchema={addProductValidation}
               onSubmit={(values, { resetForm, setErrors }) => {
-                const salesResult = ordersData?.map((order) => ({
+                const salesResult = ordersData?.data?.map((order) => ({
                   serial_number: order.serial_number,
                   productId: order.productId,
                 }));

@@ -289,7 +289,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                     setDialogOpen(false);
                     getMetric("");
                     getProducts("");
-                    getOrders("");
+                    getOrders({});
                   })
                   .catch((error) => {
                     toast.error(error.data.message ?? "Something went wrong.");

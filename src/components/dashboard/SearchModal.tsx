@@ -19,6 +19,18 @@ function SearchModal() {
   const [searchBySerialNumber, { data, isFetching }] =
     useLazySearchBySerialNumberQuery();
   const [searchValue, setSearchValue] = useState("");
+  const [debouncedValue, setDebouncedValue] = useState("");
+
+  // Debounce logic: delay updating debouncedValue
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(searchValue);
+    }, 300); // debounce delay in ms
+
+    return () => {
+      clearTimeout(handler); // clear timeout on cleanup
+    };
+  }, [searchValue]);
   const [showSearch, setShowSearch] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -29,9 +41,12 @@ function SearchModal() {
     useLazyGetProductsQuery();
 
   useEffect(() => {
-    getOrders("");
     getProduct("");
   }, []);
+
+  useEffect(() => {
+    getOrders({ search: debouncedValue });
+  }, [debouncedValue]);
 
   const optionsRef = useRef<HTMLDivElement>(null);
 

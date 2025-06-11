@@ -1,8 +1,6 @@
 import { Table } from "antd";
 import { ColumnsType } from "antd/es/table";
 import React from "react";
-import TableActionButtons from "../../ui/dashboard/TableActionButtons";
-import CategoriesActionButtons from "../../modules/products/CategoriesActionButtons";
 import ActionButtons from "./ActionButtons";
 
 interface DashboardTableProps {
@@ -13,16 +11,17 @@ interface DashboardTableProps {
   action: any;
   type: string;
   callBackAction?: any;
+  hidePagination?: boolean;
 }
 
 function DashboardTable({
   columns,
   data,
   isFetching,
-  isError,
   action,
   type,
   callBackAction,
+  hidePagination,
 }: DashboardTableProps) {
   const columnWithAction = [
     ...columns,
@@ -57,6 +56,7 @@ function DashboardTable({
         className="w-[100%] border-[1px] no-scrollbar"
         loading={isFetching}
         rowKey="id"
+        pagination={hidePagination ? false : { pageSize: 20 }}
         rowClassName={() => "custom-table-row"}
       />
     </div>

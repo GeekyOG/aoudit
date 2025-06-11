@@ -16,6 +16,7 @@ import {
   useLazyGetProfitsTodayQuery,
   useLazyGetProfitsWeekQuery,
   useLazyGetProfitsYearQuery,
+  useLazyGetProfitsCustomQuery,
 } from "../api/metrics";
 import { columns } from "../modules/transactions/historyColumn";
 import { formatAmount } from "../utils/format";
@@ -58,8 +59,15 @@ function TransactionHistory() {
   const [getProfitsYear, { data: yearData }] = useLazyGetProfitsYearQuery();
   const [getProfitsPrevMonth, { data: prevMonthData }] =
     useLazyGetProfitsPrevMonthQuery();
+  const [getCustomProfits, { data: customData }] =
+    useLazyGetProfitsCustomQuery();
   useEffect(() => {
-    if (period === "today") {
+    if (startDate && endDate) {
+      getCustomProfits({
+        startDate,
+        endDate,
+      });
+    } else if (period === "today") {
       getProfitsToday("");
     } else if (period === "week") {
       getProfitsWeek("");
@@ -80,6 +88,8 @@ function TransactionHistory() {
     getProfitsYear,
     getProfitsPrevMonth,
     getOrders,
+    startDate,
+    endDate,
   ]);
 
   useEffect(() => {
@@ -98,15 +108,16 @@ function TransactionHistory() {
     }
 
     // Filter by date
-    if (startDate && endDate) {
-      filteredData = filteredData?.filter((item) => {
-        const createdAt = moment(item.Sale.date);
-        return createdAt.isBetween(startDate, endDate, undefined, "[]");
-      });
+    if (startDate && endDate && customData) {
+      filteredData = Object.values(customData.totalProfit.sales ?? []).sort(
+        (a: any, b: any) => {
+          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
+        }
+      );
     }
 
     setFetchedData(filteredData);
-  }, [activeTab, startDate, endDate, ordersData]);
+  }, [activeTab, startDate, endDate, ordersData, customData]);
 
   const [searchTerm, setSearchTerm] = useState("");
 

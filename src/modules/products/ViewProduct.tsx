@@ -19,18 +19,16 @@ import { useLazyGetCategoriesQuery } from "../../api/categoriesApi";
 import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
 import { useGetSupplierQuery } from "../../api/vendorApi";
 import {
-  useAddProductMutation,
-  useGetProductQuery,
   useLazyGetProductQuery,
   useLazyGetProductsQuery,
   useUpdateProductMutation,
 } from "../../api/productApi";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
-import { nameValidation } from "../../constants/validationConstants";
 import { useLazyGetOrdersQuery } from "../../api/ordersApi";
 import { formatNumber } from "../../utils/format";
 import { cn } from "../../utils/cn";
+import { useGetSerialNumbersQuery } from "../../api/metrics";
 const productValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
   quantity: Yup.number()
@@ -73,7 +71,7 @@ function ViewProduct({
   const [selectedVendorError, setSelectedVendorError] = useState(false);
 
   const [selectedSize, setSelectedSize] = useState("Select an option");
-  const [selectedSizeId, setSelectedSizeId] = useState("");
+  const [, setSelectedSizeId] = useState("");
   const [selectedSizeError, setSelectedSizeError] = useState(false);
 
   const handleAddField = () => {
@@ -176,8 +174,21 @@ function ViewProduct({
   const [getProducts, { isLoading: productsLoading, data: productsData }] =
     useLazyGetProductsQuery();
 
+  const { data: serial_number } = useGetSerialNumbersQuery("");
+
+  const parsedProductSerials = serial_number?.productSerialNumbers.flatMap(
+    (entry) => {
+      try {
+        const parsed = JSON.parse(entry);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+  );
+
   useEffect(() => {
-    getOrders("");
+    getOrders({});
     getProducts("");
   }, [getProducts, getOrders]);
 
@@ -203,9 +214,7 @@ function ViewProduct({
 
     // Check if SN exists in salesResult or productResult
     const snExistsInOtherSources = data.filter((item) =>
-      [...salesResult, ...productResult].some(
-        (existingItem) => existingItem.serial_number === item.sn
-      )
+      parsedProductSerials.some((existingItem) => existingItem === item.sn)
     );
 
     const errors: FormikErrors<{
@@ -341,7 +350,7 @@ function ViewProduct({
               );
 
               // Filter salesResult to exclude existing serial numbers
-              const filteredSalesResult = ordersData
+              const filteredSalesResult = ordersData?.data
                 ?.map((order) => ({
                   serial_number: order.serial_number,
                   productId: order.productId,
@@ -362,7 +371,7 @@ function ViewProduct({
                   (product) => !existingSerialNumbers.has(product.serial_number)
                 );
 
-              const salesResult = ordersData?.map((order) => ({
+              const salesResult = ordersData?.data?.map((order) => ({
                 serial_number: order.serial_number,
                 productId: order.productId,
               }));
