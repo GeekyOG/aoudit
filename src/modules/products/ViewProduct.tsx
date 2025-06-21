@@ -139,6 +139,12 @@ function ViewProduct({
 
   const [getProduct, { isLoading, data }] = useLazyGetProductQuery();
 
+  console.log(data);
+
+  const updatedInputFields = data?.serial_numbers
+    ? JSON.parse(data?.serial_numbers)
+    : [];
+
   useEffect(() => {
     getProduct(id ?? "");
   }, []);
@@ -176,16 +182,31 @@ function ViewProduct({
 
   const { data: serial_number } = useGetSerialNumbersQuery("");
 
-  const parsedProductSerials = serial_number?.productSerialNumbers.flatMap(
-    (entry) => {
-      try {
-        const parsed = JSON.parse(entry);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        return [];
-      }
-    }
-  );
+  const parsedProductSerials = Array.isArray(
+    serial_number?.productSerialNumbers
+  )
+    ? serial_number?.productSerialNumbers?.flatMap((entry) => {
+        try {
+          const parsed = JSON.parse(entry);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      })
+    : [];
+
+  const parsedSalesSerials = Array.isArray(serial_number?.saleItemSerialNumbers)
+    ? serial_number.saleItemSerialNumbers.flatMap((entry) => {
+        try {
+          const parsed = JSON.parse(entry);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      })
+    : [];
+
+  const fullSerialNumber = [...parsedSalesSerials, ...parsedProductSerials];
 
   useEffect(() => {
     getOrders({});
@@ -200,11 +221,11 @@ function ViewProduct({
       errors: FormikErrors<{
         items: { sn: string }[];
       }>
-    ) => void,
-
-    salesResult: { serial_number: string; productId: string }[], // New: salesResult
-    productResult: { serial_number: string; productId: string }[] // New: productResult
+    ) => void
   ) => {
+    const errors: FormikErrors<{ items: { sn: string }[] }> = { items: [] };
+
+    // 1. Check for duplicates
     const duplicates = data.filter((item, index, self) =>
       self.some(
         (otherItem, otherIndex) =>
@@ -212,23 +233,11 @@ function ViewProduct({
       )
     );
 
-    // Check if SN exists in salesResult or productResult
-    const snExistsInOtherSources = data.filter((item) =>
-      parsedProductSerials.some((existingItem) => existingItem === item.sn)
-    );
-
-    const errors: FormikErrors<{
-      items: { sn: string }[];
-    }> = { items: [] };
-
     if (duplicates.length > 0) {
       toast.error("Multiple items with duplicate SNs found");
 
-      // Set errors for duplicate serial numbers
       data.forEach((item, index) => {
-        const hasDuplicate = duplicates.some(
-          (duplicateItem) => duplicateItem.sn === item.sn
-        );
+        const hasDuplicate = duplicates.some((dup) => dup.sn === item.sn);
 
         if (hasDuplicate) {
           if (!errors.items) errors.items = [];
@@ -239,16 +248,45 @@ function ViewProduct({
       });
     }
 
-    if (snExistsInOtherSources.length > 0) {
+    // 2. Check for SNs that exist in other sources
+    const snExistsInOtherSources = data.filter((item) =>
+      fullSerialNumber.includes(item.sn)
+    );
+
+    const snExistsInThisProduct = snExistsInOtherSources.filter((item) =>
+      updatedInputFields.includes(item.sn)
+    );
+    const hasDub = snExistsInOtherSources.some((externalItem) =>
+      snExistsInThisProduct.some(
+        (productItem) => productItem.sn === externalItem.sn
+      )
+    );
+    if (hasDub) {
+      data?.map((item, index) => {
+        snExistsInOtherSources?.map((item) => {
+          snExistsInThisProduct?.map((p) => {
+            if (item.sn == p.sn) {
+              setErrors(errors);
+            }
+          });
+        });
+      });
+    }
+
+    // ❗ Only throw error if SNs exist in other sources AND none of them are in this product
+    // ❌ Case 1: SNs exist in other sources AND none are in this product
+    if (
+      snExistsInOtherSources.length > 0 &&
+      snExistsInThisProduct.length === 0
+    ) {
       toast.error("Some serial numbers already exist in the system");
 
-      // Set errors for serial numbers already in salesResult or productResult
       data.forEach((item, index) => {
-        const existsInSources = snExistsInOtherSources.some(
-          (sourceItem) => sourceItem.sn === item.sn
+        const existsExternally = snExistsInOtherSources.some(
+          (externalItem) => externalItem.sn === item.sn
         );
 
-        if (existsInSources) {
+        if (existsExternally) {
           if (!errors.items) errors.items = [];
           errors.items[index] = {
             sn: "This serial number already exists in the system",
@@ -257,7 +295,33 @@ function ViewProduct({
       });
     }
 
-    if (duplicates.length > 0 || snExistsInOtherSources.length > 0) {
+    // ⚠️ Case 2: SNs exist in other sources AND some of them are part of this product
+    if (snExistsInOtherSources.length > 0 && snExistsInThisProduct.length > 0) {
+      data.forEach((item, index) => {
+        const isConflicting = snExistsInOtherSources.some(
+          (externalItem) => externalItem.sn === item.sn
+        );
+
+        const isAlsoInThisProduct = snExistsInThisProduct.some(
+          (thisItem) => thisItem.sn === item.sn
+        );
+
+        if (isConflicting && !isAlsoInThisProduct) {
+          if (!errors.items) errors.items = [];
+          errors.items[index] = {
+            sn: "This serial number already exists in the system",
+          };
+        }
+      });
+    }
+
+    // If any errors were collected, set them and return false
+    const hasErrors =
+      hasDub ||
+      duplicates.length > 0 ||
+      (snExistsInOtherSources.length > 0 && snExistsInThisProduct.length === 0);
+
+    if (hasErrors) {
       setErrors(errors);
       return false;
     }
@@ -383,12 +447,7 @@ function ViewProduct({
                 }))
               );
 
-              const uniqueSn = uniqueSN(
-                values.items,
-                setErrors,
-                filteredSalesResult, // Pass sales data
-                filteredProductResult // Pass product data
-              );
+              const uniqueSn = uniqueSN(values.items, setErrors);
 
               if (uniqueSn)
                 updateProduct({

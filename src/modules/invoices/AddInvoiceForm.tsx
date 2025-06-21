@@ -5,8 +5,15 @@ import {
   Form,
   Formik,
   FormikErrors,
+  FormikProps,
 } from "formik";
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import Button from "../../ui/Button";
 import { useLazyGetProductsQuery } from "../../api/productApi";
 import SelectField from "../../components/input/SelectField";
@@ -196,6 +203,71 @@ function AddInvoices({
   };
   const userData = JSON.parse(localStorage.getItem("user") ?? "");
 
+  const [loading, setLoading] = useState(false);
+  const [generatedLink, setGeneratedLink] = useState("");
+
+  const handleClick = () => {
+    setLoading(true);
+    setGeneratedLink("");
+
+    setTimeout(() => {
+      setLoading(false);
+      setGeneratedLink("https://example.com/payment/ABC123");
+    }, 5000);
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generatedLink);
+    alert("Link copied to clipboard!");
+  };
+  const formikRef = useRef<FormikProps<any>>(null);
+  useEffect(() => {
+    if (!document.querySelector("#paystack-script")) {
+      const script = document.createElement("script");
+      script.id = "paystack-script";
+      script.src = "https://js.paystack.co/v1/inline.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  const payWithPaystack = () => {
+    setLoading(true);
+
+    const values = formikRef?.current?.values;
+
+    const total_amount = values.items.reduce(
+      (acc, item) => acc + item.amount,
+      0
+    );
+    const PaystackPop = (window as any).PaystackPop;
+    if (!PaystackPop) {
+      alert("Paystack script not loaded yet. Try again.");
+      setLoading(false);
+      return;
+    }
+
+    const handler = PaystackPop.setup({
+      key: "pk_test_77ddf4fc6f7cd7d239276f18f78f3dc330e70d60",
+      email: "oghomenag@email.com",
+      amount: total_amount * 100,
+      currency: "NGN",
+      ref: `REF-${Date.now()}`,
+
+      callback: function (response: any) {
+        formikRef.current?.submitForm();
+        alert("Payment complete! Reference: " + response.reference);
+        setLoading(false);
+      },
+      onClose: function () {
+        alert("Transaction was not completed, window closed.");
+        setLoading(false);
+      },
+    });
+
+    handler.openIframe();
+  };
+
   const initialItems = sn
     ? [
         {
@@ -219,12 +291,11 @@ function AddInvoices({
         },
       ];
 
-  console.log(description);
-
   return (
     <div>
       <div>
         <Formik
+          innerRef={formikRef}
           initialValues={{
             customerId: "",
             inv: "",
@@ -616,6 +687,27 @@ function AddInvoices({
             </Form>
           )}
         </Formik>
+        <Button
+          onClick={payWithPaystack}
+          className="mt-4 px-4 py-2 bg-secondary-800 text-white rounded hover:bg-secondary-700 transition duration-300"
+          isLoading={loading}
+        >
+          {loading ? "Loading..." : "Generate Payment Link"}
+        </Button>
+
+        {generatedLink && (
+          <div className="mt-4 bg-gray-100 p-4 rounded flex items-center justify-between">
+            <span className="text-sm text-gray-700 break-all">
+              {generatedLink}
+            </span>
+            <button
+              onClick={handleCopy}
+              className="ml-4 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 text-sm"
+            >
+              Copy
+            </button>
+          </div>
+        )}
       </div>
 
       <AddCustomer open={isCustomerOpen} setShowDrawer={setIsCustomerOpen} />

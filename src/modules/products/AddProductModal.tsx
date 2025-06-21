@@ -40,8 +40,6 @@ const addProductValidation = Yup.object().shape({
     .min(1, "Quantity must be at least 1"),
   salesPrice: Yup.string(),
   description: Yup.string().optional(),
-  // .required("Sales price is required")
-  // .min(100, "Sales price must be at least 100"),
   purchasePrice: Yup.string().required("Purchase price is required"),
   items: Yup.array()
     .of(
@@ -67,12 +65,7 @@ function AddProductModal({
 }: {
   setShowAddProduct: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const [inputFields, setInputFields] = useState<
-    { value: string; index: number }[]
-  >([{ value: "", index: 1 }]);
-
-  const [selectedCategory, setSelectedCategory] = useState("Select an option");
-  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [selectedCategory] = useState("Select an option");
   const [selectedCategoryError, setSelectedCategoryError] = useState(false);
 
   const [selectedVendor, setSelectedVendor] = useState("Select an option");
@@ -80,7 +73,7 @@ function AddProductModal({
   const [selectedVendorError, setSelectedVendorError] = useState(false);
 
   const [selectedSize, setSelectedSize] = useState("Select an option");
-  const [selectedSizeId, setSelectedSizeId] = useState("");
+  const [setSelectedSizeId] = useState("");
   const [selectedSizeError, setSelectedSizeError] = useState(false);
 
   const [getProducts] = useLazyGetProductsQuery();
@@ -88,8 +81,7 @@ function AddProductModal({
   useEffect(() => {
     getProducts("");
   }, []);
-  const [getCategories, { isLoading: categoryLoading, data: categoryData }] =
-    useLazyGetCategoriesQuery();
+  const [getCategories] = useLazyGetCategoriesQuery();
 
   const [getSuppliers, { isLoading: supplierLoading, data: supplierData }] =
     useLazyGetSuppliersQuery();
@@ -141,16 +133,31 @@ function AddProductModal({
 
   const { data: serial_number } = useGetSerialNumbersQuery("");
 
-  const parsedProductSerials = serial_number?.productSerialNumbers.flatMap(
-    (entry) => {
-      try {
-        const parsed = JSON.parse(entry);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        return [];
-      }
-    }
-  );
+  const parsedProductSerials = Array.isArray(
+    serial_number?.productSerialNumbers
+  )
+    ? serial_number?.productSerialNumbers?.flatMap((entry) => {
+        try {
+          const parsed = JSON.parse(entry);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      })
+    : [];
+
+  const parsedSalesSerials = Array.isArray(serial_number?.saleItemSerialNumbers)
+    ? serial_number.saleItemSerialNumbers.flatMap((entry) => {
+        try {
+          const parsed = JSON.parse(entry);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      })
+    : [];
+
+  const fullSerialNumber = [...parsedSalesSerials, ...parsedProductSerials];
 
   const [
     getOrders,
@@ -204,7 +211,7 @@ function AddProductModal({
 
     // Check if SN exists in salesResult or productResult
     const snExistsInOtherSources = data.filter((item) =>
-      parsedProductSerials.some((existingItem) => existingItem === item.sn)
+      fullSerialNumber.some((existingItem) => existingItem === item.sn)
     );
 
     const errors: FormikErrors<{
