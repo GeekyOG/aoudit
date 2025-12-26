@@ -37,13 +37,9 @@ const validationSchema = Yup.object({
         itemId: Yup.string().required("Item is required"),
         id: Yup.string().required("Item is required"),
         sn: Yup.string().required("Serial Number is required"),
-        size: Yup.string().required("Size is required"),
-        amount: Yup.number()
-          .required("Amount is required")
-          .min(1, "Amount cannot be 0"),
-        amountPaid: Yup.number()
-          .required("Amount Paid is required")
-          .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
+        size: Yup.string().optional(),
+        amount: Yup.number().required("Amount is required"),
+        amountPaid: Yup.number().required("Amount Paid is required"),
       })
     )
     .min(1, "At least one item is required"),

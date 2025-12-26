@@ -147,14 +147,7 @@ function AddProductModal({
     : [];
 
   const parsedSalesSerials = Array.isArray(serial_number?.saleItemSerialNumbers)
-    ? serial_number.saleItemSerialNumbers.flatMap((entry) => {
-        try {
-          const parsed = JSON.parse(entry);
-          return Array.isArray(parsed) ? parsed : [];
-        } catch (e) {
-          return [];
-        }
-      })
+    ? serial_number?.saleItemSerialNumbers
     : [];
 
   const fullSerialNumber = [...parsedSalesSerials, ...parsedProductSerials];

@@ -16,6 +16,7 @@ import { columns } from "../modules/invoices/columns";
 import { handleExportCSV } from "../utils/export";
 import { cn } from "../utils/cn";
 import moment from "moment";
+import { useGetAdminUserQuery } from "../api/adminUsers";
 function Invoices() {
   const [open, setOpen] = useState(false);
   const [fetchedData, setFetchedData] = useState<any[]>([]);
@@ -24,6 +25,7 @@ function Invoices() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const { data: adminUsers } = useGetAdminUserQuery("");
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -39,6 +41,7 @@ function Invoices() {
   const handlePrev = () => {
     if (page > 1) setPage((prev) => prev - 1);
   };
+  const [soldBy, setSoldBy] = useState("");
 
   // Fetch orders when the component mounts
   useEffect(() => {
@@ -49,9 +52,11 @@ function Invoices() {
         startDate,
         endDate,
         search,
+        soldBy,
       });
     } else {
       getOrders({
+        soldBy,
         page,
         limit,
         status: activeTab,
@@ -62,7 +67,7 @@ function Invoices() {
     }
 
     // Fetch orders without filters initially
-  }, [getOrders, page, limit, activeTab, startDate, endDate, search]);
+  }, [getOrders, page, limit, activeTab, startDate, endDate, search, soldBy]);
 
   // Update fetched data once orders are successfully retrieved
   useEffect(() => {
@@ -113,7 +118,7 @@ function Invoices() {
     }
 
     setFetchedData(filteredData);
-  }, [activeTab, startDate, endDate, ordersData]);
+  }, [activeTab, startDate, endDate, ordersData, soldBy]);
 
   return (
     <div>
@@ -161,6 +166,23 @@ function Invoices() {
                     }
                     placeholder="End Date"
                   />
+
+                  <div>
+                    <p className="text-[0.865rem] font-bold">Sold By</p>
+
+                    <div className="flex flex-col gap-2 text-[0.865rem] mt-2">
+                      {adminUsers?.map((user) => (
+                        <p
+                          className="cursor-pointer border-b"
+                          onClick={() =>
+                            setSoldBy(`${user.firstname} ${user.lastname}`)
+                          }
+                        >
+                          {user.firstname} {user.lastname}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
 
                   <Button className="items-center gap-3 bg-[#093aa4] text-[0.865rem]">
                     Apply

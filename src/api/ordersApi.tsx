@@ -13,6 +13,7 @@ export const ordersApi = createApi({
         startDate,
         endDate,
         search,
+        soldBy,
       }: {
         page?: number;
         limit?: number;
@@ -20,6 +21,7 @@ export const ordersApi = createApi({
         startDate?: string;
         endDate?: string;
         search?: string;
+        soldBy?: string;
       }) => {
         const params = new URLSearchParams();
 
@@ -30,6 +32,7 @@ export const ordersApi = createApi({
         if (startDate) params.append("startDate", startDate);
         if (endDate) params.append("endDate", endDate);
         if (search) params.append("search", search);
+        if (soldBy) params.append("soldBy", soldBy);
 
         return {
           url: `/sales?${params.toString()}`,

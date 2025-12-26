@@ -14,6 +14,7 @@ import ViewProduct from "../../modules/products/ViewProduct";
 import { formatAmount } from "../../utils/format";
 import InvoiceModal from "../../modules/invoices/InvoiceModal";
 import { useLazyGetAllSalesQuery } from "../../api/metrics";
+import BorrowInvoiceModal from "../../modules/invoices/BorrowInvoiceModal";
 
 function SearchModal() {
   const [searchBySerialNumber, { data, isFetching }] =
@@ -33,6 +34,7 @@ function SearchModal() {
   }, [searchValue]);
   const [showSearch, setShowSearch] = useState(false);
   const [open, setOpen] = useState(false);
+  const [openBorrowed, setOpenBorrowed] = useState(false);
 
   const [getOrders, { data: ordersData, isError, isSuccess }] =
     useLazyGetAllSalesQuery();
@@ -87,6 +89,10 @@ function SearchModal() {
       searchBySerialNumber(searchValue.trim());
     }
   };
+
+  const isSold = JSON.parse(data?.product?.serial_numbers ?? "[]").includes(
+    searchValue
+  );
 
   const filteredOptions = useMemo(() => {
     if (result && salesResult) {
@@ -206,6 +212,17 @@ function SearchModal() {
                             Sell Item
                           </button>
                         )}
+
+                      {data.saleItem?.Sale.status != "borrowed" &&
+                        data.saleItem?.Sale.status !== "completed" &&
+                        data.saleItem?.Sale.status !== "pending" && (
+                          <button
+                            onClick={() => setOpenBorrowed(!openBorrowed)}
+                            className="bg-[#000] text-neutral p-[6px]"
+                          >
+                            Borrow Item
+                          </button>
+                        )}
                     </div>
 
                     <div className="mt-[20px]">
@@ -267,7 +284,7 @@ function SearchModal() {
                     </div>
                   </div>
                 )}
-                {data?.saleItem && (
+                {data?.saleItem && !isSold && (
                   <div className="mt-[20px]">
                     <div className="flex gap-4 items-end">
                       <div>
@@ -411,6 +428,20 @@ function SearchModal() {
         <ViewProduct
           id={data.saleItem ? data?.saleItem?.productId : data.product.id}
           setShowAddProduct={setProductDialog}
+        />
+      )}
+
+      {openBorrowed && (
+        <BorrowInvoiceModal
+          setDialogOpen={setOpenBorrowed}
+          sn={searchValue}
+          description={
+            data.saleItem
+              ? data?.saleItem?.description
+              : data.product.description
+          }
+          size={data.saleItem ? data?.saleItem?.size : data.product.size}
+          id={data.saleItem ? data?.saleItem?.productId : data.product.id}
         />
       )}
 

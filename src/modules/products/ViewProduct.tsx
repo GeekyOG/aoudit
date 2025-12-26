@@ -139,8 +139,6 @@ function ViewProduct({
 
   const [getProduct, { isLoading, data }] = useLazyGetProductQuery();
 
-  console.log(data);
-
   const updatedInputFields = data?.serial_numbers
     ? JSON.parse(data?.serial_numbers)
     : [];
@@ -185,14 +183,16 @@ function ViewProduct({
   const parsedProductSerials = Array.isArray(
     serial_number?.productSerialNumbers
   )
-    ? serial_number?.productSerialNumbers?.flatMap((entry) => {
-        try {
-          const parsed = JSON.parse(entry);
-          return Array.isArray(parsed) ? parsed : [];
-        } catch (e) {
-          return [];
-        }
-      })
+    ? serial_number?.productSerialNumbers
+        ?.flatMap((entry) => {
+          try {
+            const parsed = JSON.parse(entry);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            return [];
+          }
+        })
+        .filter((item) => !updatedInputFields.includes(item))
     : [];
 
   const parsedSalesSerials = Array.isArray(serial_number?.saleItemSerialNumbers)
@@ -305,6 +305,8 @@ function ViewProduct({
         const isAlsoInThisProduct = snExistsInThisProduct.some(
           (thisItem) => thisItem.sn === item.sn
         );
+
+        console.log(isAlsoInThisProduct, "isAlsoInThisProduct", isConflicting);
 
         if (isConflicting && !isAlsoInThisProduct) {
           if (!errors.items) errors.items = [];

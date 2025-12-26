@@ -45,10 +45,8 @@ const validationSchema = Yup.object({
         sn: Yup.string().required("required"),
         size: Yup.string().optional(),
         description: Yup.string().optional(),
-        amount: Yup.string().required("required").min(1, "Amount cannot be 0"),
-        amountPaid: Yup.string()
-          .required("required")
-          .max(Yup.ref("amount"), "Amount Paid cannot be greater than Amount"),
+        amount: Yup.string().optional(),
+        amountPaid: Yup.string().optional(),
       })
     )
     .min(1, "At least one item is required"),
@@ -461,7 +459,7 @@ function AddInvoices({
                                   </div>
 
                                   {/* Amount Field */}
-                                  <div className="flex flex-col mt-2">
+                                  {/* <div className="flex flex-col mt-2">
                                     <label
                                       htmlFor={`items[${index}].amount`}
                                       className="text-[0.75rem]"
@@ -497,7 +495,7 @@ function AddInvoices({
                                       component="div"
                                       className="text-[12px] font-[400] text-[#f00000]"
                                     />
-                                  </div>
+                                  </div> */}
 
                                   {/* Remove Button */}
                                   <img
@@ -511,85 +509,6 @@ function AddInvoices({
                                     width={18}
                                     height={18}
                                     className="cursor-pointer mt-6"
-                                  />
-                                </div>
-                              </div>
-                              <div className="flex flex-col ">
-                                <div className="flex items-start gap-2 ">
-                                  {/* Amount Paid Field */}
-                                  <div>
-                                    <label
-                                      htmlFor={`items[${index}].amountPaid`}
-                                      className="text-[0.75rem]"
-                                    >
-                                      Amount Paid
-                                    </label>
-                                    <Field
-                                      className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 w-[190px]"
-                                      name={`items[${index}].amountPaid`}
-                                      value={formatNumber(
-                                        values.items[index].amountPaid
-                                      )}
-                                      onChange={(e) => {
-                                        const formattedValue =
-                                          e.target.value.replace(
-                                            /[,a-zA-Z]/g,
-                                            ""
-                                          );
-
-                                        setFieldValue(
-                                          `items[${index}].amountPaid`,
-                                          formattedValue
-                                        );
-                                      }}
-                                    />
-                                    <ErrorMessage
-                                      name={`items[${index}].amountPaid`}
-                                      component="div"
-                                      className="text-[12px] font-[400] text-[#f00000]"
-                                    />
-                                  </div>
-
-                                  {/* Serial Number Field */}
-                                  <div className="w-[300px]">
-                                    <label
-                                      htmlFor={`items[${index}].size`}
-                                      className="text-[0.75rem] w-[300px]"
-                                    >
-                                      Size
-                                    </label>
-                                    <SizeSelectField
-                                      serialCodesForProducts={
-                                        serialCodesForProducts
-                                      }
-                                      snIndex={index}
-                                      values={values}
-                                      setFieldValue={setFieldValue}
-                                      options={subCategoryData}
-                                      searchPlaceholder="Select Sze"
-                                      productsData={productsData}
-                                      providedSN={providedSize}
-                                    />
-
-                                    <ErrorMessage
-                                      name={`items[${index}].size`}
-                                      component="div"
-                                      className="text-[12px] font-[400] text-[#f00000]"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="flex flex-col mt-2">
-                                  <label
-                                    htmlFor={`items[${index}].description`}
-                                    className="text-[0.75rem]"
-                                  >
-                                    Description
-                                  </label>
-                                  <Field
-                                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                                    disabled
-                                    name={`items[${index}].description`}
-                                    type=""
                                   />
                                 </div>
                               </div>

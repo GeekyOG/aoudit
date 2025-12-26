@@ -1,1 +1,44 @@
 // DJF8Vrt%3Q+t-NW
+
+
+
+            {/* {!isProductFetching &&
+                (product?.data?.name
+                    .toLowerCase()
+                    .includes("term life plus") ? (
+                    <>
+                        <PDFDownloadLink
+                            document={
+                                <FlexiCertificate
+                                    customerName={policyData?.insuredName ?? ""}
+                                    customer={customer}
+                                    address={customer?.data?.address ?? ""}
+                                    policy={policyData}
+                                    riskDetails={riskDetails}
+                                    product={product?.data}
+                                />
+                            }
+                            fileName={`${policyData?.policyNumber}-certificate`}
+                        >
+                            <div className="flex cursor-pointer">
+                                <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-sm bg-olive-100 p-2">
+                                    <FileArrowUp
+                                        size={24}
+                                        className="text-dark-green-500"
+                                    />
+                                </div>
+                                <div className="flex flex-col">
+                                    <h3 className="font-medium leading-6 text-black-500">
+                                        Policy Certificate
+                                    </h3>
+
+                                    <p className="text-sm text-black-300">
+                                        {policyCertificate
+                                            ? `Generated on ${formatDate(policyCertificate.createdAt)}`
+                                            : "Click to generate policy certificate"}
+                                    </p>
+                                </div>
+                            </div>
+                        </PDFDownloadLink>
+                    </>
+                ) : ( */}
