@@ -32,8 +32,8 @@ import { useLazyGetMetricsQuery } from "../../api/metrics";
 import { Switch } from "antd";
 import { formatNumber } from "../../utils/format";
 import SelectProductField from "../../components/input/selectProductField";
+import { Plus, Trash2, ShoppingCart } from "lucide-react";
 
-// Validation schema for form validation
 const validationSchema = Yup.object({
   inv: Yup.string(),
   date: Yup.date(),
@@ -113,7 +113,6 @@ function AddInvoices({
         }[];
       }> = { items: [] };
 
-      // Set errors for duplicate serial numbers
       data.forEach((item, index) => {
         const hasDuplicate = duplicates.some(
           (duplicateItem) =>
@@ -193,8 +192,8 @@ function AddInvoices({
   const getTodayDate = () => {
     const today = new Date();
     const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, "0"); // Add leading 0 if needed
-    const day = String(today.getDate()).padStart(2, "0"); // Add leading 0 if needed
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
@@ -203,6 +202,7 @@ function AddInvoices({
   const handleToggleModal = () => {
     setChecked(!checked);
   };
+
   const userData = JSON.parse(localStorage.getItem("user") ?? "");
 
   const [loading, setLoading] = useState(false);
@@ -234,63 +234,66 @@ function AddInvoices({
       ];
 
   return (
-    <div>
-      <div>
-        <Formik
-          innerRef={formikRef}
-          initialValues={{
-            customerId: "",
-            inv: "",
-            date: getTodayDate(),
-            items: initialItems,
-          }}
-          validationSchema={validationSchema}
-          onSubmit={(values, { setErrors }) => {
-            const valid = handleSelectFieldValidation();
-            const uniqueSn = uniqueSN(values.items, setErrors);
+    <div className="rounded-lg bg-white">
+      <Formik
+        innerRef={formikRef}
+        initialValues={{
+          customerId: "",
+          inv: "",
+          date: getTodayDate(),
+          items: initialItems,
+        }}
+        validationSchema={validationSchema}
+        onSubmit={(values, { setErrors }) => {
+          const valid = handleSelectFieldValidation();
+          const uniqueSn = uniqueSN(values.items, setErrors);
 
-            if (valid && uniqueSn)
-              addOrder({
-                check: checked,
-                customerId: selectedCustomerId,
-                invoiceNumber: values.inv,
-                date: values.date,
-                soldBy: `${userData.firstname} ${userData.lastname}`,
-                items: values.items.map((item) => ({
-                  productId: item.id,
-                  serial_number: item.sn,
-                  amount: item.amount,
-                  amount_paid: item.amountPaid,
-                  size: item.size,
-                })),
-                total_amount: values.items.reduce(
-                  (acc, item) => acc + item.amount,
-                  0
-                ),
-                total_paid: values.items.reduce(
-                  (acc, item) => acc + item.amountPaid,
-                  0
-                ),
+          if (valid && uniqueSn)
+            addOrder({
+              check: checked,
+              customerId: selectedCustomerId,
+              invoiceNumber: values.inv,
+              date: values.date,
+              soldBy: `${userData.firstname} ${userData.lastname}`,
+              items: values.items.map((item) => ({
+                productId: item.id,
+                serial_number: item.sn,
+                amount: item.amount,
+                amount_paid: item.amountPaid,
+                size: item.size,
+              })),
+              total_amount: values.items.reduce(
+                (acc, item) => Number(acc) + Number(item.amount),
+                0
+              ),
+              total_paid: values.items.reduce(
+                (acc, item) => Number(acc) + Number(item.amountPaid),
+                0
+              ),
+            })
+              .unwrap()
+              .then(() => {
+                toast.success("Sale added successfully");
+                setDialogOpen(false);
+                getMetric("");
+                getProduct("");
+                getOrders({});
               })
-                .unwrap()
-                .then(() => {
-                  toast.success("Sale added successfully");
-                  setDialogOpen(false);
-                  getMetric("");
-                  getProduct("");
-                  getOrders({});
-                })
-                .catch((error) => {
-                  toast.error(error.data.message ?? "Something went wrong.");
-                });
-          }}
-        >
-          {({ values, setFieldValue }) => (
-            <Form className="flex flex-col gap-[15px]">
-              <div>
+              .catch((error) => {
+                toast.error(error.data.message ?? "Something went wrong.");
+              });
+        }}
+      >
+        {({ values, setFieldValue }) => (
+          <Form className="space-y-6">
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
+              <h3 className="mb-4 text-base font-semibold text-gray-900">
+                Customer Information
+              </h3>
+              <div className="space-y-3">
                 <SelectField
                   searchPlaceholder="Enter customer name"
-                  className="w-[100%]"
+                  className="w-full"
                   title="Customer"
                   error={selectedCustomerError}
                   selected={selectedCustomer}
@@ -305,352 +308,333 @@ function AddInvoices({
                   }
                 />
 
-                <p
-                  className="cursor-pointer text-[0.75rem] text-[blue]"
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
                   onClick={() => setIsCustomerOpen(true)}
                 >
+                  <Plus size={16} />
                   Add Customer
-                </p>
+                </button>
               </div>
+            </div>
 
-              <div>
-                <label className="text-[0.75rem] mr-2">Borrowed</label>
-
+            <div className="grid gap-6 lg:grid-cols-2">
+              <div className="rounded-lg border border-gray-200 bg-white p-5">
+                <label className="mb-3 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                  <ShoppingCart size={18} className="text-gray-500" />
+                  Borrowed
+                </label>
                 <Switch
-                  className="w-[50px]"
+                  className="h-6"
                   defaultChecked
                   checked={checked}
                   onChange={handleToggleModal}
                 />
               </div>
 
-              {/* Amount Field */}
-              <div className="flex flex-col ">
+              <div>
                 <label
-                  htmlFor={`inv`}
-                  className="text-[0.75rem] flex justify-between"
+                  htmlFor="inv"
+                  className="mb-2 block text-sm font-semibold text-gray-700"
                 >
-                  Invoice Number <span>(optional)</span>
+                  Invoice Number{" "}
+                  <span className="text-xs font-normal text-gray-500">
+                    (optional)
+                  </span>
                 </label>
                 <Field
-                  className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                  name={`inv`}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  name="inv"
+                  placeholder="Enter invoice number"
                   value={values.inv}
                 />
                 <ErrorMessage
-                  name={`inv`}
+                  name="inv"
                   component="div"
-                  className="text-[12px] font-[400] text-[#f00000]"
+                  className="mt-1.5 text-xs text-red-600"
                 />
               </div>
+            </div>
 
-              {/* end */}
+            <div>
+              <label
+                htmlFor="date"
+                className="mb-2 block text-sm font-semibold text-gray-700"
+              >
+                Date
+              </label>
+              <Field
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                name="date"
+                type="date"
+                value={values.date}
+              />
+              <ErrorMessage
+                name="date"
+                component="div"
+                className="mt-1.5 text-xs text-red-600"
+              />
+            </div>
 
-              {/* Amount Field */}
-              <div className="flex flex-col ">
-                <label htmlFor={`date`} className="text-[0.75rem]">
-                  Date
-                </label>
-                <Field
-                  className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                  name={`date`}
-                  type="date"
-                  value={values.date}
-                />
-                <ErrorMessage
-                  name={`date`}
-                  component="div"
-                  className="text-[12px] font-[400] text-[#f00000]"
-                />
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
+              <div className="mb-5 flex items-center justify-between">
+                <h3 className="text-base font-semibold text-gray-900">Items</h3>
               </div>
 
-              {/* end */}
+              <FieldArray name="items">
+                {({ remove, push }) => (
+                  <div className="space-y-5">
+                    {values.items.length > 0 &&
+                      values.items.map((item, index) => {
+                        const providedSN = {
+                          serial_number: item?.sn,
+                          productId: item?.id,
+                        };
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <p className="text-[0.895rem] font-[600]">Select Item</p>
-                </div>
+                        const providedItem = {
+                          product_name:
+                            item.id && productsData
+                              ? productsData.find((p) => p.id === item.id)
+                                  .product_name
+                              : "",
+                          productId: item.id,
+                        };
 
-                <FieldArray name="items">
-                  {({ remove, push }) => (
-                    <div className="flex flex-col gap-4 mt-[16px]">
-                      {values.items.length > 0 &&
-                        values.items.map((item, index) => {
-                          const providedSN = {
-                            serial_number: item?.sn,
-                            productId: item?.id,
-                          };
+                        const providedSize = item?.size;
 
-                          const providedItem = {
-                            product_name:
-                              item.id && productsData
-                                ? productsData.find((p) => p.id === item.id)
-                                    .product_name
-                                : "",
-                            productId: item.id,
-                          };
+                        return (
+                          <div
+                            key={index}
+                            className="rounded-lg border border-gray-200 bg-white p-5"
+                          >
+                            <div className="mb-4 flex items-center justify-between">
+                              <span className="text-sm font-semibold text-gray-700">
+                                Item #{index + 1}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (values.items.length !== 1) {
+                                    remove(index);
+                                  }
+                                }}
+                                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                              >
+                                <Trash2 size={16} />
+                                Remove
+                              </button>
+                            </div>
 
-                          const providedSize = item?.size;
-                          return (
-                            <div className="border-b-[1px] pb-[20px] flex flex-col gap-2">
-                              <div className="flex flex-col">
-                                <div
-                                  key={index}
-                                  className="flex items-start gap-2"
+                            <div className="flex gap-4">
+                              <div>
+                                <label
+                                  htmlFor={`items[${index}].id`}
+                                  className="mb-2 block text-sm font-semibold text-gray-700"
                                 >
-                                  {/* Product Name Field */}
-                                  <div>
-                                    <label
-                                      htmlFor={`items[${index}].id`}
-                                      className="text-[0.75rem]"
-                                    >
-                                      Product Name
-                                    </label>
-
-                                    <SelectProductField
-                                      snIndex={index}
-                                      values={values}
-                                      setFieldValue={setFieldValue}
-                                      options={productsData?.filter(
-                                        (product, index, self) =>
-                                          index ===
-                                          self.findIndex(
-                                            (p) =>
-                                              p.product_name ===
-                                              product.product_name
-                                          )
-                                      )}
-                                      searchPlaceholder="Select Item"
-                                      fetchSerialCodes={fetchSerialCodes}
-                                      providedItem={providedItem}
-                                    />
-
-                                    <ErrorMessage
-                                      name={`items[${index}].id`}
-                                      component="div"
-                                      className="text-[12px] font-[400] text-[#f00000]"
-                                    />
-                                  </div>
-
-                                  {/* Serial Number Field */}
-                                  <div className="w-[300px]">
-                                    <label
-                                      htmlFor={`items[${index}].sn`}
-                                      className="text-[0.75rem] w-[300px]"
-                                    >
-                                      Serial Number
-                                    </label>
-                                    <SnSelectField
-                                      serialCodesForProducts={
-                                        serialCodesForProducts
-                                      }
-                                      snIndex={index}
-                                      values={values}
-                                      setFieldValue={setFieldValue}
-                                      options={serialCodesForProducts[index]}
-                                      productsData={productsData}
-                                      searchPlaceholder="Select Sn"
-                                      providedSN={providedSN}
-                                    />
-
-                                    <ErrorMessage
-                                      name={`items[${index}].sn`}
-                                      component="div"
-                                      className="text-[12px] font-[400] text-[#f00000]"
-                                    />
-                                  </div>
-
-                                  {/* Amount Field */}
-                                  <div className="flex flex-col mt-2">
-                                    <label
-                                      htmlFor={`items[${index}].amount`}
-                                      className="text-[0.75rem]"
-                                    >
-                                      Amount
-                                    </label>
-                                    <Field
-                                      className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                                      name={`items[${index}].amount`}
-                                      type=""
-                                      value={
-                                        values.items[index].amount !== 0
-                                          ? formatNumber(
-                                              values.items[index].amount
-                                            )
-                                          : 0
-                                      }
-                                      onChange={(e) => {
-                                        const formattedValue =
-                                          e.target.value.replace(
-                                            /[,a-zA-Z]/g,
-                                            ""
-                                          );
-
-                                        setFieldValue(
-                                          `items[${index}].amount`,
-                                          formattedValue
-                                        );
-                                      }}
-                                    />
-                                    <ErrorMessage
-                                      name={`items[${index}].amount`}
-                                      component="div"
-                                      className="text-[12px] font-[400] text-[#f00000]"
-                                    />
-                                  </div>
-
-                                  {/* Remove Button */}
-                                  <img
-                                    onClick={() => {
-                                      if (values.items.length !== 1) {
-                                        remove(index);
-                                      }
-                                    }}
-                                    src="/delete-inv.svg"
-                                    alt=""
-                                    width={18}
-                                    height={18}
-                                    className="cursor-pointer mt-6"
-                                  />
-                                </div>
+                                  Product Name
+                                </label>
+                                <SelectProductField
+                                  snIndex={index}
+                                  values={values}
+                                  setFieldValue={setFieldValue}
+                                  options={productsData?.filter(
+                                    (product, index, self) =>
+                                      index ===
+                                      self.findIndex(
+                                        (p) =>
+                                          p.product_name ===
+                                          product.product_name
+                                      )
+                                  )}
+                                  searchPlaceholder="Select Item"
+                                  fetchSerialCodes={fetchSerialCodes}
+                                  providedItem={providedItem}
+                                />
+                                <ErrorMessage
+                                  name={`items[${index}].id`}
+                                  component="div"
+                                  className="mt-1.5 text-xs text-red-600"
+                                />
                               </div>
-                              <div className="flex flex-col ">
-                                <div className="flex items-start gap-2 ">
-                                  {/* Amount Paid Field */}
-                                  <div>
-                                    <label
-                                      htmlFor={`items[${index}].amountPaid`}
-                                      className="text-[0.75rem]"
-                                    >
-                                      Amount Paid
-                                    </label>
-                                    <Field
-                                      className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 w-[190px]"
-                                      name={`items[${index}].amountPaid`}
-                                      value={formatNumber(
-                                        values.items[index].amountPaid
-                                      )}
-                                      onChange={(e) => {
-                                        const formattedValue =
-                                          e.target.value.replace(
-                                            /[,a-zA-Z]/g,
-                                            ""
-                                          );
 
-                                        setFieldValue(
-                                          `items[${index}].amountPaid`,
-                                          formattedValue
-                                        );
-                                      }}
-                                    />
-                                    <ErrorMessage
-                                      name={`items[${index}].amountPaid`}
-                                      component="div"
-                                      className="text-[12px] font-[400] text-[#f00000]"
-                                    />
-                                  </div>
+                              <div>
+                                <label
+                                  htmlFor={`items[${index}].sn`}
+                                  className="mb-2 block text-sm font-semibold text-gray-700"
+                                >
+                                  Serial Number
+                                </label>
+                                <SnSelectField
+                                  serialCodesForProducts={
+                                    serialCodesForProducts
+                                  }
+                                  snIndex={index}
+                                  values={values}
+                                  setFieldValue={setFieldValue}
+                                  options={serialCodesForProducts[index]}
+                                  productsData={productsData}
+                                  searchPlaceholder="Select SN"
+                                  providedSN={providedSN}
+                                />
+                                <ErrorMessage
+                                  name={`items[${index}].sn`}
+                                  component="div"
+                                  className="mt-1.5 text-xs text-red-600"
+                                />
+                              </div>
 
-                                  {/* Serial Number Field */}
-                                  <div className="w-[300px]">
-                                    <label
-                                      htmlFor={`items[${index}].size`}
-                                      className="text-[0.75rem] w-[300px]"
-                                    >
-                                      Size
-                                    </label>
-                                    <SizeSelectField
-                                      serialCodesForProducts={
-                                        serialCodesForProducts
-                                      }
-                                      snIndex={index}
-                                      values={values}
-                                      setFieldValue={setFieldValue}
-                                      options={subCategoryData}
-                                      searchPlaceholder="Select Sze"
-                                      productsData={productsData}
-                                      providedSN={providedSize}
-                                    />
-
-                                    <ErrorMessage
-                                      name={`items[${index}].size`}
-                                      component="div"
-                                      className="text-[12px] font-[400] text-[#f00000]"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="flex flex-col mt-2">
-                                  <label
-                                    htmlFor={`items[${index}].description`}
-                                    className="text-[0.75rem]"
-                                  >
-                                    Description
-                                  </label>
-                                  <Field
-                                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                                    disabled
-                                    name={`items[${index}].description`}
-                                    type=""
-                                  />
-                                </div>
+                              <div>
+                                <label
+                                  htmlFor={`items[${index}].amount`}
+                                  className="mb-2 block text-sm font-semibold text-gray-700"
+                                >
+                                  Amount
+                                </label>
+                                <Field
+                                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  name={`items[${index}].amount`}
+                                  placeholder="0.00"
+                                  value={
+                                    values.items[index].amount !== 0
+                                      ? formatNumber(values.items[index].amount)
+                                      : 0
+                                  }
+                                  onChange={(e) => {
+                                    const formattedValue =
+                                      e.target.value.replace(/[,a-zA-Z]/g, "");
+                                    setFieldValue(
+                                      `items[${index}].amount`,
+                                      formattedValue
+                                    );
+                                  }}
+                                />
+                                <ErrorMessage
+                                  name={`items[${index}].amount`}
+                                  component="div"
+                                  className="mt-1.5 text-xs text-red-600"
+                                />
                               </div>
                             </div>
-                          );
-                        })}
 
-                      {/* Add Item Button */}
-                      <button
-                        className="cursor-pointer text-[0.75rem] text-[blue]"
-                        type="button"
-                        onClick={() =>
-                          push({
-                            id: "",
-                            sn: "",
-                            amount: 0,
-                            amountPaid: 0,
-                            product_name: "",
-                            size: "",
-                            description: "",
-                          })
-                        }
-                      >
-                        Add Item
-                      </button>
-                    </div>
-                  )}
-                </FieldArray>
-              </div>
+                            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                              <div>
+                                <label
+                                  htmlFor={`items[${index}].amountPaid`}
+                                  className="mb-2 block text-sm font-semibold text-gray-700"
+                                >
+                                  Amount Paid
+                                </label>
+                                <Field
+                                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                  name={`items[${index}].amountPaid`}
+                                  placeholder="0.00"
+                                  value={formatNumber(
+                                    values.items[index].amountPaid
+                                  )}
+                                  onChange={(e) => {
+                                    const formattedValue =
+                                      e.target.value.replace(/[,a-zA-Z]/g, "");
+                                    setFieldValue(
+                                      `items[${index}].amountPaid`,
+                                      formattedValue
+                                    );
+                                  }}
+                                />
+                                <ErrorMessage
+                                  name={`items[${index}].amountPaid`}
+                                  component="div"
+                                  className="mt-1.5 text-xs text-red-600"
+                                />
+                              </div>
 
+                              <div>
+                                <label
+                                  htmlFor={`items[${index}].size`}
+                                  className="mb-2 block text-sm font-semibold text-gray-700"
+                                >
+                                  Size
+                                </label>
+                                <SizeSelectField
+                                  serialCodesForProducts={
+                                    serialCodesForProducts
+                                  }
+                                  snIndex={index}
+                                  values={values}
+                                  setFieldValue={setFieldValue}
+                                  options={subCategoryData}
+                                  searchPlaceholder="Select Size"
+                                  productsData={productsData}
+                                  providedSN={providedSize}
+                                />
+                                <ErrorMessage
+                                  name={`items[${index}].size`}
+                                  component="div"
+                                  className="mt-1.5 text-xs text-red-600"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="mt-4">
+                              <label
+                                htmlFor={`items[${index}].description`}
+                                className="mb-2 block text-sm font-semibold text-gray-700"
+                              >
+                                Description
+                              </label>
+                              <Field
+                                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm shadow-sm"
+                                disabled
+                                name={`items[${index}].description`}
+                                placeholder="Product description"
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                    <button
+                      className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-all hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600"
+                      type="button"
+                      onClick={() =>
+                        push({
+                          id: "",
+                          sn: "",
+                          amount: 0,
+                          amountPaid: 0,
+                          product_name: "",
+                          size: "",
+                          description: "",
+                        })
+                      }
+                    >
+                      <Plus size={18} />
+                      Add Another Item
+                    </button>
+                  </div>
+                )}
+              </FieldArray>
+            </div>
+
+            <div className="flex justify-end gap-3 border-t pt-6">
+              <button
+                type="button"
+                onClick={() => setDialogOpen(false)}
+                className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                Cancel
+              </button>
               <Button
                 isLoading={addOrderLoading}
                 onClick={handleSelectFieldValidation}
+                className="rounded-lg bg-blue-600 px-8 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 disabled:opacity-50"
               >
-                submit
+                Submit Sale
               </Button>
-            </Form>
-          )}
-        </Formik>
-        {/* <Button
-          onClick={payWithPaystack}
-          className="mt-4 px-4 py-2 bg-secondary-800 text-white rounded hover:bg-secondary-700 transition duration-300"
-          isLoading={loading}
-        >
-          {loading ? "Loading..." : "Generate Payment Link"}
-        </Button>
-
-        {generatedLink && (
-          <div className="mt-4 bg-gray-100 p-4 rounded flex items-center justify-between">
-            <span className="text-sm text-gray-700 break-all">
-              {generatedLink}
-            </span>
-            <button
-              onClick={handleCopy}
-              className="ml-4 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500 text-sm"
-            >
-              Copy
-            </button>
-          </div>
-        )} */}
-      </div>
+            </div>
+          </Form>
+        )}
+      </Formik>
 
       <AddCustomer open={isCustomerOpen} setShowDrawer={setIsCustomerOpen} />
     </div>

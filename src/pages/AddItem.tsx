@@ -1,14 +1,35 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Container from "../ui/Container";
 import { useLazyGetProductsQuery } from "../api/productApi";
-import { useParams } from "react-router-dom";
-import ProductDetails from "../ui/dashboard/ProductDetails";
+import { Link, useParams } from "react-router-dom";
 import { format } from "date-fns";
 import ViewProduct from "../modules/products/ViewProduct";
 import { formatAmount } from "../utils/format";
 import { Popover, DatePicker, Button } from "antd";
-import { ListFilter, Search } from "lucide-react";
+import {
+  ListFilter,
+  Search,
+  Edit,
+  Package,
+  User,
+  ChevronRight,
+} from "lucide-react";
 import moment from "moment";
+
+// Enhanced ProductDetails Component
+interface ProductDetailsProps {
+  title: string;
+  text: string;
+}
+
+function ProductDetails({ title, text }: ProductDetailsProps) {
+  return (
+    <div className="flex items-start gap-4 text-sm">
+      <p className="min-w-[140px] font-semibold text-gray-600">{title}:</p>
+      <p className="flex-1 font-medium text-gray-900">{text}</p>
+    </div>
+  );
+}
 
 function AddItem() {
   const [getProducts, { data: productsData }] = useLazyGetProductsQuery();
@@ -45,7 +66,6 @@ function AddItem() {
     let data = productsData?.filter((product) => {
       return product.product_name == productName;
     });
-    // Filter by date
     if (startDate && endDate) {
       data = filteredData?.filter((item) => {
         const createdAt = moment(item.date);
@@ -68,40 +88,55 @@ function AddItem() {
 
   return (
     <Container>
-      <div>
-        <div>
-          <div className="flex justify-between items-center">
-            <h1 className="text-[1.45rem] font-[600] text-neutral-500">
-              {productName}
-            </h1>
+      <div className="mb-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">{productName}</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              View and manage product inventory
+            </p>
+          </div>
 
-            <div className="flex cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
-              <Search size={16} className="text-neutral-300" />
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 shadow-sm transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+              <Search size={18} className="text-gray-400" />
               <input
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className=" py-[2px] text-[0.865rem]"
-                placeholder="Search by name..."
+                className="w-full border-none bg-transparent text-sm outline-none placeholder:text-gray-400 lg:w-64"
+                placeholder="Search by vendor name..."
               />
             </div>
 
             <Popover
               content={
-                <div className="flex flex-col gap-3 px-[4px] py-[16px]">
-                  <DatePicker
-                    onChange={(date, dateString) =>
-                      onChange(date, dateString, "start")
-                    }
-                    placeholder="Start Date"
-                  />
-                  <DatePicker
-                    onChange={(date, dateString) =>
-                      onChange(date, dateString, "end")
-                    }
-                    placeholder="End Date"
-                  />
+                <div className="flex w-64 flex-col gap-3 p-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      Start Date
+                    </label>
+                    <DatePicker
+                      onChange={(date, dateString) =>
+                        onChange(date, dateString, "start")
+                      }
+                      placeholder="Select start date"
+                      className="w-full"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-gray-700">
+                      End Date
+                    </label>
+                    <DatePicker
+                      onChange={(date, dateString) =>
+                        onChange(date, dateString, "end")
+                      }
+                      placeholder="Select end date"
+                      className="w-full"
+                    />
+                  </div>
 
-                  <Button className="items-center text-[#fff] gap-3 bg-[#093aa4] text-[0.865rem]">
-                    Apply
+                  <Button className="mt-2 h-9 items-center gap-2 bg-blue-600 text-sm font-medium text-white hover:bg-blue-700">
+                    Apply Filter
                   </Button>
                 </div>
               }
@@ -109,170 +144,249 @@ function AddItem() {
               placement="bottomLeft"
               showArrow={false}
             >
-              <div className="flex cursor-pointer items-center gap-[3px] rounded-md px-[8px] py-[8px] text-neutral-300 hover:text-[#093aa4]">
-                <ListFilter size={16} className="" />
-                <p className="text-[0.865rem]">Filter</p>
-              </div>
+              <button className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:text-blue-600">
+                <ListFilter size={18} />
+                Filter
+              </button>
             </Popover>
           </div>
         </div>
-
-        <div className="flex flex-col gap-2"></div>
       </div>
-      <div className="flex flex-col gap-[8px]">
+
+      <div className="flex flex-col gap-6">
         {filteredOptions &&
           filteredOptions?.map((item, index) => (
-            <div className="flex w-[100%] mt-[24px]" key={index}>
-              <div className="w-[50%] border-[1px] p-[24px]">
-                <h1 className="text-[1.25rem] font-[600] text-neutral-500">
-                  Vendor Details
-                </h1>
-                <div className="flex flex-col gap-2 mt-[10px]">
+            <div
+              className="grid gap-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md lg:grid-cols-2"
+              key={index}
+            >
+              <div className="p-6">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <div className=" flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+                      <User size={20} className="text-blue-600" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      Vendor Details
+                    </h2>
+                  </div>
+
+                  <Link
+                    to={`/dashboard/vendors/${item?.vendorId}/products`}
+                    className="flex items-center gap-3"
+                  >
+                    View Details <ChevronRight size={16} />
+                  </Link>
+                </div>
+                <div className="flex flex-col gap-3">
                   <ProductDetails
-                    title={" Business name"}
+                    title="Business name"
                     text={item?.Vendor?.first_name ?? "--"}
                   />
                   <ProductDetails
-                    title={" Full name"}
+                    title="Full name"
                     text={item?.Vendor?.last_name ?? "--"}
                   />
                   <ProductDetails
-                    title={" Phone number"}
+                    title="Phone number"
                     text={`${item.Vendor.phone_number}`}
                   />
                 </div>
               </div>
-              <div className="w-[50%] border-[1px] p-[24px]">
-                <div className="flex justify-between">
-                  <h1 className="text-[1.25rem] font-[600] text-neutral-500">
-                    Product Details
-                  </h1>
+
+              <div className="border-l border-gray-200 bg-gray-50/50 p-6">
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
+                      <Package size={20} className="text-green-600" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      Product Details
+                    </h2>
+                  </div>
                   <button
                     onClick={() => {
                       setProductId(item.id);
                       setProductDialog(true);
                     }}
-                    className="bg-[#000] text-neutral p-[6px]"
+                    className="flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-gray-800"
                   >
-                    edit details
+                    <Edit size={16} />
+                    Edit
                   </button>
                 </div>
 
-                <div className="flex flex-col gap-2 mt-[10px]">
+                <div className="flex flex-col gap-3">
                   <ProductDetails
-                    title={" Product name"}
+                    title="Product name"
                     text={item.product_name}
                   />
                   <ProductDetails
-                    title={" Description"}
+                    title="Description"
                     text={item.description ?? "--"}
                   />
                   <ProductDetails
-                    title={" Product Amount"}
+                    title="Product Amount"
                     text={`${formatAmount(item.purchase_amount)}`}
                   />
                   <ProductDetails
-                    title={" Sales Amount"}
+                    title="Sales Amount"
                     text={`${formatAmount(item.sales_price)}`}
                   />
-
-                  <ProductDetails title={" Size"} text={item.size} />
-
+                  <ProductDetails title="Size" text={item.size} />
                   <ProductDetails
-                    title={"Total Qty Purchased"}
+                    title="Total Qty Purchased"
                     text={`${item.quantity}`}
                   />
                   <ProductDetails
-                    title={"Available Quantity"}
+                    title="Available Quantity"
                     text={`${JSON.parse(item.serial_numbers).length}`}
                   />
                   <ProductDetails
-                    title={" Purchase Date"}
+                    title="Purchase Date"
                     text={`${format(new Date(item.date), "dd, MMM, yyyy")}`}
                   />
                 </div>
-                <div className="mt-[10px]">
-                  <p className="font-[600]">Serial Numbers</p>
-                  {JSON.parse(item.serial_numbers).map((item) => (
-                    <p className="text-[0.75rem] mt-[8px]">{item}</p>
-                  ))}
+
+                <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="mb-3 text-sm font-semibold text-gray-900">
+                        Available Serial Numbers
+                      </p>
+                      <div className="flex max-h-40 flex-col gap-2 overflow-y-auto">
+                        {JSON.parse(item.serial_numbers).map(
+                          (serialNum, idx) => (
+                            <div
+                              key={idx}
+                              className="rounded-md bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700"
+                            >
+                              {serialNum}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="mb-3 text-sm font-semibold text-gray-900">
+                        Sold Serial Numbers
+                      </p>
+                      <div className="flex max-h-40 flex-col gap-2 overflow-y-auto">
+                        {JSON.parse(item.sold_serial_numbers).map(
+                          (serialNum, idx) => (
+                            <div
+                              key={idx}
+                              className="rounded-md bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700"
+                            >
+                              {serialNum}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         {!filteredOptions &&
           filteredData?.map((item, index) => (
-            <div className="flex w-[100%] mt-[24px]" key={index}>
-              <div className="w-[50%] border-[1px] p-[24px]">
-                <h1 className="text-[1.25rem] font-[600] text-neutral-500">
-                  Vendor Details
-                </h1>
-                <div className="flex flex-col gap-2 mt-[10px]">
+            <div
+              className="grid gap-6 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md lg:grid-cols-2"
+              key={index}
+            >
+              <div className="p-6">
+                <div className="mb-5 flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50">
+                    <User size={20} className="text-blue-600" />
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    Vendor Details
+                  </h2>
+                </div>
+                <div className="flex flex-col gap-3">
                   <ProductDetails
-                    title={" Business name"}
+                    title="Business name"
                     text={item.Vendor.first_name}
                   />
                   <ProductDetails
-                    title={" Full name"}
+                    title="Full name"
                     text={item.Vendor.last_name ?? "--"}
                   />
                   <ProductDetails
-                    title={" Phone number"}
+                    title="Phone number"
                     text={`${item.Vendor.phone_number}`}
                   />
                 </div>
               </div>
-              <div className="w-[50%] border-[1px] p-[24px]">
-                <div className="flex justify-between">
-                  <h1 className="text-[1.25rem] font-[600] text-neutral-500">
-                    Product Details
-                  </h1>
+
+              <div className="border-l border-gray-200 bg-gray-50/50 p-6">
+                <div className="mb-5 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-50">
+                      <Package size={20} className="text-green-600" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-900">
+                      Product Details
+                    </h2>
+                  </div>
                   <button
                     onClick={() => {
                       setProductId(item.id);
                       setProductDialog(true);
                     }}
-                    className="bg-[#000] text-neutral p-[6px]"
+                    className="flex items-center gap-2 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-gray-800"
                   >
-                    edit details
+                    <Edit size={16} />
+                    Edit
                   </button>
                 </div>
 
-                <div className="flex flex-col gap-2 mt-[10px]">
+                <div className="flex flex-col gap-3">
                   <ProductDetails
-                    title={" Product name"}
+                    title="Product name"
                     text={item.product_name}
                   />
                   <ProductDetails
-                    title={" Description"}
+                    title="Description"
                     text={item.description ?? "--"}
                   />
                   <ProductDetails
-                    title={" Product Amount"}
+                    title="Product Amount"
                     text={`${formatAmount(item.purchase_amount)}`}
                   />
                   <ProductDetails
-                    title={" Sales Amount"}
+                    title="Sales Amount"
                     text={`${formatAmount(item.sales_price)}`}
                   />
                   <ProductDetails
-                    title={"Total Qty Purchased"}
+                    title="Total Qty Purchased"
                     text={`${item.quantity}`}
                   />
                   <ProductDetails
-                    title={"Available Quantity"}
+                    title="Available Quantity"
                     text={`${JSON.parse(item.serial_numbers).length}`}
                   />
                   <ProductDetails
-                    title={" Purchase Date"}
+                    title="Purchase Date"
                     text={`${format(new Date(item.date), "dd, MMM, yyyy")}`}
                   />
                 </div>
-                <div className="mt-[10px]">
-                  <p className="font-[600]">Serial Numbers</p>
-                  {JSON.parse(item.serial_numbers).map((item) => (
-                    <p className="text-[0.75rem] mt-[8px]">{item}</p>
-                  ))}
+
+                <div className="mt-6 rounded-lg border border-gray-200 bg-white p-4">
+                  <p className="mb-3 text-sm font-semibold text-gray-900">
+                    Serial Numbers
+                  </p>
+                  <div className="flex max-h-40 flex-col gap-2 overflow-y-auto">
+                    {JSON.parse(item.serial_numbers).map((serialNum, idx) => (
+                      <div
+                        key={idx}
+                        className="rounded-md bg-gray-50 px-3 py-2 font-mono text-xs text-gray-700"
+                      >
+                        {serialNum}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>

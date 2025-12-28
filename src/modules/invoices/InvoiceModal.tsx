@@ -22,8 +22,8 @@ function InvoiceModal({
   return (
     <div className="fixed left-0 right-0 top-0 z-[100] h-[100vh] overflow-y-scroll bg-[#00000065] px-[28px] pt-[48px] flex justify-center pb-[28px]">
       <div>
-        <div className="rounded-[12px] bg-[#fff] min-w-[500px]  max-w-[800px]">
-          <div className="flex items-center justify-between border-b-[1px] border-[#DDDDDD] px-[24px] py-[12px]">
+        <div className="rounded-[12px] bg-[#fff] ">
+          <div className="flex items-center min-w-[500px] justify-between border-b-[1px] border-[#DDDDDD] px-[24px] py-[12px]">
             <div className="flex items-center gap-[27px]">
               <button
                 className="p-[12px] rounded-[50%]  bg-[#e3e3e3]"
@@ -41,8 +41,8 @@ function InvoiceModal({
           </div>
 
           <div className="flex">
-            <div className="w-[50%] px-[26px] py-[57px]">
-              <div className="max-w-[277px] border-b-[1px] pb-[8px]">
+            <div className=" px-[26px] py-[57px]">
+              <div className=" border-b-[1px] pb-[8px]">
                 <p className="font-[600]">Invoice info</p>
               </div>
               <div className="mt-[24px]  min-h-[100vh]">

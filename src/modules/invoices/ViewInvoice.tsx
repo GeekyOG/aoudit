@@ -27,6 +27,7 @@ import { useLazyGetSubCategoriesQuery } from "../../api/subCategories";
 import { useLazyGetMetricsQuery } from "../../api/metrics";
 import { formatNumber } from "../../utils/format";
 import SelectProductField from "../../components/input/selectProductField";
+import { Plus, Trash2, FileText, Tag } from "lucide-react";
 
 const validationSchema = Yup.object({
   inv: Yup.string(),
@@ -93,7 +94,6 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
         items: { id: string; sn: string; amount: number; amountPaid: number }[];
       }> = { items: [] };
 
-      // Set errors for duplicate serial numbers
       data.forEach((item, index) => {
         const hasDuplicate = duplicates.some(
           (duplicateItem) =>
@@ -142,19 +142,16 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
       productId: product.id,
     }))
   );
+
   const fetchSerialCodes = async (
     productId: string,
     index: number,
     value?: { serial_number: string; productId: number }
   ) => {
-    // Set the predefined serial number
-
     if (productId !== "") {
       try {
-        // Fetch serial codes based on productName
         const response = result?.filter((item) => item.productId === productId);
 
-        // Set or merge the serial codes fetched
         setSerialCodesForProducts((prevState) => ({
           ...prevState,
           [index]: value
@@ -193,27 +190,24 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
     getProducts("");
   }, []);
 
-  // Utility function to format date as YYYY-MM-DD
   const formatDate = (date) => {
     const d = new Date(date);
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0"); // Add leading 0
-    const day = String(d.getDate()).padStart(2, "0"); // Add leading 0
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
 
-  // Get today's date formatted as YYYY-MM-DD
   const getTodayDate = () => {
     const today = new Date();
     return formatDate(today);
   };
 
-  // Adjusted initialValues to prefill the date field
   const initialValues = {
     status: data ? data[0]?.Sale?.status || "" : "",
     customerId: selectedCustomerId || "",
     inv: data ? data[0]?.Sale?.invoiceNumber || "" : "",
-    date: data ? formatDate(data[0]?.Sale?.date) : getTodayDate(), // Prefill with sale date or today's date
+    date: data ? formatDate(data[0]?.Sale?.date) : getTodayDate(),
     items: data?.map((item: any, i) => ({
       itemId: item.id || "",
       id: item.productId || "",
@@ -238,83 +232,119 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
   }, []);
 
   return (
-    <div>
-      <div>
-        {isLoading && (
-          <div>
-            <DataLoading />
-          </div>
-        )}
-        {data && (
-          <Formik
-            initialValues={initialValues}
-            validationSchema={validationSchema}
-            enableReinitialize={true}
-            onSubmit={(values, { setErrors }) => {
-              const valid = handleSelectFieldValidation();
-              const uniqueSn = uniqueSN(values.items, setErrors);
+    <div className="rounded-lg bg-white">
+      {isLoading && (
+        <div className="flex items-center justify-center py-12">
+          <DataLoading />
+        </div>
+      )}
 
-              if (valid && uniqueSn)
-                updateOrder({
-                  id: id,
-                  status: values.status,
-                  customerId: selectedCustomerId,
-                  invoiceNumber: values.inv,
-                  date: values.date,
-                  items: values.items.map((item) => ({
-                    id: item.itemId,
-                    productId: item.id,
-                    serial_number: item.sn,
-                    amount: item.amount,
-                    amount_paid: item.amountPaid,
-                    size: item.size,
-                  })),
-                  total_amount: values.items.reduce(
-                    (acc, item) => acc + item.amount,
-                    0
-                  ),
-                  total_paid: values.items.reduce(
-                    (acc, item) => acc + item.amountPaid,
-                    0
-                  ),
+      {data && (
+        <Formik
+          initialValues={initialValues}
+          validationSchema={validationSchema}
+          enableReinitialize={true}
+          onSubmit={(values, { setErrors }) => {
+            const valid = handleSelectFieldValidation();
+            const uniqueSn = uniqueSN(values.items, setErrors);
+
+            if (valid && uniqueSn)
+              updateOrder({
+                id: id,
+                status: values.status,
+                customerId: selectedCustomerId,
+                invoiceNumber: values.inv,
+                date: values.date,
+                items: values.items.map((item) => ({
+                  id: item.itemId,
+                  productId: item.id,
+                  serial_number: item.sn,
+                  amount: item.amount,
+                  amount_paid: item.amountPaid,
+                  size: item.size,
+                })),
+                total_amount: values.items.reduce(
+                  (acc, item) => Number(acc) + Number(item.amount),
+                  0
+                ),
+                total_paid: values.items.reduce(
+                  (acc, item) => Number(acc) + Number(item.amountPaid),
+                  0
+                ),
+              })
+                .unwrap()
+                .then(() => {
+                  getOrder(id);
+                  toast.success("Successfully Updated");
+                  setDialogOpen(false);
+                  getMetric("");
+                  getProducts("");
+                  getOrders({});
                 })
-                  .unwrap()
-                  .then(() => {
-                    getOrder(id);
-                    toast.success("Successfully Updated");
-                    setDialogOpen(false);
-                    getMetric("");
-                    getProducts("");
-                    getOrders({});
-                  })
-                  .catch((error) => {
-                    toast.error(error.data.message ?? "Something went wrong.");
-                  });
-            }}
-          >
-            {({ values, setFieldValue }) => (
-              <Form className="flex flex-col gap-[15px] min-w-[400px]">
-                <div className="flex-col">
-                  <p className="text-[0.895rem] font-[600]">Status</p>
+                .catch((error) => {
+                  toast.error(error.data.message ?? "Something went wrong.");
+                });
+          }}
+        >
+          {({ values, setFieldValue }) => (
+            <Form className="space-y-6">
+              <div className="grid gap-6 lg:grid-cols-2">
+                <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
+                  <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <Tag size={18} className="text-gray-500" />
+                    Status
+                  </label>
                   <Field
-                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px]"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     as="select"
-                    name={`status`}
+                    name="status"
                   >
-                    <option value="">Select an option</option>
-                    {["pending", "completed", "returned", "borrowed"].map(
-                      (option, i) => (
-                        <option key={i} value={option}>
-                          {option}
-                        </option>
-                      )
-                    )}
+                    <option value="">Select status</option>
+                    {[
+                      "pending",
+                      "completed",
+                      ...(data?.length > 1 ? [] : ["returned"]),
+                      "borrowed",
+                    ].map((option, i) => (
+                      <option key={i} value={option}>
+                        {option.charAt(0).toUpperCase() + option.slice(1)}
+                      </option>
+                    ))}
                   </Field>
                 </div>
+
                 <div>
+                  <label
+                    htmlFor="inv"
+                    className="mb-2 block text-sm font-semibold text-gray-700"
+                  >
+                    Invoice Number{" "}
+                    <span className="text-xs font-normal text-gray-500">
+                      (optional)
+                    </span>
+                  </label>
+                  <Field
+                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                    name="inv"
+                    placeholder="Enter invoice number"
+                    value={values.inv}
+                  />
+                  <ErrorMessage
+                    name="inv"
+                    component="div"
+                    className="mt-1.5 text-xs text-red-600"
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-5">
+                <h3 className="mb-4 text-base font-semibold text-gray-900">
+                  Customer Information
+                </h3>
+                <div className="space-y-3">
                   <SelectField
                     searchPlaceholder="Enter customer name"
-                    className="w-[100%]"
+                    className="w-full"
                     title="Customer"
                     error={selectedCustomerError}
                     selected={selectedCustomer}
@@ -329,356 +359,291 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                     }
                   />
 
-                  <p
-                    className="cursor-pointer text-[0.75rem] text-[blue]"
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
                     onClick={() => setIsCustomerOpen(true)}
                   >
+                    <Plus size={16} />
                     Add Customer
-                  </p>
+                  </button>
                 </div>
-                {/* Amount Field */}
-                <div className="flex flex-col ">
-                  <label
-                    htmlFor={`inv`}
-                    className="text-[0.75rem] flex justify-between"
-                  >
-                    Invoice Number <span>(optional)</span>
-                  </label>
-                  <Field
-                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                    name={`inv`}
-                    value={values.inv}
-                  />
-                  <ErrorMessage
-                    name={`inv`}
-                    component="div"
-                    className="text-[12px] font-[400] text-[#f00000]"
-                  />
-                </div>
+              </div>
 
-                {/* end */}
+              <div>
+                <label
+                  htmlFor="date"
+                  className="mb-2 block text-sm font-semibold text-gray-700"
+                >
+                  Date
+                </label>
+                <Field
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  name="date"
+                  type="date"
+                  value={values.date}
+                />
+                <ErrorMessage
+                  name="date"
+                  component="div"
+                  className="mt-1.5 text-xs text-red-600"
+                />
+              </div>
 
-                {/* Amount Field */}
-                <div className="flex flex-col ">
-                  <label htmlFor={`date`} className="text-[0.75rem]">
-                    Date
-                  </label>
-                  <Field
-                    className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                    name={`date`}
-                    type="date"
-                    value={values.date}
-                  />
-                  <ErrorMessage
-                    name={`date`}
-                    component="div"
-                    className="text-[12px] font-[400] text-[#f00000]"
-                  />
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
+                <div className="mb-5 flex items-center justify-between">
+                  <h3 className="text-base font-semibold text-gray-900">
+                    Items
+                  </h3>
                 </div>
 
-                {/* end */}
-                <div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[0.895rem] font-[600]">Items</p>
-                  </div>
+                <FieldArray name="items">
+                  {({ remove, push }) => (
+                    <div className="space-y-5">
+                      {values.items.length > 0 &&
+                        values.items.map((item, index) => {
+                          const providedSN = {
+                            serial_number: item?.sn,
+                            productId: item?.productId,
+                          };
 
-                  <FieldArray name="items">
-                    {({ remove, push }) => (
-                      <div className="flex flex-col gap-4 mt-[16px]">
-                        {values.items.length > 0 &&
-                          values.items.map((item, index) => {
-                            const providedSN = {
-                              serial_number: item?.sn,
-                              productId: item?.productId,
-                            };
+                          const providedItem = {
+                            product_name: item.id
+                              ? productsData.find((p) => p.id === item.id)
+                                  .product_name
+                              : "",
+                            productId: item.id,
+                          };
 
-                            const providedItem = {
-                              product_name: item.id
-                                ? productsData.find((p) => p.id === item.id)
-                                    .product_name
-                                : "",
-                              productId: item.id,
-                            };
+                          const providedSize = item?.size;
 
-                            const providedSize = item?.size;
+                          return (
+                            <div
+                              key={index}
+                              className="rounded-lg border border-gray-200 bg-white p-5"
+                            >
+                              <div className="mb-4 flex items-center justify-between">
+                                <span className="text-sm font-semibold text-gray-700">
+                                  Item #{index + 1}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setFieldValue(`items[${index}].sn`, "");
+                                    setFieldValue(`items[${index}].id`, "");
+                                    setFieldValue(`items[${index}].size`, "");
+                                    remove(index);
+                                  }}
+                                  className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                                >
+                                  <Trash2 size={16} />
+                                  Remove
+                                </button>
+                              </div>
 
-                            return (
-                              <div className="border-b-[1px] pb-[20px] flex flex-col gap-2">
-                                <div className="flex flex-col">
-                                  <div
-                                    key={index}
-                                    className="flex items-start gap-2"
+                              <div className="flex gap-4 lg:grid-cols-3">
+                                <div>
+                                  <label
+                                    htmlFor={`items[${index}].id`}
+                                    className="mb-2 block text-sm font-semibold text-gray-700"
                                   >
-                                    {/* Product Name Field */}
-                                    <div>
-                                      <label
-                                        htmlFor={`items[${index}].id`}
-                                        className="text-[0.75rem]"
-                                      >
-                                        Product Name
-                                      </label>
+                                    Product Name
+                                  </label>
+                                  <SelectProductField
+                                    snIndex={index}
+                                    values={values}
+                                    setFieldValue={setFieldValue}
+                                    options={productsData?.filter(
+                                      (product, index, self) =>
+                                        index ===
+                                        self.findIndex(
+                                          (p) =>
+                                            p.product_name ===
+                                            product.product_name
+                                        )
+                                    )}
+                                    searchPlaceholder="Select Item"
+                                    fetchSerialCodes={fetchSerialCodes}
+                                    providedItem={providedItem}
+                                  />
+                                  <ErrorMessage
+                                    name={`items[${index}].id`}
+                                    component="div"
+                                    className="mt-1.5 text-xs text-red-600"
+                                  />
+                                </div>
 
-                                      {/* <Field
-                                        className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 max-w-[200px] h-[46px]"
-                                        as="select"
-                                        name={`items[${index}].id`}
-                                        value={values.items[index].id}
-                                        disabled
-                                        onChange={(e) => {
-                                          const selectedProduct =
-                                            productsData?.find(
-                                              (item) =>
-                                                item.id == e.target.value
-                                            );
-                                          setFieldValue(
-                                            `items[${index}].id`,
-                                            selectedProduct?.id
-                                          );
+                                <div>
+                                  <label
+                                    htmlFor={`items[${index}].sn`}
+                                    className="mb-2 block text-sm font-semibold text-gray-700"
+                                  >
+                                    Serial Number
+                                  </label>
+                                  <SnSelectField
+                                    serialCodesForProducts={
+                                      serialCodesForProducts
+                                    }
+                                    snIndex={index}
+                                    values={values}
+                                    setFieldValue={setFieldValue}
+                                    options={serialCodesForProducts[index]}
+                                    productsData={productsData}
+                                    providedSN={providedSN}
+                                    searchPlaceholder="Select SN"
+                                  />
+                                  <ErrorMessage
+                                    name={`items[${index}].sn`}
+                                    component="div"
+                                    className="mt-1.5 text-xs text-red-600"
+                                  />
+                                </div>
 
-                                          fetchSerialCodes(
-                                            selectedProduct?.id || "",
-                                            index
-                                          );
-                                        }}
-                                      >
-                                        <option value="">
-                                          Select an option
-                                        </option>
-                                        {productsData
-                                          ?.filter(
-                                            (product, index, self) =>
-                                              index ===
-                                              self.findIndex(
-                                                (p) =>
-                                                  p.product_name ===
-                                                  product.product_name
-                                              )
+                                <div>
+                                  <label
+                                    htmlFor={`items[${index}].amount`}
+                                    className="mb-2 block text-sm font-semibold text-gray-700"
+                                  >
+                                    Amount
+                                  </label>
+                                  <Field
+                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    name={`items[${index}].amount`}
+                                    placeholder="0.00"
+                                    value={
+                                      values.items[index].amount !== 0
+                                        ? formatNumber(
+                                            values.items[index].amount
                                           )
-                                          .map((option) => (
-                                            <option
-                                              key={option.id}
-                                              value={option.id}
-                                            >
-                                              {option.product_name}
-                                            </option>
-                                          ))}
-                                      </Field>  */}
-
-                                      <SelectProductField
-                                        snIndex={index}
-                                        values={values}
-                                        setFieldValue={setFieldValue}
-                                        options={productsData?.filter(
-                                          (product, index, self) =>
-                                            index ===
-                                            self.findIndex(
-                                              (p) =>
-                                                p.product_name ===
-                                                product.product_name
-                                            )
-                                        )}
-                                        searchPlaceholder="Select Item"
-                                        fetchSerialCodes={fetchSerialCodes}
-                                        providedItem={providedItem}
-                                      />
-
-                                      <ErrorMessage
-                                        name={`items[${index}].id`}
-                                        component="div"
-                                        className="text-[12px] font-[400] text-[#f00000]"
-                                      />
-                                    </div>
-
-                                    {/* Serial Number Field */}
-                                    <div className="w-[300px]">
-                                      <label
-                                        htmlFor={`items[${index}].sn`}
-                                        className="text-[0.75rem] w-[300px]"
-                                      >
-                                        Serial Number
-                                      </label>
-                                      <SnSelectField
-                                        serialCodesForProducts={
-                                          serialCodesForProducts
-                                        }
-                                        snIndex={index}
-                                        values={values}
-                                        setFieldValue={setFieldValue}
-                                        options={serialCodesForProducts[index]}
-                                        productsData={productsData}
-                                        providedSN={providedSN}
-                                        searchPlaceholder="Select Sn"
-                                      />
-
-                                      <ErrorMessage
-                                        name={`items[${index}].sn`}
-                                        component="div"
-                                        className="text-[12px] font-[400] text-[#f00000]"
-                                      />
-                                    </div>
-
-                                    {/* Amount Field */}
-                                    <div className="flex flex-col mt-2">
-                                      <label
-                                        htmlFor={`items[${index}].amount`}
-                                        className="text-[0.75rem]"
-                                      >
-                                        Amount
-                                      </label>
-                                      <Field
-                                        className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2"
-                                        name={`items[${index}].amount`}
-                                        value={
-                                          values.items[index].amount !== 0
-                                            ? formatNumber(
-                                                values.items[index].amount
-                                              )
-                                            : 0
-                                        }
-                                        onChange={(e) => {
-                                          const formattedValue =
-                                            e.target.value.replace(
-                                              /[,a-zA-Z]/g,
-                                              ""
-                                            );
-
-                                          setFieldValue(
-                                            `items[${index}].amount`,
-                                            formattedValue
-                                          );
-                                        }}
-                                      />
-                                      <ErrorMessage
-                                        name={`items[${index}].amount`}
-                                        component="div"
-                                        className="text-[12px] font-[400] text-[#f00000]"
-                                      />
-                                    </div>
-
-                                    {/* Remove Button */}
-                                    <img
-                                      onClick={() => {
-                                        setFieldValue(`items[${index}].sn`, "");
-
-                                        setFieldValue(`items[${index}].id`, "");
-
-                                        setFieldValue(
-                                          `items[${index}].size`,
+                                        : 0
+                                    }
+                                    onChange={(e) => {
+                                      const formattedValue =
+                                        e.target.value.replace(
+                                          /[,a-zA-Z]/g,
                                           ""
                                         );
-                                        remove(index);
-                                      }}
-                                      src="/delete-inv.svg"
-                                      alt=""
-                                      width={18}
-                                      height={18}
-                                      className="cursor-pointer mt-6"
-                                    />
-                                  </div>
-                                </div>
-                                <div className="flex flex-col ">
-                                  <div className="flex items-start gap-2 ">
-                                    {/* Amount Paid Field */}
-                                    <div>
-                                      <label
-                                        htmlFor={`items[${index}].amountPaid`}
-                                        className="text-[0.75rem]"
-                                      >
-                                        Amount Paid
-                                      </label>
-                                      <Field
-                                        className="border-[1px] rounded-[4px] py-3 text-[0.75rem] outline-none px-2 w-[190px]"
-                                        name={`items[${index}].amountPaid`}
-                                        value={formatNumber(
-                                          values.items[index].amountPaid
-                                        )}
-                                        onChange={(e) => {
-                                          const formattedValue =
-                                            e.target.value.replace(
-                                              /[,a-zA-Z]/g,
-                                              ""
-                                            );
-
-                                          setFieldValue(
-                                            `items[${index}].amountPaid`,
-                                            formattedValue
-                                          );
-                                        }}
-                                      />
-                                      <ErrorMessage
-                                        name={`items[${index}].amountPaid`}
-                                        component="div"
-                                        className="text-[12px] font-[400] text-[#f00000]"
-                                      />
-                                    </div>
-
-                                    {/* Serial Number Field */}
-                                    <div className="w-[300px]">
-                                      <label
-                                        htmlFor={`items[${index}].size`}
-                                        className="text-[0.75rem] w-[300px]"
-                                      >
-                                        Size
-                                      </label>
-                                      <SizeSelectField
-                                        serialCodesForProducts={
-                                          serialCodesForProducts
-                                        }
-                                        snIndex={index}
-                                        values={values}
-                                        setFieldValue={setFieldValue}
-                                        options={subCategoryData}
-                                        searchPlaceholder="Select Sze"
-                                        productsData={productsData}
-                                        providedSN={providedSize}
-                                      />
-
-                                      <ErrorMessage
-                                        name={`items[${index}].size`}
-                                        component="div"
-                                        className="text-[12px] font-[400] text-[#f00000]"
-                                      />
-                                    </div>
-                                  </div>
+                                      setFieldValue(
+                                        `items[${index}].amount`,
+                                        formattedValue
+                                      );
+                                    }}
+                                  />
+                                  <ErrorMessage
+                                    name={`items[${index}].amount`}
+                                    component="div"
+                                    className="mt-1.5 text-xs text-red-600"
+                                  />
                                 </div>
                               </div>
-                            );
-                          })}
 
-                        {/* Add Item Button */}
-                        <button
-                          className="cursor-pointer text-[0.75rem] text-[blue]"
-                          type="button"
-                          onClick={() =>
-                            push({
-                              itemId: uuidv4(),
-                              id: "",
-                              sn: "",
-                              amount: 0,
-                              amountPaid: 0,
-                              product_name: "",
-                              size: "",
-                            })
-                          }
-                        >
-                          Add Item
-                        </button>
-                      </div>
-                    )}
-                  </FieldArray>
-                </div>
+                              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                                <div>
+                                  <label
+                                    htmlFor={`items[${index}].amountPaid`}
+                                    className="mb-2 block text-sm font-semibold text-gray-700"
+                                  >
+                                    Amount Paid
+                                  </label>
+                                  <Field
+                                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                                    name={`items[${index}].amountPaid`}
+                                    placeholder="0.00"
+                                    value={formatNumber(
+                                      values.items[index].amountPaid
+                                    )}
+                                    onChange={(e) => {
+                                      const formattedValue =
+                                        e.target.value.replace(
+                                          /[,a-zA-Z]/g,
+                                          ""
+                                        );
+                                      setFieldValue(
+                                        `items[${index}].amountPaid`,
+                                        formattedValue
+                                      );
+                                    }}
+                                  />
+                                  <ErrorMessage
+                                    name={`items[${index}].amountPaid`}
+                                    component="div"
+                                    className="mt-1.5 text-xs text-red-600"
+                                  />
+                                </div>
 
+                                <div>
+                                  <label
+                                    htmlFor={`items[${index}].size`}
+                                    className="mb-2 block text-sm font-semibold text-gray-700"
+                                  >
+                                    Size
+                                  </label>
+                                  <SizeSelectField
+                                    serialCodesForProducts={
+                                      serialCodesForProducts
+                                    }
+                                    snIndex={index}
+                                    values={values}
+                                    setFieldValue={setFieldValue}
+                                    options={subCategoryData}
+                                    searchPlaceholder="Select Size"
+                                    productsData={productsData}
+                                    providedSN={providedSize}
+                                  />
+                                  <ErrorMessage
+                                    name={`items[${index}].size`}
+                                    component="div"
+                                    className="mt-1.5 text-xs text-red-600"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                      {/* <button
+                        className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition-all hover:border-blue-500 hover:bg-blue-50 hover:text-blue-600"
+                        type="button"
+                        onClick={() =>
+                          push({
+                            itemId: uuidv4(),
+                            id: "",
+                            sn: "",
+                            amount: 0,
+                            amountPaid: 0,
+                            product_name: "",
+                            size: "",
+                          })
+                        }
+                      >
+                        <Plus size={18} />
+                        Add Another Item
+                      </button> */}
+                    </div>
+                  )}
+                </FieldArray>
+              </div>
+
+              <div className="flex justify-end gap-3 border-t pt-6">
+                <button
+                  type="button"
+                  onClick={() => setDialogOpen(false)}
+                  className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
                 <Button
                   isLoading={updateLoading}
                   onClick={handleSelectFieldValidation}
+                  className="rounded-lg bg-blue-600 px-8 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 disabled:opacity-50"
                 >
-                  submit
+                  Update Sale
                 </Button>
-              </Form>
-            )}
-          </Formik>
-        )}
-      </div>
+              </div>
+            </Form>
+          )}
+        </Formik>
+      )}
 
       <AddCustomer open={isCustomerOpen} setShowDrawer={setIsCustomerOpen} />
     </div>

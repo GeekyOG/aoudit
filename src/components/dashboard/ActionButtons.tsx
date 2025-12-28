@@ -31,6 +31,7 @@ import {
 } from "../../api/expensesApi";
 import Modal from "antd/es/modal/Modal";
 import AuditModel from "./AuditModal";
+import ModernReceipt from "../../modules/invoices/Reciept";
 
 interface ActionButtonsProps {
   id: string;
@@ -192,7 +193,7 @@ function ActionButtons({
       .unwrap()
       .then(() => {
         toast.success("Action Successful");
-        getOrders("");
+        getOrders({});
       });
   };
 
@@ -402,23 +403,18 @@ function ActionButtons({
           {showInvoiceDetails && (
             <div className="fixed z-[100] top-0 right-0 left-0 min-h-[100vh] overflow-y-scroll  pt-[100px]">
               <div className="absolute left-0 right-0 top-0 z-[50] min-h-[100vh] overflow-y-scroll bg-[#00000065] px-[28px] pt-[48px] pb-[28px]">
-                <div className=" mx-auto max-w-[500px] py-6 bg-[#000]">
-                  <div className="flex justify-end gap-4">
+                <div className=" mx-auto max-w-[750px] py-6 bg-[#e3e3e3]">
+                  <div className="flex justify-end gap-4 mx-4">
                     <Button
-                      className=" bg-[#a40909]"
-                      onClick={handleDownloadInvoice}
-                    >
-                      Download
-                    </Button>
-                    <button
-                      className="p-[12px] rounded-[50%]  bg-[#e3e3e3]"
+                      className="px-[12px] rounded-[8px] flex items-center gap-2"
                       onClick={() => setShowInvoiceDetails(false)}
                     >
-                      <X size={14} />
-                    </button>
+                      Close <X size={14} />
+                    </Button>
                   </div>
                   <div ref={pdfRef}>
-                    <InvoiceDetails id={id} />
+                    {/* <InvoiceDetails id={id} /> */}
+                    <ModernReceipt id={id} />
                   </div>
                 </div>
               </div>
