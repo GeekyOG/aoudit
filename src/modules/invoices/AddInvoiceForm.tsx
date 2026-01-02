@@ -32,7 +32,8 @@ import { useLazyGetMetricsQuery } from "../../api/metrics";
 import { Switch } from "antd";
 import { formatNumber } from "../../utils/format";
 import SelectProductField from "../../components/input/selectProductField";
-import { Plus, Trash2, ShoppingCart } from "lucide-react";
+import { Plus, Trash2, ShoppingCart, X } from "lucide-react";
+import ModernReceipt from "./Reciept";
 
 const validationSchema = Yup.object({
   inv: Yup.string(),
@@ -44,6 +45,7 @@ const validationSchema = Yup.object({
         id: Yup.string().required("required"),
         sn: Yup.string().required("required"),
         size: Yup.string().optional(),
+        customDescription: Yup.string().optional(),
         description: Yup.string().optional(),
         amount: Yup.string().required("required").min(1, "Amount cannot be 0"),
         amountPaid: Yup.string()
@@ -58,6 +60,7 @@ interface AddInvoicesProps {
   setDialogOpen: Dispatch<SetStateAction<boolean>>;
   sn?: string;
   id?: string;
+  customDescription?: string;
   description?: string;
   size?: string;
   borrow?: boolean;
@@ -77,7 +80,8 @@ function AddInvoices({
   const [selectedCustomer, setSelectedCustomer] = useState("Select an option");
   const [selectedCustomerId, setSelectedCustomerId] = useState("");
   const [selectedCustomerError, setSelectedCustomerError] = useState(false);
-
+  const [showInvoiceDetails, setShowInvoiceDetails] = useState(false);
+  const [saleId, setId] = useState("");
   const uniqueSN = (
     data: {
       id: string;
@@ -258,6 +262,7 @@ function AddInvoices({
               items: values.items.map((item) => ({
                 productId: item.id,
                 serial_number: item.sn,
+                description: item.customDescription,
                 amount: item.amount,
                 amount_paid: item.amountPaid,
                 size: item.size,
@@ -272,9 +277,11 @@ function AddInvoices({
               ),
             })
               .unwrap()
-              .then(() => {
+              .then((data) => {
+                setId(data?.sale.id);
+                setShowInvoiceDetails(true);
                 toast.success("Sale added successfully");
-                setDialogOpen(false);
+
                 getMetric("");
                 getProduct("");
                 getOrders({});
@@ -577,6 +584,21 @@ function AddInvoices({
 
                             <div className="mt-4">
                               <label
+                                htmlFor={`items[${index}].customDescription`}
+                                className="mb-2 block text-sm font-semibold text-gray-700"
+                              >
+                                Custom Description
+                              </label>
+                              <Field
+                                as="textarea"
+                                className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm shadow-sm"
+                                name={`items[${index}].customDescription`}
+                                placeholder="Product description"
+                              />
+                            </div>
+
+                            <div className="mt-4">
+                              <label
                                 htmlFor={`items[${index}].description`}
                                 className="mb-2 block text-sm font-semibold text-gray-700"
                               >
@@ -604,6 +626,7 @@ function AddInvoices({
                           amountPaid: 0,
                           product_name: "",
                           size: "",
+                          customDescription: "",
                           description: "",
                         })
                       }
@@ -637,6 +660,30 @@ function AddInvoices({
       </Formik>
 
       <AddCustomer open={isCustomerOpen} setShowDrawer={setIsCustomerOpen} />
+
+      {showInvoiceDetails && (
+        <div className="fixed z-[100] top-0 right-0 left-0 min-h-[100vh] overflow-y-scroll  pt-[100px]">
+          <div className="absolute left-0 right-0 top-0 z-[50] min-h-[100vh] overflow-y-scroll bg-[#00000065] px-[28px] pt-[48px] pb-[28px]">
+            <div className=" mx-auto max-w-[750px] py-6 bg-[#e3e3e3]">
+              <div className="flex justify-end gap-4 mx-4">
+                <Button
+                  className="px-[12px] rounded-[8px] flex items-center gap-2"
+                  onClick={() => {
+                    setShowInvoiceDetails(false);
+                    setDialogOpen(false);
+                  }}
+                >
+                  Close <X size={14} />
+                </Button>
+              </div>
+              <div>
+                {/* <InvoiceDetails id={id} /> */}
+                <ModernReceipt id={saleId} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

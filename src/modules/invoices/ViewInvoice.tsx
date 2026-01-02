@@ -39,6 +39,8 @@ const validationSchema = Yup.object({
         id: Yup.string().required("Item is required"),
         sn: Yup.string().required("Serial Number is required"),
         size: Yup.string().optional(),
+        customDescription: Yup.string().optional(),
+
         amount: Yup.number().required("Amount is required"),
         amountPaid: Yup.number().required("Amount Paid is required"),
       })
@@ -212,6 +214,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
       itemId: item.id || "",
       id: item.productId || "",
       sn: item.serial_number || "",
+      customDescription: item.description,
       amount: item.amount || 0,
       amountPaid: item.amount_paid || 0,
       size: item.size || "",
@@ -259,6 +262,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                   id: item.itemId,
                   productId: item.id,
                   serial_number: item.sn,
+                  description: item.customDescription,
                   amount: item.amount,
                   amount_paid: item.amountPaid,
                   size: item.size,
@@ -594,6 +598,21 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
                                     name={`items[${index}].size`}
                                     component="div"
                                     className="mt-1.5 text-xs text-red-600"
+                                  />
+                                </div>
+
+                                <div className="mt-4">
+                                  <label
+                                    htmlFor={`items[${index}].customDescription`}
+                                    className="mb-2 block text-sm font-semibold text-gray-700"
+                                  >
+                                    Custom Description
+                                  </label>
+                                  <Field
+                                    as="textarea"
+                                    className="w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm shadow-sm"
+                                    name={`items[${index}].customDescription`}
+                                    placeholder="Product description"
                                   />
                                 </div>
                               </div>

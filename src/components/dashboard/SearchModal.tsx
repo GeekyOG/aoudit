@@ -178,18 +178,14 @@ function SearchModal() {
                           Item Details
                         </p>
                         <p className="text-[0.865rem] bg-secondary-600 p-[6px] max-w-[150px]">
-                          {data.saleItem?.Sale.status == "borrowed" &&
-                            "Item borrowed"}
-                          {data.saleItem?.Sale.status == "completed" &&
-                            "Item Sold"}
-
-                          {data.saleItem?.Sale.status == "pending" &&
-                            "Item pending payment"}
-
-                          {data.saleItem?.Sale.status != "borrowed" &&
-                            data.saleItem?.Sale.status !== "completed" &&
-                            data.saleItem?.Sale.status !== "pending" &&
-                            "Item in store"}
+                          {data.product
+                            ? "Item in store"
+                            : (data.saleItem?.Sale.status == "borrowed" &&
+                                "Item borrowed") ||
+                              (data.saleItem?.Sale.status == "completed" &&
+                                "Item Sold") ||
+                              (data.saleItem?.Sale.status == "pending" &&
+                                "Item pending payment")}
                         </p>
                       </div>
 
@@ -202,27 +198,23 @@ function SearchModal() {
                         view details
                       </button>
 
-                      {data.saleItem?.Sale.status != "borrowed" &&
-                        data.saleItem?.Sale.status !== "completed" &&
-                        data.saleItem?.Sale.status !== "pending" && (
-                          <button
-                            onClick={() => setOpen(!open)}
-                            className="bg-[#000] text-neutral p-[6px]"
-                          >
-                            Sell Item
-                          </button>
-                        )}
+                      {data.product && (
+                        <button
+                          onClick={() => setOpen(!open)}
+                          className="bg-[#000] text-neutral p-[6px]"
+                        >
+                          Sell Item
+                        </button>
+                      )}
 
-                      {data.saleItem?.Sale.status != "borrowed" &&
-                        data.saleItem?.Sale.status !== "completed" &&
-                        data.saleItem?.Sale.status !== "pending" && (
-                          <button
-                            onClick={() => setOpenBorrowed(!openBorrowed)}
-                            className="bg-[#000] text-neutral p-[6px]"
-                          >
-                            Borrow Item
-                          </button>
-                        )}
+                      {data.product && (
+                        <button
+                          onClick={() => setOpenBorrowed(!openBorrowed)}
+                          className="bg-[#000] text-neutral p-[6px]"
+                        >
+                          Borrow Item
+                        </button>
+                      )}
                     </div>
 
                     <div className="mt-[20px]">
