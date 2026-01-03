@@ -214,7 +214,7 @@ function ViewInvoice({ setDialogOpen, id }: ViewInvoiceProps) {
       itemId: item.id || "",
       id: item.productId || "",
       sn: item.serial_number || "",
-      customDescription: item.description,
+      customDescription: item.description || "",
       amount: item.amount || 0,
       amountPaid: item.amount_paid || 0,
       size: item.size || "",

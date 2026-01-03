@@ -766,6 +766,15 @@ function ViewProduct({
 
                                     <button
                                       type="button"
+                                      disabled={
+                                        JSON.parse(
+                                          data?.sold_serial_numbers ?? ""
+                                        ).includes(values.items[index].sn) &&
+                                        !(
+                                          values.items.length <
+                                          parseInt(values.quantity)
+                                        )
+                                      }
                                       className={cn(
                                         "flex h-10 w-10 items-center justify-center rounded-lg transition-all",
                                         index === values.items.length - 1

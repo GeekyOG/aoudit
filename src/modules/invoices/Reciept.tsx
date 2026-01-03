@@ -22,7 +22,7 @@ export default function ModernReceipt({ id }: { id: string }) {
 
   const handlePrint = useReactToPrint({
     contentRef: receiptRef,
-    documentTitle: "AwesomeFileName",
+    documentTitle: "SammyTechGadgetReceipt",
     onAfterPrint: handleAfterPrint,
     onBeforePrint: handleBeforePrint,
   });
@@ -77,10 +77,13 @@ export default function ModernReceipt({ id }: { id: string }) {
         <div className="max-w-2xl mx-auto bg-white p-8 shadow-xl print:shadow-none print:p-4">
           {/* HEADER */}
           <div className="text-center border-b border-dashed pb-4 mb-4">
-            <img src="/assets/logo.jpeg" className="w-[100px] mx-auto" />
-            <h1 className="text-2xl font-bold">Sammy Tech</h1>
+            <img src="/assets/logo.jpeg" className="w-[150px] mx-auto" />
+            <h1 className="text-2xl font-bold">SAMMYTECH GADGETS</h1>
             <p className="text-sm text-slate-500">
-              No 1 Okorodafe street, Ughelli, Delta State
+              Quality Phones . laptops . Accessories
+            </p>
+            <p className="text-sm text-slate-500">
+              01 okorodafe Round About, Ughelli Delta State
             </p>
             <p className="text-sm text-slate-500">+234 703 878 4788</p>
           </div>
@@ -113,19 +116,18 @@ export default function ModernReceipt({ id }: { id: string }) {
 
           {/* ITEMS */}
           <div>
-            <div className="grid grid-cols-12 text-xs font-semibold border-b pb-1 mb-1">
-              <div className="col-span-6">Item</div>
-              <div className="col-span-2 text-center">Qty</div>
-              <div className="col-span-2 text-right">Price</div>
-              <div className="col-span-2 text-right">Total</div>
+            <div className="grid grid-cols-3 text-xs font-semibold border-b pb-1 mb-1">
+              <div className="">Item</div>
+              <div className=" text-center">Qty</div>
+              <div className=" text-right">Price</div>
             </div>
 
             {data.map((item: any, i: number) => (
               <div
                 key={i}
-                className="grid grid-cols-12 py-1 border-b text-sm break-inside-avoid"
+                className="grid grid-cols-3 gap-2 py-1 border-b text-sm break-inside-avoid"
               >
-                <div className="col-span-6">
+                <div className="">
                   <p className="font-medium">{item.Product.product_name}</p>
                   {item.serial_number && (
                     <p className="text-xs text-slate-500">
@@ -134,18 +136,13 @@ export default function ModernReceipt({ id }: { id: string }) {
                   )}
 
                   {item.description && (
-                    <p className="text-xs text-slate-500 max-w-[300px]">
+                    <p className="text-xs text-slate-500">
                       Description: {item.description}
                     </p>
                   )}
                 </div>
-                <div className="col-span-2 text-center">1</div>
-                <div className="col-span-2 text-right">
-                  {formatCurrency(item.amount)}
-                </div>
-                <div className="col-span-2 text-right">
-                  {formatCurrency(item.amount)}
-                </div>
+                <div className=" text-center">1</div>
+                <div className=" text-right">{formatCurrency(item.amount)}</div>
               </div>
             ))}
           </div>
@@ -182,20 +179,20 @@ export default function ModernReceipt({ id }: { id: string }) {
           <div className="bg-slate-50 p-4 rounded text-sm">
             <p className="font-semibold text-center mb-3">WARRANTY POLICY</p>
             <p>
-              <strong>14 DAYS</strong> for UK used phones
+              <strong>14 Days for UK Used Phones</strong>
             </p>
             <p>
-              <strong>30 DAYS</strong> for brand new phones
+              <strong>30 Days for Brand New Phones</strong>
             </p>
-            <p className="mt-3 font-semibold text-center">
-              NO WARRANTY FOR LIQUID OR SCREEN DAMAGE
+            <p className="mt-3 font-semibold ">
+              No warranty covers liquid damage or screen damage.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-8 mt-12">
             <div>
               <div className="border-t-2 border-slate-800 pt-2">
-                <p className="text-sm font-semibold">Customer Signature</p>
+                <p className="text-sm font-semibold">Customer’s Signature</p>
                 <p className="text-xs text-slate-500 mt-1">
                   {customer
                     ? `${customer.first_name} ${customer.last_name}`
@@ -205,8 +202,8 @@ export default function ModernReceipt({ id }: { id: string }) {
             </div>
             <div>
               <div className="border-t-2 border-slate-800 pt-2">
-                <p className="text-sm font-semibold">Seller Signature</p>
-                <p className="text-xs text-slate-500 mt-1">Sammy Tech</p>
+                <p className="text-sm font-semibold">Seller's Signature</p>
+                <p className="text-xs text-slate-500 mt-1">Sammytech Gadgets</p>
               </div>
             </div>
           </div>

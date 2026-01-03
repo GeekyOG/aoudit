@@ -8,8 +8,8 @@ import Cookies from "js-cookie";
 import { logout } from "../utils/logout";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:8000/api",
-  // baseUrl: "https://sammyapi.aoudit.com/api",
+  // baseUrl: "http://localhost:8000/api",
+  baseUrl: "https://sammyapi.aoudit.com/api",
   prepareHeaders: (headers) => {
     // Retrieve the token from cookies
     const token = Cookies.get("authToken");
