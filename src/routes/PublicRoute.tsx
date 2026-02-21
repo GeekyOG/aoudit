@@ -12,12 +12,12 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   const [user] = useState(Cookies.get("authToken"));
 
   const navigate = useNavigate();
-  const device = deviceType();
+  // const device = deviceType();
 
   useEffect(() => {
-    if (device == "This is a mobile device.") {
-      navigate("/device");
-    }
+    // if (device == "This is a mobile device.") {
+    //   navigate("/device");
+    // }
 
     if (user) {
       navigate("/dashboard");
