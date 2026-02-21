@@ -31,6 +31,7 @@ import { cn } from "../../utils/cn";
 import { useLazyGetOrdersQuery } from "../../api/ordersApi";
 import { formatNumber } from "../../utils/format";
 import { useGetSerialNumbersQuery } from "../../api/metrics";
+import { X, Package, Hash, Plus } from "lucide-react";
 
 const addProductValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
@@ -47,7 +48,7 @@ const addProductValidation = Yup.object().shape({
         sn: Yup.string()
           .required("SN is required")
           .min(5, "SN must be at least 5 characters"),
-      })
+      }),
     )
     .min(1, "At least one item is required"),
 });
@@ -59,6 +60,21 @@ const getTodayDate = () => {
   const day = String(today.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 };
+
+const fieldClass = (hasError?: boolean) =>
+  cn(
+    "w-full rounded-xl border px-4 py-2.5 text-sm transition-all outline-none",
+    "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50",
+    hasError
+      ? "border-red-300 focus:border-red-400 focus:ring-red-50"
+      : "border-gray-200 bg-white",
+  );
+
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3">
+    {children}
+  </p>
+);
 
 function AddProductModal({
   setShowAddProduct,
@@ -134,7 +150,7 @@ function AddProductModal({
   const { data: serial_number } = useGetSerialNumbersQuery("");
 
   const parsedProductSerials = Array.isArray(
-    serial_number?.productSerialNumbers
+    serial_number?.productSerialNumbers,
   )
     ? serial_number?.productSerialNumbers?.flatMap((entry) => {
         try {
@@ -166,7 +182,7 @@ function AddProductModal({
   }, [getProduct, getOrders]);
 
   const result: { productName: any }[] = Array.from(
-    new Set(productsData?.map((product) => product.product_name))
+    new Set(productsData?.map((product) => product.product_name)),
   ).map((productName) => ({
     productName,
   }));
@@ -176,65 +192,48 @@ function AddProductModal({
   const filteredOptions = useMemo(() => {
     if (result) {
       return result.filter((item) =>
-        item.productName.toLowerCase().includes(searchValue.toLowerCase())
+        item.productName.toLowerCase().includes(searchValue.toLowerCase()),
       );
     }
     return [];
   }, [result, searchValue]);
 
   const uniqueSN = (
-    data: {
-      sn: string;
-    }[],
-    setErrors: (
-      errors: FormikErrors<{
-        items: { sn: string }[];
-      }>
-    ) => void,
-
+    data: { sn: string }[],
+    setErrors: (errors: FormikErrors<{ items: { sn: string }[] }>) => void,
     salesResult: { serial_number: string; productId: string }[],
-    productResult: { serial_number: string; productId: string }[]
+    productResult: { serial_number: string; productId: string }[],
   ) => {
     const duplicates = data.filter((item, index, self) =>
       self.some(
         (otherItem, otherIndex) =>
-          otherIndex !== index && item.sn === otherItem.sn
-      )
+          otherIndex !== index && item.sn === otherItem.sn,
+      ),
     );
 
     const snExistsInOtherSources = data.filter((item) =>
-      fullSerialNumber.some((existingItem) => existingItem === item.sn)
+      fullSerialNumber.some((existingItem) => existingItem === item.sn),
     );
 
-    const errors: FormikErrors<{
-      items: { sn: string }[];
-    }> = { items: [] };
+    const errors: FormikErrors<{ items: { sn: string }[] }> = { items: [] };
 
     if (duplicates.length > 0) {
       toast.error("Multiple items with duplicate SNs found");
-
       data.forEach((item, index) => {
-        const hasDuplicate = duplicates.some(
-          (duplicateItem) => duplicateItem.sn === item.sn
-        );
-
+        const hasDuplicate = duplicates.some((d) => d.sn === item.sn);
         if (hasDuplicate) {
           if (!errors.items) errors.items = [];
-          errors.items[index] = {
-            sn: "Exists in multiple items",
-          };
+          errors.items[index] = { sn: "Exists in multiple items" };
         }
       });
     }
 
     if (snExistsInOtherSources.length > 0) {
       toast.error("Some serial numbers already exist in the system");
-
       data.forEach((item, index) => {
         const existsInSources = snExistsInOtherSources.some(
-          (sourceItem) => sourceItem.sn === item.sn
+          (s) => s.sn === item.sn,
         );
-
         if (existsInSources) {
           if (!errors.items) errors.items = [];
           errors.items[index] = {
@@ -251,44 +250,38 @@ function AddProductModal({
 
     return true;
   };
+
   const userData = JSON.parse(localStorage.getItem("user") ?? "");
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+    <div className="fixed inset-0 z-[1000] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-0 sm:px-4">
       {ordersData && productsData && (
-        <Container className="no-scrollbar mt-4 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white shadow-2xl">
+        <div className="no-scrollbar w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl flex flex-col">
           {/* Header */}
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-5 lg:px-8">
-            <div>
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Add New Product
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Fill in the product details below
-              </p>
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-5 py-4 sm:px-6">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
+                <Package size={17} className="text-indigo-600" />
+              </div>
+              <div>
+                <h2 className="text-[15px] font-semibold text-gray-900">
+                  Add New Product
+                </h2>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  Fill in the product details below
+                </p>
+              </div>
             </div>
             <button
               onClick={() => setShowAddProduct(false)}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-all hover:bg-gray-200 hover:text-gray-900"
+              className="h-8 w-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all"
             >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
+              <X size={15} />
             </button>
           </div>
 
-          {/* Form Content */}
-          <div className="px-6 py-6 lg:px-8">
+          {/* Form */}
+          <div className="px-5 py-5 sm:px-6 flex-1 overflow-y-auto">
             <Formik
               initialValues={{
                 date: getTodayDate(),
@@ -310,19 +303,19 @@ function AddProductModal({
                   JSON.parse(product.serial_numbers).map((serial_number) => ({
                     serial_number,
                     productId: product.id,
-                  }))
+                  })),
                 );
 
                 if (values.items.length != parseInt(values.quantity)) {
                   toast.warn(
-                    "Quantity and number of serial numbers added do not match"
+                    "Quantity and number of serial numbers added do not match",
                   );
                 }
                 const uniqueSn = uniqueSN(
                   values.items,
                   setErrors,
                   salesResult,
-                  productResult
+                  productResult,
                 );
                 if (
                   !selectedCategoryError ||
@@ -354,7 +347,7 @@ function AddProductModal({
                       })
                       .catch((error) => {
                         toast.error(
-                          error.data.message ?? "Something went wrong."
+                          error.data.message ?? "Something went wrong.",
                         );
                       });
                   }
@@ -362,160 +355,177 @@ function AddProductModal({
               }}
             >
               {({ touched, errors, values, setFieldValue }) => (
-                <Form className="space-y-6">
-                  {/* Product Name & Size */}
-                  <div className="grid gap-6 lg:grid-cols-2">
-                    <div className="relative">
+                <Form className="space-y-5">
+                  {/* Product Info */}
+                  <div className="rounded-xl border border-gray-100 p-4 space-y-4">
+                    <SectionLabel>Product Info</SectionLabel>
+
+                    {/* Product Name & Size */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="relative">
+                        <label
+                          className={cn(
+                            "block text-xs font-semibold text-gray-600 mb-1.5",
+                            errors.name && touched.name && "text-red-500",
+                          )}
+                        >
+                          Product Name <span className="text-red-400">*</span>
+                        </label>
+                        <Field
+                          className={fieldClass(
+                            !!(errors.name && touched.name),
+                          )}
+                          name="name"
+                          placeholder="e.g. iPhone 15 Pro Max"
+                          value={searchValue}
+                          onChange={(e) => {
+                            setShowSuggestion(true);
+                            setSearchValue(e.target.value);
+                            setFieldValue("name", e.target.value);
+                          }}
+                        />
+                        <ErrorMessage
+                          name="name"
+                          component="div"
+                          className="mt-1 text-xs text-red-500"
+                        />
+                        {filteredOptions &&
+                          filteredOptions.length > 0 &&
+                          showSuggestion && (
+                            <div
+                              className="absolute top-full z-20 mt-1.5 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-lg"
+                              ref={optionsRef}
+                            >
+                              {filteredOptions.map((value, index) => (
+                                <button
+                                  type="button"
+                                  className="w-full text-left cursor-pointer border-b border-gray-50 px-4 py-2.5 text-sm last:border-0 hover:bg-indigo-50 transition-colors"
+                                  key={index}
+                                  onClick={() => {
+                                    setSearchValue(value.productName);
+                                    setShowSuggestion(false);
+                                    setFieldValue("name", searchValue);
+                                  }}
+                                >
+                                  <span className="font-medium text-gray-800">
+                                    {value.productName}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                      </div>
+
+                      <div>
+                        <SelectField
+                          searchPlaceholder="Enter size"
+                          className="w-full -mt-2"
+                          title="Size"
+                          error={selectedSizeError}
+                          selected={selectedSize}
+                          setId={setSelectedSizeId}
+                          setSelected={setSelectedSize}
+                          isLoading={subCategoryLoading}
+                          options={subCategoryData || []}
+                        />
+                        <button
+                          type="button"
+                          className="mt-1.5 flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                          onClick={() => setIsSubCategoryOpen(true)}
+                        >
+                          <Plus size={12} /> Add Size
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Quantity, Purchase Price, Sales Price */}
+                    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
+                      <div>
+                        <Input
+                          name="quantity"
+                          type="number"
+                          title="Quantity"
+                          placeholder="0"
+                          errors={errors.quantity}
+                          touched={touched.quantity}
+                          width="w-full h-[38px] -mt-[0.5px]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                          Purchase Price <span className="text-red-400">*</span>
+                        </label>
+                        <Field
+                          className={fieldClass(
+                            !!(errors.purchasePrice && touched.purchasePrice),
+                          )}
+                          name="purchasePrice"
+                          placeholder="0.00"
+                          value={formatNumber(values.purchasePrice)}
+                          onChange={(e) => {
+                            const formattedValue = e.target.value.replace(
+                              /[,a-zA-Z]/g,
+                              "",
+                            );
+                            setFieldValue("purchasePrice", formattedValue);
+                          }}
+                        />
+                        <ErrorMessage
+                          name="purchasePrice"
+                          component="div"
+                          className="mt-1 text-xs text-red-500"
+                        />
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                          Sales Price
+                        </label>
+                        <Field
+                          className={fieldClass()}
+                          name="salesPrice"
+                          placeholder="0.00"
+                          value={formatNumber(values.salesPrice)}
+                          onChange={(e) => {
+                            const formattedValue = e.target.value.replace(
+                              /[,a-zA-Z]/g,
+                              "",
+                            );
+                            setFieldValue("salesPrice", formattedValue);
+                          }}
+                        />
+                        <ErrorMessage
+                          name="salesPrice"
+                          component="div"
+                          className="mt-1 text-xs text-red-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Date */}
+                    <div>
                       <label
-                        htmlFor="name"
-                        className={cn(
-                          "mb-2 block text-sm font-semibold text-gray-700",
-                          errors.name && touched.name && "text-red-600"
-                        )}
+                        htmlFor="date"
+                        className="block text-xs font-semibold text-gray-600 mb-1.5"
                       >
-                        Product Name <span className="text-red-500">*</span>
+                        Date
                       </label>
                       <Field
-                        className={cn(
-                          "w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
-                          errors.name &&
-                            touched.name &&
-                            "border-red-500 focus:border-red-500 focus:ring-red-500/20"
-                        )}
-                        name="name"
-                        placeholder="Enter product name"
-                        value={searchValue}
-                        onChange={(e) => {
-                          setShowSuggestion(true);
-                          setSearchValue(e.target.value);
-                          setFieldValue("name", e.target.value);
-                        }}
+                        className={fieldClass()}
+                        name="date"
+                        type="date"
+                        value={values.date}
                       />
                       <ErrorMessage
-                        name="name"
+                        name="date"
                         component="div"
-                        className="mt-1.5 text-xs text-red-600"
-                      />
-
-                      {filteredOptions &&
-                        filteredOptions.length > 0 &&
-                        showSuggestion && (
-                          <div
-                            className="absolute top-full z-20 mt-2 w-full max-h-[400px] overflow-y-scroll rounded-lg border border-gray-200 bg-white shadow-lg"
-                            ref={optionsRef}
-                          >
-                            {filteredOptions?.map((value, index) => (
-                              <div
-                                className="cursor-pointer border-b border-gray-100 px-4 py-3 text-sm transition-colors last:border-0 hover:bg-blue-50"
-                                key={index}
-                                onClick={() => {
-                                  setSearchValue(value.productName);
-                                  setShowSuggestion(false);
-                                  setFieldValue("name", searchValue);
-                                }}
-                              >
-                                <p className="font-medium text-gray-900">
-                                  {value.productName}
-                                </p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                    </div>
-
-                    <div>
-                      <SelectField
-                        searchPlaceholder="Enter size"
-                        className="w-full"
-                        title="Size"
-                        error={selectedSizeError}
-                        selected={selectedSize}
-                        setId={setSelectedSizeId}
-                        setSelected={setSelectedSize}
-                        isLoading={subCategoryLoading}
-                        options={subCategoryData || []}
-                      />
-                      <button
-                        type="button"
-                        className="mt-2 flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
-                        onClick={() => setIsSubCategoryOpen(true)}
-                      >
-                        <IoIosAdd className="text-lg" />
-                        Add Size
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Quantity, Purchase Price, Sales Price */}
-                  <div className="grid gap-6 lg:grid-cols-3">
-                    <div>
-                      <Input
-                        name="quantity"
-                        type="number"
-                        title="Quantity"
-                        placeholder="0"
-                        errors={errors.quantity}
-                        touched={touched.quantity}
-                        width="w-full"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-2 block text-sm font-semibold text-gray-700">
-                        Purchase Price <span className="text-red-500">*</span>
-                      </label>
-                      <Field
-                        className={cn(
-                          "w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
-                          errors.purchasePrice &&
-                            touched.purchasePrice &&
-                            "border-red-500"
-                        )}
-                        name="purchasePrice"
-                        placeholder="0.00"
-                        value={formatNumber(values.purchasePrice)}
-                        onChange={(e) => {
-                          const formattedValue = e.target.value.replace(
-                            /[,a-zA-Z]/g,
-                            ""
-                          );
-                          setFieldValue("purchasePrice", formattedValue);
-                        }}
-                      />
-                      <ErrorMessage
-                        name="purchasePrice"
-                        component="div"
-                        className="mt-1.5 text-xs text-red-600"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="mb-2 block text-sm font-semibold text-gray-700">
-                        Sales Price
-                      </label>
-                      <Field
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                        name="salesPrice"
-                        placeholder="0.00"
-                        value={formatNumber(values.salesPrice)}
-                        onChange={(e) => {
-                          const formattedValue = e.target.value.replace(
-                            /[,a-zA-Z]/g,
-                            ""
-                          );
-                          setFieldValue("salesPrice", formattedValue);
-                        }}
-                      />
-                      <ErrorMessage
-                        name="salesPrice"
-                        component="div"
-                        className="mt-1.5 text-xs text-red-600"
+                        className="mt-1 text-xs text-red-500"
                       />
                     </div>
                   </div>
 
                   {/* Vendor */}
-                  <div>
+                  <div className="rounded-xl border border-gray-100 p-4 space-y-3">
+                    <SectionLabel>Vendor</SectionLabel>
                     <SelectField
                       searchPlaceholder="Search vendor"
                       className="w-full"
@@ -526,95 +536,77 @@ function AddProductModal({
                       setSelected={setSelectedVendor}
                       isLoading={supplierLoading}
                       options={
-                        supplierData?.map((item) => {
-                          return {
-                            name: `${item.first_name} ${item.last_name}`,
-                            id: item.id,
-                          };
-                        }) || []
+                        supplierData?.map((item) => ({
+                          name: `${item.first_name} ${item.last_name}`,
+                          id: item.id,
+                        })) || []
                       }
                     />
                     <button
                       type="button"
-                      className="mt-2 flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+                      className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
                       onClick={() => setIsVendorOpen(true)}
                     >
-                      <IoIosAdd className="text-lg" />
-                      Add Vendor
+                      <Plus size={12} /> Add Vendor
                     </button>
                   </div>
 
                   {/* Description */}
-                  <div>
+                  <div className="rounded-xl border border-gray-100 p-4">
+                    <SectionLabel>Description</SectionLabel>
                     <Input
                       name="description"
                       as="textarea"
-                      title="Description"
-                      placeholder="Enter product description"
+                      title=""
+                      placeholder="Enter product description (optional)"
                       errors={errors.description}
                       touched={touched.description}
-                      width="w-full min-h-[100px] p-3"
+                      width="w-full min-h-[80px] p-3"
                     />
                   </div>
 
-                  {/* Date */}
-                  <div>
-                    <label
-                      htmlFor="date"
-                      className="mb-2 block text-sm font-semibold text-gray-700"
-                    >
-                      Date
-                    </label>
-                    <Field
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                      name="date"
-                      type="date"
-                      value={values.date}
-                    />
-                    <ErrorMessage
-                      name="date"
-                      component="div"
-                      className="mt-1.5 text-xs text-red-600"
-                    />
-                  </div>
+                  {/* Serial Numbers */}
+                  <div className="rounded-xl border border-gray-100 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <SectionLabel>Serial Numbers</SectionLabel>
+                      <div className="flex items-center gap-1.5">
+                        <Hash size={11} className="text-gray-400" />
+                        <span className="text-xs text-gray-400">
+                          {values.items.length} / {values.quantity || 0}
+                        </span>
+                      </div>
+                    </div>
 
-                  {/* Serial Numbers Section */}
-                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
-                    <h3 className="mb-4 text-base font-semibold text-gray-900">
-                      Serial Numbers
-                    </h3>
                     <FieldArray name="items">
                       {({ remove, push }) => (
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           {values.items.length > 0 &&
                             values.items.map((item, index) => (
                               <div
                                 key={index}
-                                className="flex items-start gap-3"
+                                className="flex items-start gap-2"
                               >
                                 <div className="flex-1">
                                   <Field
                                     name={`items[${index}].sn`}
-                                    className={cn(
-                                      "w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
-                                      errors.items?.[index] && "border-red-500"
+                                    className={fieldClass(
+                                      !!errors.items?.[index],
                                     )}
                                     placeholder={`Serial Number ${index + 1}`}
                                   />
                                   <ErrorMessage
                                     name={`items[${index}].sn`}
                                     component="div"
-                                    className="mt-1.5 text-xs text-red-600"
+                                    className="mt-1 text-xs text-red-500"
                                   />
                                 </div>
-
                                 <button
                                   type="button"
                                   className={cn(
-                                    "flex h-10 w-10 items-center justify-center rounded-lg transition-all",
+                                    "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all",
                                     index === values.items.length - 1
-                                      ? "bg-blue-600 text-white hover:bg-blue-700"
-                                      : "bg-red-100 text-red-600 hover:bg-red-200"
+                                      ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                                      : "bg-red-50 text-red-500 hover:bg-red-100",
                                   )}
                                   onClick={() => {
                                     if (index === values.items.length - 1) {
@@ -630,9 +622,9 @@ function AddProductModal({
                                   }}
                                 >
                                   {index === values.items.length - 1 ? (
-                                    <IoIosAdd size={20} />
+                                    <IoIosAdd size={18} />
                                   ) : (
-                                    <IoMdRemove size={20} />
+                                    <IoMdRemove size={18} />
                                   )}
                                 </button>
                               </div>
@@ -642,19 +634,19 @@ function AddProductModal({
                     </FieldArray>
                   </div>
 
-                  {/* Submit Button */}
-                  <div className="flex justify-end gap-3 border-t pt-6">
+                  {/* Actions */}
+                  <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 pb-2">
                     <button
                       type="button"
                       onClick={() => setShowAddProduct(false)}
-                      className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                      className="w-full sm:w-auto rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                     >
                       Cancel
                     </button>
                     <Button
                       isLoading={addProductLoading}
                       onClick={handleSelectFieldValidation}
-                      className="rounded-lg bg-blue-600 px-8 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 disabled:opacity-50"
+                      className="w-full sm:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 text-sm font-medium"
                     >
                       Add Product
                     </Button>
@@ -677,7 +669,7 @@ function AddProductModal({
             open={isVendorOpen}
             setShowDrawer={setIsVendorOpen}
           />
-        </Container>
+        </div>
       )}
     </div>
   );

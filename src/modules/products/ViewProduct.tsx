@@ -11,7 +11,6 @@ import { IoIosAdd, IoMdRemove } from "react-icons/io";
 import Input from "../../components/input/Input";
 import SelectField from "../../components/input/SelectField";
 import Button from "../../ui/Button";
-import Container from "../../ui/Container";
 import AddCategory from "./AddCategoryDrawer";
 import AddSubCategory from "./AddSubCategory";
 import AddVendor from "../vendors/AddVendor";
@@ -29,6 +28,7 @@ import { useLazyGetOrdersQuery } from "../../api/ordersApi";
 import { formatNumber } from "../../utils/format";
 import { cn } from "../../utils/cn";
 import { useGetSerialNumbersQuery } from "../../api/metrics";
+import { X, Pencil, Hash, Plus } from "lucide-react";
 
 const productValidation = Yup.object().shape({
   name: Yup.string().required("Product name is required"),
@@ -42,10 +42,26 @@ const productValidation = Yup.object().shape({
     .of(
       Yup.object().shape({
         sn: Yup.string().min(5, "SN must be at least 5 characters"),
-      })
+      }),
     )
     .min(1, "At least one item is required"),
 });
+
+const fieldClass = (hasError?: boolean, disabled?: boolean) =>
+  cn(
+    "w-full rounded-xl border px-4 py-2.5 text-sm transition-all outline-none",
+    "focus:border-indigo-400 focus:ring-2 focus:ring-indigo-50",
+    hasError
+      ? "border-red-300 focus:border-red-400 focus:ring-red-50"
+      : "border-gray-200",
+    disabled ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-white",
+  );
+
+const SectionLabel = ({ children }: { children: React.ReactNode }) => (
+  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-3">
+    {children}
+  </p>
+);
 
 function ViewProduct({
   id,
@@ -79,13 +95,10 @@ function ViewProduct({
 
   const [getCategories, { isLoading: categoryLoading, data: categoryData }] =
     useLazyGetCategoriesQuery();
-
   const { isLoading: supplierLoading, data: supplierData } =
     useGetSupplierQuery("");
-
   const [updateProduct, { isLoading: addProductLoading }] =
     useUpdateProductMutation();
-
   const [
     getSubCategories,
     { isLoading: subCategoryLoading, data: subCategoryData },
@@ -93,7 +106,7 @@ function ViewProduct({
 
   const handleRemoveField = (index: number) => {
     setInputFields(
-      inputFields?.filter((item) => inputFields.indexOf(item) !== index)
+      inputFields?.filter((item) => inputFields.indexOf(item) !== index),
     );
   };
 
@@ -110,27 +123,17 @@ function ViewProduct({
   useEffect(() => {
     getCategories("");
   }, [isCategoryOpen]);
-
   useEffect(() => {
     getSubCategories("");
   }, [isSubCategoryOpen]);
 
   const handleSelectFieldValidation = () => {
-    if (selectedCategory === "Select an option") {
-      setSelectedCategoryError(true);
-    } else {
-      setSelectedCategoryError(false);
-    }
-    if (selectedSize === "Select an option") {
-      setSelectedSizeError(true);
-    } else {
-      setSelectedSizeError(false);
-    }
-    if (selectedVendor === "Select an option") {
-      setSelectedVendorError(true);
-    } else {
-      setSelectedVendorError(false);
-    }
+    if (selectedCategory === "Select an option") setSelectedCategoryError(true);
+    else setSelectedCategoryError(false);
+    if (selectedSize === "Select an option") setSelectedSizeError(true);
+    else setSelectedSizeError(false);
+    if (selectedVendor === "Select an option") setSelectedVendorError(true);
+    else setSelectedVendorError(false);
   };
 
   const [getProduct, { isLoading, data }] = useLazyGetProductQuery();
@@ -146,21 +149,18 @@ function ViewProduct({
   useEffect(() => {
     if (data) {
       const updatedInputFields = JSON.parse(data.serial_numbers)?.map(
-        (code, index) => {
-          return {
-            value: code,
-            index: index + 1,
-            fetched: true,
-          };
-        }
+        (code, index) => ({
+          value: code,
+          index: index + 1,
+          fetched: true,
+        }),
       );
-
       setInputFields(updatedInputFields);
       setSelectedCategoryId(data.categoryId);
       setSelectedSize(data.size);
       setSelectedSizeId(data.subCategoryId);
       setSelectedVendor(
-        `${data?.Vendor?.first_name} ${data?.Vendor?.last_name}`
+        `${data?.Vendor?.first_name} ${data?.Vendor?.last_name}`,
       );
       setSelectedVendorId(data.Vendor?.id);
     }
@@ -170,14 +170,12 @@ function ViewProduct({
     getOrders,
     { data: ordersData, isError, isSuccess, isLoading: ordersLoading },
   ] = useLazyGetOrdersQuery();
-
   const [getProducts, { isLoading: productsLoading, data: productsData }] =
     useLazyGetProductsQuery();
-
   const { data: serial_number } = useGetSerialNumbersQuery("");
 
   const parsedProductSerials = Array.isArray(
-    serial_number?.productSerialNumbers
+    serial_number?.productSerialNumbers,
   )
     ? serial_number?.productSerialNumbers
         ?.flatMap((entry) => {
@@ -210,58 +208,46 @@ function ViewProduct({
   }, [getProducts, getOrders]);
 
   const uniqueSN = (
-    data: {
-      sn: string;
-    }[],
-    setErrors: (
-      errors: FormikErrors<{
-        items: { sn: string }[];
-      }>
-    ) => void
+    data: { sn: string }[],
+    setErrors: (errors: FormikErrors<{ items: { sn: string }[] }>) => void,
   ) => {
     const errors: FormikErrors<{ items: { sn: string }[] }> = { items: [] };
 
     const duplicates = data.filter((item, index, self) =>
       self.some(
         (otherItem, otherIndex) =>
-          otherIndex !== index && item.sn === otherItem.sn
-      )
+          otherIndex !== index && item.sn === otherItem.sn,
+      ),
     );
 
     if (duplicates.length > 0) {
       toast.error("Multiple items with duplicate SNs found");
-
       data.forEach((item, index) => {
         const hasDuplicate = duplicates.some((dup) => dup.sn === item.sn);
-
         if (hasDuplicate) {
           if (!errors.items) errors.items = [];
-          errors.items[index] = {
-            sn: "Exists in multiple items",
-          };
+          errors.items[index] = { sn: "Exists in multiple items" };
         }
       });
     }
 
     const snExistsInOtherSources = data.filter((item) =>
-      fullSerialNumber.includes(item.sn)
+      fullSerialNumber.includes(item.sn),
     );
-
     const snExistsInThisProduct = snExistsInOtherSources.filter((item) =>
-      updatedInputFields.includes(item.sn)
+      updatedInputFields.includes(item.sn),
     );
     const hasDub = snExistsInOtherSources.some((externalItem) =>
       snExistsInThisProduct.some(
-        (productItem) => productItem.sn === externalItem.sn
-      )
+        (productItem) => productItem.sn === externalItem.sn,
+      ),
     );
+
     if (hasDub) {
       data?.map((item, index) => {
         snExistsInOtherSources?.map((item) => {
           snExistsInThisProduct?.map((p) => {
-            if (item.sn == p.sn) {
-              setErrors(errors);
-            }
+            if (item.sn == p.sn) setErrors(errors);
           });
         });
       });
@@ -272,12 +258,10 @@ function ViewProduct({
       snExistsInThisProduct.length === 0
     ) {
       toast.error("Some serial numbers already exist in the system");
-
       data.forEach((item, index) => {
         const existsExternally = snExistsInOtherSources.some(
-          (externalItem) => externalItem.sn === item.sn
+          (e) => e.sn === item.sn,
         );
-
         if (existsExternally) {
           if (!errors.items) errors.items = [];
           errors.items[index] = {
@@ -290,15 +274,12 @@ function ViewProduct({
     if (snExistsInOtherSources.length > 0 && snExistsInThisProduct.length > 0) {
       data.forEach((item, index) => {
         const isConflicting = snExistsInOtherSources.some(
-          (externalItem) => externalItem.sn === item.sn
+          (e) => e.sn === item.sn,
         );
-
         const isAlsoInThisProduct = snExistsInThisProduct.some(
-          (thisItem) => thisItem.sn === item.sn
+          (t) => t.sn === item.sn,
         );
-
         console.log(isAlsoInThisProduct, "isAlsoInThisProduct", isConflicting);
-
         if (isConflicting && !isAlsoInThisProduct) {
           if (!errors.items) errors.items = [];
           errors.items[index] = {
@@ -317,7 +298,6 @@ function ViewProduct({
       setErrors(errors);
       return false;
     }
-
     return true;
   };
 
@@ -329,15 +309,10 @@ function ViewProduct({
     return `${year}-${month}-${day}`;
   };
 
-  const getTodayDate = () => {
-    const today = new Date();
-    return formatDate(today);
-  };
+  const getTodayDate = () => formatDate(new Date());
 
   useEffect(() => {
-    if (data) {
-      setSelectedVendorId(data.vendorId);
-    }
+    if (data) setSelectedVendorId(data.vendorId);
   }, [data]);
 
   const initialValues = {
@@ -364,13 +339,10 @@ function ViewProduct({
   };
 
   const result: { productName: any }[] = Array.from(
-    new Set(productsData?.map((product) => product.product_name))
-  ).map((productName) => ({
-    productName,
-  }));
+    new Set(productsData?.map((product) => product.product_name)),
+  ).map((productName) => ({ productName }));
 
   const optionsRef = useRef<HTMLDivElement>(null);
-
   const [searchValue, setSearchValue] = useState(data?.product_name ?? "");
   const [showSuggestion, setShowSuggestion] = useState(false);
 
@@ -379,55 +351,49 @@ function ViewProduct({
   }, [data]);
 
   const filteredOptions = useMemo(() => {
-    if (result) {
+    if (result)
       return result.filter((item) =>
-        item.productName.toLowerCase().includes(searchValue.toLowerCase())
+        item.productName.toLowerCase().includes(searchValue.toLowerCase()),
       );
-    }
     return [];
   }, [result, searchValue]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <Container className="no-scrollbar mt-4 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-xl bg-white shadow-2xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-white px-6 py-5 lg:px-8">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900">
-              Edit Product
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">
-              Update product information and serial numbers
-            </p>
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-0 sm:px-4">
+      <div className="no-scrollbar w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl bg-white shadow-2xl flex flex-col">
+        {/* Header */}
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-100 bg-white px-5 py-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+              <Pencil size={16} className="text-amber-600" />
+            </div>
+            <div>
+              <h2 className="text-[15px] font-semibold text-gray-900">
+                Edit Product
+              </h2>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Update product information and serial numbers
+              </p>
+            </div>
           </div>
           <button
             onClick={() => setShowAddProduct(false)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition-all hover:bg-gray-200 hover:text-gray-900"
+            className="h-8 w-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all"
           >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <X size={15} />
           </button>
         </div>
 
+        {/* Form */}
         {data && (
-          <div className="px-6 py-6 lg:px-8">
+          <div className="px-5 py-5 sm:px-6 flex-1 overflow-y-auto">
             <Formik
               initialValues={initialValues}
               enableReinitialize={true}
               validationSchema={productValidation}
               onSubmit={(values, { setErrors }) => {
                 const existingSerialNumbers = new Set(
-                  initialValues.items.map((item) => item.sn)
+                  initialValues.items.map((item) => item.sn),
                 );
 
                 const filteredSalesResult = ordersData?.data
@@ -436,7 +402,7 @@ function ViewProduct({
                     productId: order.productId,
                   }))
                   .filter(
-                    (sale) => !existingSerialNumbers.has(sale.serial_number)
+                    (sale) => !existingSerialNumbers.has(sale.serial_number),
                   );
 
                 const filteredProductResult = productsData
@@ -444,11 +410,11 @@ function ViewProduct({
                     JSON.parse(product.serial_numbers).map((serial_number) => ({
                       serial_number,
                       productId: product.id,
-                    }))
+                    })),
                   )
                   .filter(
                     (product) =>
-                      !existingSerialNumbers.has(product.serial_number)
+                      !existingSerialNumbers.has(product.serial_number),
                   );
 
                 const salesResult = ordersData?.data?.map((order) => ({
@@ -460,13 +426,13 @@ function ViewProduct({
                   JSON.parse(product.serial_numbers).map((serial_number) => ({
                     serial_number,
                     productId: product.id,
-                  }))
+                  })),
                 );
 
                 const uniqueSn = uniqueSN(values.items, setErrors);
                 if (values.items.length != parseInt(values.quantity)) {
                   toast.warn(
-                    "Quantity and number of serial numbers added do not match"
+                    "Quantity and number of serial numbers added do not match",
                   );
                 }
                 if (
@@ -485,16 +451,15 @@ function ViewProduct({
                       size: selectedSize,
                       vendorId: selectedVendorId,
                       serial_numbers: values.items
-                        ?.filter((value) => {
-                          return (
+                        ?.filter(
+                          (value) =>
                             !JSON.parse(
-                              data?.sold_serial_numbers ?? "[]"
+                              data?.sold_serial_numbers ?? "[]",
                             ).includes(value.sn) &&
                             value.sn !== "" &&
                             value.sn != null &&
-                            value.sn != undefined
-                          );
-                        })
+                            value.sn != undefined,
+                        )
                         .map((value) => value.sn),
                     },
                     id: id,
@@ -508,31 +473,31 @@ function ViewProduct({
                     })
                     .catch((error) => {
                       toast.error(
-                        error.data.message ?? "Something went wrong."
+                        error.data.message ?? "Something went wrong.",
                       );
                     });
               }}
             >
-              {({ touched, errors, values, setFieldValue }) => {
-                return (
-                  <Form className="space-y-6">
-                    <div className="grid gap-6 lg:grid-cols-2">
+              {({ touched, errors, values, setFieldValue }) => (
+                <Form className="space-y-5">
+                  {/* Product Info */}
+                  <div className="rounded-xl border border-gray-100 p-4 space-y-4">
+                    <SectionLabel>Product Info</SectionLabel>
+
+                    {/* Name + Size */}
+                    <div className="grid gap-4 sm:grid-cols-2">
                       <div className="relative">
                         <label
-                          htmlFor="name"
                           className={cn(
-                            "mb-2 block text-sm font-semibold text-gray-700",
-                            errors.name && touched.name && "text-red-600"
+                            "block text-xs font-semibold text-gray-600 mb-1.5",
+                            errors.name && touched.name && "text-red-500",
                           )}
                         >
-                          Product Name <span className="text-red-500">*</span>
+                          Product Name <span className="text-red-400">*</span>
                         </label>
                         <Field
-                          className={cn(
-                            "w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
-                            errors.name &&
-                              touched.name &&
-                              "border-red-500 focus:border-red-500 focus:ring-red-500/20"
+                          className={fieldClass(
+                            !!(errors.name && touched.name),
                           )}
                           name="name"
                           placeholder="Enter product name"
@@ -546,30 +511,30 @@ function ViewProduct({
                         <ErrorMessage
                           name="name"
                           component="div"
-                          className="mt-1.5 text-xs text-red-600"
+                          className="mt-1 text-xs text-red-500"
                         />
-
                         {filteredOptions &&
                           filteredOptions.length > 0 &&
                           showSuggestion && (
                             <div
-                              className="absolute top-full z-20 mt-2 w-full max-h-[400px] overflow-y-scroll rounded-lg border border-gray-200 bg-white shadow-lg"
+                              className="absolute top-full z-20 mt-1.5 w-full max-h-48 overflow-y-auto rounded-xl border border-gray-100 bg-white shadow-lg"
                               ref={optionsRef}
                             >
-                              {filteredOptions?.map((value, index) => (
-                                <div
-                                  className="cursor-pointer border-b border-gray-100 px-4 py-3 text-sm transition-colors last:border-0 hover:bg-blue-50"
+                              {filteredOptions.map((value, index) => (
+                                <button
+                                  type="button"
                                   key={index}
+                                  className="w-full text-left cursor-pointer border-b border-gray-50 px-4 py-2.5 text-sm last:border-0 hover:bg-indigo-50 transition-colors"
                                   onClick={() => {
                                     setSearchValue(value.productName);
                                     setShowSuggestion(false);
                                     setFieldValue("name", searchValue);
                                   }}
                                 >
-                                  <p className="font-medium text-gray-900">
+                                  <span className="font-medium text-gray-800">
                                     {value.productName}
-                                  </p>
-                                </div>
+                                  </span>
+                                </button>
                               ))}
                             </div>
                           )}
@@ -578,7 +543,7 @@ function ViewProduct({
                       <div>
                         <SelectField
                           searchPlaceholder="Enter size"
-                          className="w-full"
+                          className="w-full -mt-2"
                           title="Size"
                           error={selectedSizeError}
                           selected={selectedSize}
@@ -589,16 +554,16 @@ function ViewProduct({
                         />
                         <button
                           type="button"
-                          className="mt-2 flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+                          className="mt-1.5 flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
                           onClick={() => setIsSubCategoryOpen(true)}
                         >
-                          <IoIosAdd className="text-lg" />
-                          Add Size
+                          <Plus size={12} /> Add Size
                         </button>
                       </div>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-3">
+                    {/* Quantity + Prices */}
+                    <div className="grid gap-4 grid-cols-2 sm:grid-cols-3">
                       <div>
                         <Input
                           name="quantity"
@@ -610,17 +575,13 @@ function ViewProduct({
                           width="w-full"
                         />
                       </div>
-
                       <div>
-                        <label className="mb-2 block text-sm font-semibold text-gray-700">
-                          Purchase Price <span className="text-red-500">*</span>
+                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                          Purchase Price <span className="text-red-400">*</span>
                         </label>
                         <Field
-                          className={cn(
-                            "w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
-                            errors.purchasePrice &&
-                              touched.purchasePrice &&
-                              "border-red-500"
+                          className={fieldClass(
+                            !!(errors.purchasePrice && touched.purchasePrice),
                           )}
                           name="purchasePrice"
                           placeholder="0.00"
@@ -628,7 +589,7 @@ function ViewProduct({
                           onChange={(e) => {
                             const formattedValue = e.target.value.replace(
                               /[,a-zA-Z]/g,
-                              ""
+                              "",
                             );
                             setFieldValue("purchasePrice", formattedValue);
                           }}
@@ -636,23 +597,22 @@ function ViewProduct({
                         <ErrorMessage
                           name="purchasePrice"
                           component="div"
-                          className="mt-1.5 text-xs text-red-600"
+                          className="mt-1 text-xs text-red-500"
                         />
                       </div>
-
-                      <div>
-                        <label className="mb-2 block text-sm font-semibold text-gray-700">
+                      <div className="col-span-2 sm:col-span-1">
+                        <label className="block text-xs font-semibold text-gray-600 mb-1.5">
                           Sales Price
                         </label>
                         <Field
-                          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                          className={fieldClass()}
                           name="salesPrice"
                           placeholder="0.00"
                           value={formatNumber(values.salesPrice)}
                           onChange={(e) => {
                             const formattedValue = e.target.value.replace(
                               /[,a-zA-Z]/g,
-                              ""
+                              "",
                             );
                             setFieldValue("salesPrice", formattedValue);
                           }}
@@ -660,61 +620,21 @@ function ViewProduct({
                         <ErrorMessage
                           name="salesPrice"
                           component="div"
-                          className="mt-1.5 text-xs text-red-600"
+                          className="mt-1 text-xs text-red-500"
                         />
                       </div>
                     </div>
 
-                    <div>
-                      <SelectField
-                        searchPlaceholder="Search vendor"
-                        className="w-full"
-                        title="Vendor"
-                        error={selectedVendorError}
-                        selected={selectedVendor}
-                        setId={setSelectedVendorId}
-                        setSelected={setSelectedVendor}
-                        isLoading={supplierLoading}
-                        options={
-                          supplierData?.map((item) => {
-                            return {
-                              name: `${item.first_name}`,
-                              id: item.id,
-                            };
-                          }) || []
-                        }
-                      />
-                      <button
-                        type="button"
-                        className="mt-2 flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
-                        onClick={() => setIsVendorOpen(true)}
-                      >
-                        <IoIosAdd className="text-lg" />
-                        Add Vendor
-                      </button>
-                    </div>
-
-                    <div>
-                      <Input
-                        name="description"
-                        as="textarea"
-                        title="Description"
-                        placeholder="Enter product description"
-                        errors={errors.description}
-                        touched={touched.description}
-                        width="w-full min-h-[100px] p-3"
-                      />
-                    </div>
-
+                    {/* Date */}
                     <div>
                       <label
                         htmlFor="date"
-                        className="mb-2 block text-sm font-semibold text-gray-700"
+                        className="block text-xs font-semibold text-gray-600 mb-1.5"
                       >
                         Date
                       </label>
                       <Field
-                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className={fieldClass()}
                         name="date"
                         type="date"
                         value={values.date}
@@ -722,111 +642,166 @@ function ViewProduct({
                       <ErrorMessage
                         name="date"
                         component="div"
-                        className="mt-1.5 text-xs text-red-600"
+                        className="mt-1 text-xs text-red-500"
                       />
                     </div>
+                  </div>
 
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-6">
-                      <h3 className="mb-4 text-base font-semibold text-gray-900">
-                        Serial Numbers
-                      </h3>
-                      <FieldArray name="items">
-                        {({ remove, push }) => (
-                          <div className="space-y-3">
-                            {values.items.length > 0 &&
-                              values.items.map((item, index) => {
-                                return (
-                                  <div
-                                    key={index}
-                                    className="flex items-start gap-3"
-                                  >
-                                    <div className="flex-1">
+                  {/* Vendor */}
+                  <div className="rounded-xl border border-gray-100 p-4 space-y-3">
+                    <SectionLabel>Vendor</SectionLabel>
+                    <SelectField
+                      searchPlaceholder="Search vendor"
+                      className="w-full"
+                      title="Vendor"
+                      error={selectedVendorError}
+                      selected={selectedVendor}
+                      setId={setSelectedVendorId}
+                      setSelected={setSelectedVendor}
+                      isLoading={supplierLoading}
+                      options={
+                        supplierData?.map((item) => ({
+                          name: `${item.first_name}`,
+                          id: item.id,
+                        })) || []
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700 transition-colors"
+                      onClick={() => setIsVendorOpen(true)}
+                    >
+                      <Plus size={12} /> Add Vendor
+                    </button>
+                  </div>
+
+                  {/* Description */}
+                  <div className="rounded-xl border border-gray-100 p-4">
+                    <SectionLabel>Description</SectionLabel>
+                    <Input
+                      name="description"
+                      as="textarea"
+                      title=""
+                      placeholder="Enter product description"
+                      errors={errors.description}
+                      touched={touched.description}
+                      width="w-full min-h-[80px] p-3"
+                    />
+                  </div>
+
+                  {/* Serial Numbers */}
+                  <div className="rounded-xl border border-gray-100 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <SectionLabel>Serial Numbers</SectionLabel>
+                      <div className="flex items-center gap-1.5">
+                        <Hash size={11} className="text-gray-400" />
+                        <span className="text-xs text-gray-400">
+                          {values.items.length} / {values.quantity || 0}
+                        </span>
+                      </div>
+                    </div>
+                    <FieldArray name="items">
+                      {({ remove, push }) => (
+                        <div className="space-y-2">
+                          {values.items.length > 0 &&
+                            values.items.map((item, index) => {
+                              const isSold = JSON.parse(
+                                data?.sold_serial_numbers ?? "",
+                              ).includes(values.items[index].sn);
+                              return (
+                                <div
+                                  key={index}
+                                  className="flex items-start gap-2"
+                                >
+                                  <div className="flex-1">
+                                    <div className="relative">
                                       <Field
-                                        disabled={JSON.parse(
-                                          data?.sold_serial_numbers ?? ""
-                                        ).includes(values.items[index].sn)}
+                                        disabled={isSold}
                                         name={`items[${index}].sn`}
-                                        className={cn(
-                                          "w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm shadow-sm transition-all focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
-                                          JSON.parse(
-                                            data?.sold_serial_numbers ?? ""
-                                          ).includes(values.items[index].sn) &&
-                                            "bg-gray-300",
-                                          errors.items?.[index] &&
-                                            "border-red-500"
+                                        className={fieldClass(
+                                          !!errors.items?.[index],
+                                          isSold,
                                         )}
                                         placeholder={`Serial Number ${index + 1}`}
                                       />
-                                      <ErrorMessage
-                                        name={`items[${index}].sn`}
-                                        component="div"
-                                        className="mt-1.5 text-xs text-red-600"
-                                      />
+                                      {isSold && (
+                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-rose-400 bg-rose-50 px-1.5 py-0.5 rounded-full border border-rose-200">
+                                          Sold
+                                        </span>
+                                      )}
                                     </div>
-
-                                    <button
-                                      type="button"
-                                      disabled={
-                                        JSON.parse(
-                                          data?.sold_serial_numbers ?? ""
-                                        ).includes(values.items[index].sn) &&
+                                    <ErrorMessage
+                                      name={`items[${index}].sn`}
+                                      component="div"
+                                      className="mt-1 text-xs text-red-500"
+                                    />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    disabled={
+                                      isSold &&
+                                      !(
+                                        values.items.length <
+                                        parseInt(values.quantity)
+                                      )
+                                    }
+                                    className={cn(
+                                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-all",
+                                      index === values.items.length - 1
+                                        ? "bg-indigo-600 text-white hover:bg-indigo-700"
+                                        : "bg-red-50 text-red-500 hover:bg-red-100",
+                                      isSold &&
                                         !(
                                           values.items.length <
                                           parseInt(values.quantity)
+                                        ) &&
+                                        "opacity-30 cursor-not-allowed",
+                                    )}
+                                    onClick={() => {
+                                      if (index === values.items.length - 1) {
+                                        if (
+                                          values.items.length <
+                                          parseInt(values.quantity)
                                         )
+                                          push({ sn: "" });
+                                      } else {
+                                        remove(index);
                                       }
-                                      className={cn(
-                                        "flex h-10 w-10 items-center justify-center rounded-lg transition-all",
-                                        index === values.items.length - 1
-                                          ? "bg-blue-600 text-white hover:bg-blue-700"
-                                          : "bg-red-100 text-red-600 hover:bg-red-200"
-                                      )}
-                                      onClick={() => {
-                                        if (index === values.items.length - 1) {
-                                          if (
-                                            values.items.length <
-                                            parseInt(values.quantity)
-                                          ) {
-                                            push({ sn: "" });
-                                          }
-                                        } else {
-                                          remove(index);
-                                        }
-                                      }}
-                                    >
-                                      {index === values.items.length - 1 ? (
-                                        <IoIosAdd size={20} />
-                                      ) : (
-                                        <IoMdRemove size={20} />
-                                      )}
-                                    </button>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        )}
-                      </FieldArray>
-                    </div>
+                                    }}
+                                  >
+                                    {index === values.items.length - 1 ? (
+                                      <IoIosAdd size={18} />
+                                    ) : (
+                                      <IoMdRemove size={18} />
+                                    )}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      )}
+                    </FieldArray>
+                  </div>
 
-                    <div className="flex justify-end gap-3 border-t pt-6">
-                      <button
-                        type="button"
-                        onClick={() => setShowAddProduct(false)}
-                        className="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                      >
-                        Cancel
-                      </button>
-                      <Button
-                        isLoading={addProductLoading}
-                        onClick={handleSelectFieldValidation}
-                        className="rounded-lg bg-blue-600 px-8 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-blue-700 disabled:opacity-50"
-                      >
-                        Update Product
-                      </Button>
-                    </div>
-                  </Form>
-                );
-              }}
+                  {/* Actions */}
+                  <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 pb-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddProduct(false)}
+                      className="w-full sm:w-auto rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <Button
+                      isLoading={addProductLoading}
+                      onClick={handleSelectFieldValidation}
+                      className="w-full sm:w-auto rounded-xl bg-indigo-600 hover:bg-indigo-700 px-6 py-2.5 text-sm font-medium"
+                    >
+                      Update Product
+                    </Button>
+                  </div>
+                </Form>
+              )}
             </Formik>
           </div>
         )}
@@ -837,7 +812,7 @@ function ViewProduct({
           setShowDrawer={setIsSubCategoryOpen}
         />
         <AddVendor open={isVendorOpen} setShowDrawer={setIsVendorOpen} />
-      </Container>
+      </div>
     </div>
   );
 }
