@@ -23,41 +23,52 @@ function DashboardTable({
   callBackAction,
   hidePagination,
 }: DashboardTableProps) {
-  const columnWithAction = [
-    ...columns,
+  const actionColumn = {
+    title: "Action",
+    dataIndex: "action",
+    key: "action",
+    fixed: "right" as const,
+    width: 80,
+    render: (_: any, record: any) => (
+      <ActionButtons
+        type={type}
+        id={
+          type === "inventory"
+            ? record.product_name
+            : type !== "orders"
+              ? record.id
+              : record.saleId
+        }
+        action={action}
+        callBackAction={callBackAction}
+      />
+    ),
+  };
 
-    {
-      title: "Action",
-      dataIndex: "action",
-      render: (_, record) => {
-        return (
-          <ActionButtons
-            type={type}
-            id={
-              type == "inventory"
-                ? record.product_name
-                : type !== "orders"
-                  ? record.id
-                  : record.saleId
-            }
-            action={action}
-            callBackAction={callBackAction}
-          />
-        );
-      },
-    },
-  ];
+  const columnWithAction = type ? [...columns, actionColumn] : columns;
 
   return (
-    <div>
+    <div className="w-full overflow-x-auto">
       <Table
-        columns={type ? columnWithAction : columns}
+        columns={columnWithAction}
         dataSource={data}
-        className="w-[100%] border-[1px] no-scrollbar"
         loading={isFetching}
         rowKey="id"
-        pagination={hidePagination ? false : { pageSize: 20 }}
+        scroll={{ x: "max-content" }}
+        pagination={
+          hidePagination
+            ? false
+            : {
+                pageSize: 20,
+                showSizeChanger: false,
+                showTotal: (total, range) =>
+                  `${range[0]}–${range[1]} of ${total}`,
+                className: "px-4",
+              }
+        }
         rowClassName={() => "custom-table-row"}
+        className="w-full"
+        style={{ minWidth: 0 }}
       />
     </div>
   );

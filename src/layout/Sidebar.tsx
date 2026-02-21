@@ -121,7 +121,7 @@ function Sidebar() {
               <Store size={15} className="text-white" />
             </div>
             <span className="text-white font-semibold text-sm tracking-wide">
-              StoreManager
+              Aoudit
             </span>
           </div>
         </div>

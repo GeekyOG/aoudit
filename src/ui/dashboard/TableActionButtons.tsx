@@ -70,6 +70,59 @@ const TableActionButtons: FunctionComponent<ITableActionButtonsProps> = ({
     };
   }, []);
 
+  // Each action slot is 40px wide (px-[20px] each side = 40px per icon)
+  const ACTION_WIDTH = 40;
+
+  const actions = [
+    {
+      show: setShow && hasViewPermission,
+      el: <Eye className="w-[10px] cursor-pointer" />,
+      onClick: setShow,
+      borderRight: true,
+    },
+    {
+      show: handleEdit && hasEditPermission,
+      el: <Pen className="w-[10px] cursor-pointer" />,
+      onClick: handleEdit,
+      borderRight: true,
+    },
+    {
+      show: handleClear && hasClearPermission && clearanceStatus !== "CLEARED",
+      el: <PlaneTakeoff className="w-[10px] cursor-pointer" />,
+      onClick: handleClear,
+      borderRight: true,
+    },
+    {
+      show: handleSave,
+      el: <CloudDownload className="w-[10px] cursor-pointer" />,
+      onClick: handleSave,
+      borderRight: true,
+    },
+    {
+      show: handleSend,
+      el: <Mail className="w-[10px] cursor-pointer" />,
+      onClick: handleSend,
+      borderRight: true,
+    },
+    {
+      show: handleConfirm && status !== "SUCCESS",
+      el: <CircleCheck className="w-[10px] cursor-pointer" />,
+      onClick: handleConfirm,
+      borderRight: true,
+    },
+    {
+      show: handleDelete && hasDeletePermission,
+      el: <Trash2 className="w-[10px] cursor-pointer" />,
+      onClick: handleDelete,
+      borderRight: false,
+    },
+  ];
+
+  const visibleActions = actions.filter((a) => !!a.show);
+  const totalWidth = visibleActions.length * ACTION_WIDTH;
+  // Center the menu over the trigger by shifting left by totalWidth, nudge 3px up
+  const leftOffset = -totalWidth;
+
   return (
     <div className="relative z-[100]">
       <div
@@ -82,74 +135,25 @@ const TableActionButtons: FunctionComponent<ITableActionButtonsProps> = ({
 
       {(showActions || isRowHovered) && (
         <div
-          className={clsx(
-            "absolute bg-[#fff] w-[full] h-[40px] -left-[80px] -top-[3px]  flex border-[1px] justify-evenly items-center rounded-[4px] overflow-hidden",
-          )}
+          className="absolute bg-white h-[40px] flex border -top-[] border-gray-200 items-center rounded-[4px] overflow-hidden shadow-md z-10"
+          style={{ left: leftOffset, top: -3, width: totalWidth }}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
-          {setShow && hasViewPermission && (
+          {visibleActions.map((action, i) => (
             <div
-              className="px-[20px] flex-none border-r-[1px] "
-              onClick={setShow || (() => {})}
+              key={i}
+              onClick={action.onClick || (() => {})}
+              className={clsx(
+                "flex items-center justify-center w-[40px] h-full flex-none cursor-pointer text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors",
+                action.borderRight &&
+                  i < visibleActions.length - 1 &&
+                  "border-r border-gray-200",
+              )}
             >
-              <Eye className="w-[10px] cursor-pointer" />
+              {action.el}
             </div>
-          )}
-          {handleEdit && hasEditPermission && (
-            <div
-              className="px-[20px] flex-none border-r-[1px]"
-              onClick={handleEdit || (() => {})}
-            >
-              <Pen className="w-[10px] cursor-pointer" />
-            </div>
-          )}
-          {handleClear &&
-            hasClearPermission &&
-            clearanceStatus !== "CLEARED" && (
-              <div className="px-[20px] flex-none border-r-[1px]">
-                <PlaneTakeoff
-                  className="w-[10px] cursor-pointer"
-                  onClick={handleClear || (() => {})}
-                />
-              </div>
-            )}
-
-          {handleSave && (
-            <div className="px-[20px] flex-none border-r-[1px]">
-              <CloudDownload
-                className="w-[10px] cursor-pointer"
-                onClick={handleSave || (() => {})}
-              />
-            </div>
-          )}
-
-          {handleSend && (
-            <div className="px-[20px] flex-none border-r-[1px]">
-              <Mail
-                className="w-[10px] cursor-pointer"
-                onClick={handleSend || (() => {})}
-              />
-            </div>
-          )}
-
-          {handleConfirm && status !== "SUCCESS" && (
-            <div className="px-[20px] flex-none border-r-[1px]">
-              <CircleCheck
-                className="w-[10px] cursor-pointer "
-                onClick={handleConfirm || (() => {})}
-              />
-            </div>
-          )}
-
-          {handleDelete && hasDeletePermission && (
-            <div
-              onClick={handleDelete || (() => {})}
-              className="px-[20px] flex-none  "
-            >
-              <Trash2 className="w-[10px] cursor-pointer " />
-            </div>
-          )}
+          ))}
         </div>
       )}
     </div>

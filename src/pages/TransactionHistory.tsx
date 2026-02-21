@@ -1,12 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
-import Container from "../ui/Container";
 import DashboardTable from "../components/dashboard/DashboardTable";
 import Button from "../ui/Button";
 import AddInvoices from "../modules/invoices/AddInvoices";
-import { Popover, DatePicker, DatePickerProps } from "antd";
-import { Search, ListFilter, Download } from "lucide-react";
+import { Popover, DatePicker } from "antd";
+import {
+  Search,
+  ListFilter,
+  Download,
+  ArrowLeftRight,
+  TrendingUp,
+} from "lucide-react";
 import { handleExportCSV } from "../utils/export";
-import { cn } from "../utils/cn";
 import moment from "moment";
 import { useParams } from "react-router-dom";
 import {
@@ -20,38 +24,25 @@ import {
 } from "../api/metrics";
 import { columns } from "../modules/transactions/historyColumn";
 import { formatAmount } from "../utils/format";
+
+const sortByDate = (arr: any[]) =>
+  [...arr].sort((a, b) => (moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1));
+
+const getSalesFromData = (data: any) =>
+  data?.totalProfit?.sales
+    ? sortByDate(Object.values(data.totalProfit.sales))
+    : null;
+
 function TransactionHistory() {
   const { period } = useParams<{ period: string }>();
   const [open, setOpen] = useState(false);
   const [fetchedData, setFetchedData] = useState<any[]>([]);
-  const [activeTab, setTab] = useState("All");
-
+  const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
-  const [getOrders, { data: ordersData, isLoading, isError, isSuccess }] =
+  const [getOrders, { data: ordersData, isLoading, isSuccess }] =
     useLazyGetAllSalesQuery();
-
-  // Update fetched data once orders are successfully retrieved
-  useEffect(() => {
-    getOrders("");
-    if (isSuccess && ordersData) {
-      setFetchedData(ordersData); // Set the fetched orders
-    }
-  }, [isSuccess, ordersData]);
-
-  // Handle tab switching and filtering based on the status
-
-  const Tabs = [`All ${period == "today" ? period : `this ${period}`}`];
-
-  const onChange = (date, dateString, type) => {
-    if (type === "start") {
-      setStartDate(date ? date.toDate() : null);
-    } else {
-      setEndDate(date ? date.toDate() : null);
-    }
-  };
-
   const [getProfitsToday, { data: todayData }] = useLazyGetProfitsTodayQuery();
   const [getProfitsWeek, { data: weekData }] = useLazyGetProfitsWeekQuery();
   const [getProfitsQuarter, { data: quarterData }] =
@@ -61,139 +52,53 @@ function TransactionHistory() {
     useLazyGetProfitsPrevMonthQuery();
   const [getCustomProfits, { data: customData }] =
     useLazyGetProfitsCustomQuery();
-  useEffect(() => {
-    if (startDate && endDate) {
-      getCustomProfits({
-        startDate,
-        endDate,
-      });
-    } else if (period === "today") {
-      getProfitsToday("");
-    } else if (period === "week") {
-      getProfitsWeek("");
-    } else if (period === "quarter") {
-      getProfitsQuarter("");
-    } else if (period === "year") {
-      getProfitsYear("");
-    } else if (period === "Previous month") {
-      getProfitsPrevMonth("");
-    } else {
-      getOrders(""); // fallback if period is unknown or you want to fetch all orders
-    }
-  }, [
-    period,
-    getProfitsToday,
-    getProfitsWeek,
-    getProfitsQuarter,
-    getProfitsYear,
-    getProfitsPrevMonth,
-    getOrders,
-    startDate,
-    endDate,
-  ]);
 
   useEffect(() => {
-    const sortedResult: any = Object.values(ordersData ?? []).sort(
-      (a: any, b: any) => {
-        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      },
-    );
-    let filteredData = sortedResult;
+    getOrders("");
+  }, []);
 
-    // Filter by status
-    if (activeTab !== "All") {
-      filteredData = filteredData?.filter((item) => {
-        return item.Sale.status === activeTab.toLowerCase();
-      });
-    }
+  useEffect(() => {
+    if (isSuccess && ordersData) setFetchedData(ordersData);
+  }, [isSuccess, ordersData]);
 
-    // Filter by date
+  useEffect(() => {
+    if (startDate && endDate) getCustomProfits({ startDate, endDate });
+    else if (period === "today") getProfitsToday("");
+    else if (period === "week") getProfitsWeek("");
+    else if (period === "quarter") getProfitsQuarter("");
+    else if (period === "year") getProfitsYear("");
+    else if (period === "Previous month") getProfitsPrevMonth("");
+    else getOrders("");
+  }, [period, startDate, endDate]);
+
+  useEffect(() => {
     if (startDate && endDate && customData) {
-      filteredData = Object.values(customData.totalProfit.sales ?? []).sort(
-        (a: any, b: any) => {
-          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        },
-      );
+      const custom = getSalesFromData(customData);
+      if (custom) setFetchedData(custom);
+    } else {
+      setFetchedData(sortByDate(Object.values(ordersData ?? [])));
     }
+  }, [startDate, endDate, ordersData, customData]);
 
-    setFetchedData(filteredData);
-  }, [activeTab, startDate, endDate, ordersData, customData]);
-
-  const [searchTerm, setSearchTerm] = useState("");
-
-  let tableData: any[] = [];
-
-  if (period === "today" && todayData?.totalProfit?.sales) {
-    tableData = Object.values(todayData.totalProfit.sales ?? []).sort(
-      (a: any, b: any) => {
-        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      },
-    );
-  } else if (period === "week" && weekData?.totalProfit?.sales) {
-    tableData = Object.values(weekData.totalProfit.sales ?? []).sort(
-      (a: any, b: any) => {
-        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      },
-    );
-  } else if (period === "quarter" && quarterData?.totalProfit?.sales) {
-    tableData = Object.values(quarterData.totalProfit.sales ?? []).sort(
-      (a: any, b: any) => {
-        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      },
-    );
-  } else if (period === "year" && yearData?.totalProfit?.sales) {
-    tableData = Object.values(yearData.totalProfit.sales ?? []).sort(
-      (a: any, b: any) => {
-        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      },
-    );
-  } else if (period === "Previous month" && prevMonthData?.totalProfit?.sales) {
-    tableData = Object.values(prevMonthData.totalProfit.sales ?? []).sort(
-      (a: any, b: any) => {
-        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      },
-    );
-  } else {
-    tableData = fetchedData || [];
-  }
+  const onChange = (date: any, _: any, type: string) => {
+    if (type === "start") setStartDate(date ? date.toDate() : null);
+    else setEndDate(date ? date.toDate() : null);
+  };
 
   const baseData = useMemo(() => {
-    if (period === "today" && todayData?.totalProfit?.sales) {
-      return Object.values(todayData.totalProfit.sales ?? []).sort(
-        (a: any, b: any) => {
-          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        },
-      );
-    } else if (period === "week" && weekData?.totalProfit?.sales) {
-      return Object.values(weekData.totalProfit.sales ?? []).sort(
-        (a: any, b: any) => {
-          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        },
-      );
-    } else if (period === "quarter" && quarterData?.totalProfit?.sales) {
-      return Object.values(quarterData.totalProfit.sales ?? []).sort(
-        (a: any, b: any) => {
-          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        },
-      );
-    } else if (period === "year" && yearData?.totalProfit?.sales) {
-      return Object.values(yearData.totalProfit.sales ?? []).sort(
-        (a: any, b: any) => {
-          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        },
-      );
-    } else if (
-      period === "Previous month" &&
-      prevMonthData?.totalProfit?.sales
-    ) {
-      return Object.values(prevMonthData.totalProfit.sales ?? []).sort(
-        (a: any, b: any) => {
-          return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        },
-      );
-    } else {
-      return fetchedData || [];
-    }
+    const periodData =
+      period === "today"
+        ? todayData
+        : period === "week"
+          ? weekData
+          : period === "quarter"
+            ? quarterData
+            : period === "year"
+              ? yearData
+              : period === "Previous month"
+                ? prevMonthData
+                : null;
+    return getSalesFromData(periodData) ?? fetchedData ?? [];
   }, [
     period,
     todayData,
@@ -203,130 +108,159 @@ function TransactionHistory() {
     prevMonthData,
     fetchedData,
   ]);
+
   const filteredOptions = useMemo(() => {
-    if (!searchTerm) return baseData;
-
-    const sortedResult: any = Object.values(baseData ?? []).sort(
-      (a: any, b: any) => {
-        return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      },
+    const source = startDate && endDate ? fetchedData : baseData;
+    if (!searchTerm) return source;
+    const lower = searchTerm.toLowerCase();
+    return source.filter(
+      (item: any) =>
+        (item?.Sale?.Customer?.first_name ?? "")
+          .toLowerCase()
+          .includes(lower) ||
+        (item?.Product?.product_name ?? "").toLowerCase().includes(lower) ||
+        (item?.serial_number ?? "").toLowerCase().includes(lower),
     );
+  }, [baseData, fetchedData, searchTerm, startDate, endDate]);
 
-    return sortedResult?.filter((item) => {
-      const customerName = item?.Sale?.Customer?.first_name || "";
-      const productName = item?.Product?.product_name || "";
-      const imei = item?.serial_number || "";
+  const displayData = filteredOptions.length > 0 ? filteredOptions : baseData;
 
-      const lowerSearch = searchTerm.toLowerCase();
+  const totalProfit = displayData.reduce(
+    (sum: number, item: any) =>
+      sum + (item.amount_paid - (item.Product?.purchase_amount || 0)),
+    0,
+  );
 
-      return (
-        customerName.toLowerCase().includes(lowerSearch) ||
-        productName.toLowerCase().includes(lowerSearch) ||
-        imei.toLowerCase().includes(lowerSearch)
-      );
-    });
-  }, [baseData, searchTerm, fetchedData]);
+  const periodLabel =
+    period === "today"
+      ? "Today"
+      : period === "week"
+        ? "This Week"
+        : period === "quarter"
+          ? "This Quarter"
+          : period === "year"
+            ? "This Year"
+            : period === "Previous month"
+              ? "Previous Month"
+              : "All Time";
 
-  const dataToUse = startDate && endDate ? fetchedData : filteredOptions || [];
-
-  const totalPurchaseAmount = dataToUse.reduce((sum, item) => {
-    return sum + (item.amount_paid - (item.Product?.purchase_amount || 0));
-  }, 0);
+  const hasDateFilter = !!(startDate || endDate);
 
   return (
-    <div>
-      <div className="">
-        <Container>
-          <h1 className="text-[1rem] font-[700] text-neutral-500">
-            SUM TOTAL: {formatAmount(totalPurchaseAmount)}
-          </h1>
-        </Container>
-        <Container className="flex items-center justify-between">
-          <div className="flex gap-[5px]">
-            {Tabs.map((tab, i) => (
-              <button
-                onClick={() => setTab(tab)}
-                key={i}
-                className={cn(
-                  `rounded-tl-[4px] rounded-tr-[4px] border-[1px] border-b-0 px-[8px] py-[8px] `,
-                  activeTab === tab
-                    ? "font-[600] text-secondary-600"
-                    : "text-neutral-300",
-                )}
-              >
-                <p className="text-[0.865rem] capitalize">{tab}</p>
-              </button>
-            ))}
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
+        {/* Page Header */}
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-indigo-50 flex items-center justify-center">
+            <ArrowLeftRight size={17} className="text-indigo-600" />
           </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">
+              Transaction History
+            </h1>
+            <p className="text-xs text-gray-400 mt-0.5">{periodLabel}</p>
+          </div>
+        </div>
 
-          <div className="mb-[3px] flex items-center gap-[8px]">
-            <div className="lg:flex hidden cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
-              <Search size={16} className="text-neutral-300" />
-              <input
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className=" py-[2px] text-[0.865rem]"
-                placeholder="Search by name..."
-              />
-            </div>
+        {/* Profit Summary Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4">
+          <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+            <TrendingUp size={18} className="text-emerald-600" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+              Total Profit — {periodLabel}
+            </p>
+            <p className="text-2xl font-bold text-gray-900 mt-0.5">
+              {formatAmount(totalProfit)}
+            </p>
+          </div>
+          <div className="ml-auto text-xs text-gray-400">
+            {displayData.length} transaction
+            {displayData.length !== 1 ? "s" : ""}
+          </div>
+        </div>
 
-            <Popover
-              content={
-                <div className="flex flex-col gap-3 px-[4px] py-[16px]">
-                  <DatePicker
-                    onChange={(date, dateString) =>
-                      onChange(date, dateString, "start")
-                    }
-                    placeholder="Start Date"
-                  />
-                  <DatePicker
-                    onChange={(date, dateString) =>
-                      onChange(date, dateString, "end")
-                    }
-                    placeholder="End Date"
-                  />
+        {/* Table Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* Toolbar */}
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+            <span className="px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-medium">
+              {periodLabel}
+            </span>
 
-                  <Button className="items-center gap-3 bg-[#093aa4] text-[0.865rem]">
-                    Apply
-                  </Button>
-                </div>
-              }
-              title=""
-              placement="bottomLeft"
-              showArrow={false}
-            >
-              <div className="flex cursor-pointer items-center gap-[3px] rounded-md px-[8px] py-[8px] text-neutral-300 hover:text-[#093aa4]">
-                <ListFilter size={16} className="" />
-                <p className="text-[0.865rem]">Filter</p>
+            <div className="flex items-center gap-2">
+              {/* Search */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 hover:border-indigo-300 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-50 transition-all">
+                <Search size={14} className="text-gray-400 shrink-0" />
+                <input
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-48"
+                  placeholder="Customer, product or IMEI..."
+                />
               </div>
-            </Popover>
 
-            <Button
-              className="flex items-center gap-3 bg-[#a40909] text-[0.865rem]  h-[36px]"
-              onClick={() =>
-                handleExportCSV({ data: fetchedData, fileName: "sales.csv" })
-              }
-            >
-              <p>Export</p>
-              <Download size={16} />
-            </Button>
+              {/* Date Filter */}
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                showArrow={false}
+                content={
+                  <div className="flex flex-col gap-3 p-3 w-[220px]">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Custom Date Range
+                    </p>
+                    <DatePicker
+                      onChange={(date, ds) => onChange(date, ds, "start")}
+                      placeholder="Start Date"
+                      className="rounded-lg"
+                    />
+                    <DatePicker
+                      onChange={(date, ds) => onChange(date, ds, "end")}
+                      placeholder="End Date"
+                      className="rounded-lg"
+                    />
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-sm rounded-lg">
+                      Apply Filter
+                    </Button>
+                  </div>
+                }
+              >
+                <button className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition-all">
+                  <ListFilter size={14} />
+                  Filter
+                  {hasDateFilter && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                  )}
+                </button>
+              </Popover>
+
+              {/* Export */}
+              <button
+                onClick={() =>
+                  handleExportCSV({
+                    data: displayData,
+                    fileName: "transactions.csv",
+                  })
+                }
+                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-500 hover:text-rose-600 hover:border-rose-300 transition-all"
+              >
+                <Download size={14} />
+                Export
+              </button>
+            </div>
           </div>
-        </Container>
+
+          {/* Table */}
+          <DashboardTable
+            columns={columns}
+            data={displayData}
+            isFetching={isLoading}
+            action={() => getOrders("")}
+            type=""
+          />
+        </div>
       </div>
-      <Container>
-        <DashboardTable
-          columns={columns}
-          data={
-            startDate && endDate
-              ? fetchedData
-              : filteredOptions.length > 0
-                ? filteredOptions
-                : tableData
-          }
-          isFetching={isLoading}
-          action={() => getOrders("")}
-          type=""
-        />
-      </Container>
 
       <AddInvoices open={open} setShowDrawer={setOpen} />
     </div>

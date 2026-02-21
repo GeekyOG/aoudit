@@ -132,9 +132,7 @@ function MobileNav() {
             <div className="h-8 w-8 rounded-lg bg-indigo-500 flex items-center justify-center">
               <Store size={15} className="text-white" />
             </div>
-            <span className="text-white font-semibold text-sm">
-              StoreManager
-            </span>
+            <span className="text-white font-semibold text-sm">Aoudit</span>
           </div>
           <button
             onClick={() => setOpen(false)}
