@@ -71,7 +71,7 @@ const TableActionButtons: FunctionComponent<ITableActionButtonsProps> = ({
   }, []);
 
   return (
-    <div className="relative  z-[100]">
+    <div className="relative z-[100]">
       <div
         className="bg-neutral-450 cursor-pointer p-[10px] rounded max-w-[40px]"
         onMouseEnter={handleMouseEnter}
@@ -83,7 +83,7 @@ const TableActionButtons: FunctionComponent<ITableActionButtonsProps> = ({
       {(showActions || isRowHovered) && (
         <div
           className={clsx(
-            "absolute bg-[#fff] w-[full] h-[40px] left-0 -top-[3px]  flex border-[1px] justify-evenly items-center rounded-[4px] overflow-hidden"
+            "absolute bg-[#fff] w-[full] h-[40px] -left-[80px] -top-[3px]  flex border-[1px] justify-evenly items-center rounded-[4px] overflow-hidden",
           )}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}

@@ -26,10 +26,14 @@ export const columns: ColumnsType = [
     render: (price) => <p>{formatAmount(price)}</p>,
   },
   {
-    title: "Sales Amount",
-    dataIndex: "sales_price",
-    key: "sales_price",
-    render: (price) => <p>{formatAmount(price)}</p>,
+    title: "Total",
+    dataIndex: "total",
+    key: "total",
+    render: (_, row) => {
+      return (
+        <p>{formatAmount(row?.quantity * Number(row?.purchase_amount))}</p>
+      );
+    },
   },
   {
     title: "Qty",

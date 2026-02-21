@@ -38,7 +38,7 @@ export const columns: ColumnsType = [
     title: "Sales Amount",
     dataIndex: "amount",
     key: "",
-    render: (_, record) => <p>{formatAmount(record.amount)}</p>,
+    render: (_, record) => <p>{formatAmount(record.amount_paid)}</p>,
   },
 
   {
@@ -46,7 +46,7 @@ export const columns: ColumnsType = [
     dataIndex: "amount",
     key: "",
     render: (_, record) => (
-      <p>{formatAmount(record.amount - record.Product.purchase_amount)}</p>
+      <p>{formatAmount(record.amount_paid - record.Product.purchase_amount)}</p>
     ),
   },
   {

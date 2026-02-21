@@ -1,23 +1,23 @@
-/* eslint-disable @next/next/no-img-element */
-
-import clsx from "clsx";
+import React, { useState } from "react";
+import { useLocation, Link } from "react-router-dom";
 import {
   ArrowLeftRight,
   LayoutGrid,
   Logs,
-  MenuIcon,
+  Menu,
   Receipt,
   ReceiptText,
   Store,
   UserCheck,
   Users,
+  X,
+  PackageOpen,
+  PackageCheck,
+  LogOut,
 } from "lucide-react";
+import { cn } from "../utils/cn";
+import { logout } from "../utils/logout";
 
-import React, { useEffect, useState } from "react";
-import { CiMenuFries } from "react-icons/ci";
-import { IoMdClose } from "react-icons/io";
-import { IoArrowBackSharp } from "react-icons/io5";
-import { Link, useLocation, useNavigate } from "react-router-dom";
 const mainMenuOptions = [
   {
     text: "Dashboard",
@@ -43,7 +43,6 @@ const mainMenuOptions = [
     icon: <ReceiptText size={16} />,
     slug: "read_order",
   },
-
   {
     text: "Inventory",
     url: "/dashboard/inventory",
@@ -51,9 +50,15 @@ const mainMenuOptions = [
     slug: "read_product",
   },
   {
-    text: "Order List",
-    url: "/dashboard/orderlist",
-    icon: <Store size={16} />,
+    text: "Opening Stock",
+    url: "/dashboard/opening-stock",
+    icon: <PackageOpen size={16} />,
+    slug: "read_product",
+  },
+  {
+    text: "Closing Stock",
+    url: "/dashboard/closing-stock",
+    icon: <PackageCheck size={16} />,
     slug: "read_product",
   },
   {
@@ -69,13 +74,13 @@ const mainMenuOptions = [
     slug: "view_reports",
   },
   {
-    text: "Manage users",
+    text: "Manage Users",
     url: "/dashboard/users",
     icon: <Users size={16} />,
     slug: "create_user",
   },
   {
-    test: "Audit log",
+    text: "Audit Logs",
     url: "/dashboard/auditlog",
     icon: <Logs size={16} />,
     slug: "view_reports",
@@ -84,81 +89,103 @@ const mainMenuOptions = [
 
 const storedPermissions = localStorage.getItem("permissions");
 const permissions = storedPermissions ? JSON.parse(storedPermissions) : null;
-const permittedOverviewNavs = mainMenuOptions.filter((item) =>
-  permissions?.some((permission) => permission.name === item.slug)
+const permittedNavs = mainMenuOptions.filter((item) =>
+  permissions?.some((p: { name: string }) => p.name === item.slug),
 );
 
-function MobileNav({ activeNav }: { activeNav?: string }) {
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-
-  const handleClose = () => {
-    setShowMobileMenu(!showMobileMenu);
-  };
-
-  const navigate = useNavigate();
+function MobileNav() {
+  const [open, setOpen] = useState(false);
   const location = useLocation();
 
   return (
-    <div className="p-[20px] lg:hidden">
-      <div className="flex justify-between items-center w-[100%]">
-        <MenuIcon onClick={() => setShowMobileMenu(!showMobileMenu)} />
+    <div className="lg:hidden">
+      {/* Trigger */}
+      <button
+        onClick={() => setOpen(true)}
+        className="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+        aria-label="Open menu"
+      >
+        <Menu size={20} />
+      </button>
 
-        <div
-          className={clsx(
-            "fixed right-0 left-0 top-0 bottom-0 bg-[#FFFFFF4E]",
-            showMobileMenu ? "" : ""
-          )}
-          style={{
-            zIndex: 100,
-            position: "fixed",
-            right: 0,
-            left: 0,
-            bottom: 0,
-            top: 0,
-            transform: `translateX(${showMobileMenu ? "0" : "-130vw"})`,
-            transition: "all 0.5s ease-in-out ",
-          }}
-        >
-          <div
-            className={clsx(
-              "z-40 flex flex-col bg-[#282830] w-[60%] border-r-[2px] border-secondary"
-            )}
-            style={{
-              zIndex: 100,
-              position: "fixed",
-              right: 0,
-              left: 0,
-              bottom: 0,
-              top: 0,
-              transform: `translateX(${showMobileMenu ? "0" : "-130vh"})`,
-              transition: "all 0.5s ease-in-out ",
-              animationDelay: "2s",
-            }}
-          >
-            <div className="flex justify-between px-[20px] py-[20px]">
-              <div onClick={handleClose}>
-                <IoArrowBackSharp className="text-[30px] text-[#fff]" />
-              </div>
+      {/* Backdrop */}
+      <div
+        onClick={() => setOpen(false)}
+        className={cn(
+          "fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] transition-opacity duration-300",
+          open
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none",
+        )}
+      />
+
+      {/* Drawer */}
+      <div
+        className={cn(
+          "fixed top-0 left-0 bottom-0 w-[280px] bg-[#1e1e27] z-[100] flex flex-col transition-transform duration-300 ease-in-out shadow-2xl",
+          open ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        {/* Drawer header */}
+        <div className="flex items-center justify-between px-5 py-5 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+              <Store size={15} className="text-white" />
             </div>
-            <div className="flex-col  items-start mt-[32px]">
-              <div>
-                {permittedOverviewNavs.map((option, index) => (
-                  <Link
-                    to={option.url}
-                    key={index}
-                    onClick={handleClose}
-                    className={clsx(
-                      "text-[#fff] font-[600] block py-[16px] px-[28px]",
-                      option.url == location.pathname &&
-                        "text-secondary_dark bg-secondary border-r-[8px] border-primary_dark"
-                    )}
-                  >
-                    {option.text}
-                  </Link>
-                ))}
-              </div>
-            </div>
+            <span className="text-white font-semibold text-sm">
+              StoreManager
+            </span>
           </div>
+          <button
+            onClick={() => setOpen(false)}
+            className="h-8 w-8 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Nav links */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3">
+          <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/25 px-3 mb-2">
+            Main Menu
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {permittedNavs.map((option, index) => {
+              const isActive = option.url === location.pathname;
+              return (
+                <Link
+                  to={option.url}
+                  key={index}
+                  onClick={() => setOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                    isActive
+                      ? "bg-indigo-600 text-white"
+                      : "text-white/50 hover:text-white hover:bg-white/[0.06]",
+                  )}
+                >
+                  <span className={isActive ? "text-white" : "text-white/40"}>
+                    {option.icon}
+                  </span>
+                  {option.text}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Logout */}
+        <div className="px-4 py-4 border-t border-white/[0.06]">
+          <button
+            onClick={() => logout()}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/[0.06] transition-all group"
+          >
+            <LogOut
+              size={15}
+              className="group-hover:text-rose-400 transition-colors"
+            />
+            <span className="text-[12px] font-medium">Logout</span>
+          </button>
         </div>
       </div>
     </div>

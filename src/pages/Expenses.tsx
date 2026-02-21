@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import DashboardTable from "../components/dashboard/DashboardTable";
-import Container from "../ui/Container";
 import Button from "../ui/Button";
-import { ListFilter, Search } from "lucide-react";
-import { useLazyGetAdminUserQuery } from "../api/adminUsers";
+import { ListFilter, Plus, Receipt, Search } from "lucide-react";
 import { columns } from "../modules/expenses/columns";
 import { DatePicker, Popover } from "antd";
 import AddExpense from "../modules/expenses/AddExpense";
@@ -12,123 +10,145 @@ import moment from "moment";
 
 function Expenses() {
   const [open, setOpen] = useState(false);
-
-  const [getExpenses, { data: expenses, isLoading, isError, isSuccess }] =
-    useLazyGetExpenseQuery();
-  const [fetchedData, setFetchedData] = useState<any[]>([]);
-
-  useEffect(() => {
-    getExpenses("");
-    if (isSuccess) {
-      setFetchedData(expenses);
-    }
-  }, [getExpenses]);
-
-  const showDrawer = () => {
-    setOpen(!open);
-  };
-
   const [searchTerm, setSearchTerm] = useState("");
-
-  const filteredOptions = useMemo(() => {
-    return expenses?.filter((item) =>
-      item?.spentOn?.toLowerCase().includes(searchTerm?.toLowerCase())
-    );
-  }, [expenses, searchTerm]);
-
+  const [fetchedData, setFetchedData] = useState<any[]>([]);
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
-  const onChange = (date, dateString, type) => {
-    if (type === "start") {
-      setStartDate(date ? date.toDate() : null);
-    } else {
-      setEndDate(date ? date.toDate() : null);
-    }
-  };
+  const [getExpenses, { data: expenses, isLoading }] = useLazyGetExpenseQuery();
 
   useEffect(() => {
-    let filteredData = expenses;
+    getExpenses("");
+  }, [getExpenses]);
 
-    // Filter by date
+  useEffect(() => {
+    let filtered = expenses;
     if (startDate && endDate) {
-      filteredData = filteredData?.filter((item) => {
-        const date = moment(item.date);
-
-        return date.isBetween(startDate, endDate, undefined, "[]");
-      });
+      filtered = filtered?.filter((item: any) =>
+        moment(item.date).isBetween(startDate, endDate, undefined, "[]"),
+      );
     }
-
-    setFetchedData(filteredData);
+    setFetchedData(filtered ?? []);
   }, [startDate, endDate, expenses]);
 
+  const onChange = (date: any, _: any, type: string) => {
+    if (type === "start") setStartDate(date ? date.toDate() : null);
+    else setEndDate(date ? date.toDate() : null);
+  };
+
+  const filteredOptions = useMemo(
+    () =>
+      fetchedData?.filter((item: any) =>
+        item?.spentOn?.toLowerCase().includes(searchTerm?.toLowerCase()),
+      ),
+    [fetchedData, searchTerm],
+  );
+
+  const displayData = filteredOptions || fetchedData || [];
+  const hasDateFilter = !!(startDate || endDate);
+
   return (
-    <div>
-      <div>
-        <Container className="flex items-center justify-between">
-          <div className="flex">
-            <div className="border-[1px] px-[15px] py-[8px]">
-              <p>All Expenses</p>
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-rose-50 flex items-center justify-center">
+              <Receipt size={17} className="text-rose-600" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">Expenses</h1>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {displayData.length} record{displayData.length !== 1 ? "s" : ""}
+              </p>
             </div>
           </div>
 
-          <div className="mb-[3px] flex items-center gap-[8px]">
-            <div className="flex cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
-              <Search size={16} className="text-neutral-300" />
-              <input
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className=" py-[2px] text-[0.865rem]"
-                placeholder="Search by description..."
-              />
+          <Button
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-2 text-sm rounded-xl h-9 px-4 bg-indigo-600 hover:bg-indigo-700"
+          >
+            <Plus size={15} />
+            Add Expense
+          </Button>
+        </div>
+
+        {/* Table Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* Toolbar */}
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1.5 rounded-lg bg-rose-50 text-rose-700 text-sm font-medium">
+                All Expenses
+              </span>
+              {!isLoading && (
+                <span className="text-xs text-gray-400 font-medium">
+                  {displayData.length} result
+                  {displayData.length !== 1 ? "s" : ""}
+                </span>
+              )}
             </div>
 
-            <Popover
-              content={
-                <div className="flex flex-col gap-3 px-[4px] py-[16px]">
-                  <DatePicker
-                    onChange={(date, dateString) =>
-                      onChange(date, dateString, "start")
-                    }
-                    placeholder="Start Date"
-                  />
-                  <DatePicker
-                    onChange={(date, dateString) =>
-                      onChange(date, dateString, "end")
-                    }
-                    placeholder="End Date"
-                  />
-
-                  <Button className="items-center gap-3 bg-[#093aa4] text-[0.865rem]">
-                    Apply
-                  </Button>
-                </div>
-              }
-              title=""
-              placement="bottomLeft"
-              showArrow={false}
-            >
-              <div className="flex cursor-pointer items-center gap-[3px] rounded-md px-[8px] py-[8px] text-neutral-300 hover:text-[#093aa4]">
-                <ListFilter size={16} className="" />
-                <p className="text-[0.865rem]">Filter</p>
+            <div className="flex items-center gap-2">
+              {/* Search */}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 hover:border-indigo-300 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-50 transition-all">
+                <Search size={14} className="text-gray-400 shrink-0" />
+                <input
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-48"
+                  placeholder="Search by description..."
+                />
               </div>
-            </Popover>
 
-            <Button onClick={showDrawer} className="flex h-[36px] items-center">
-              Add Expense
-            </Button>
+              {/* Date Filter */}
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                showArrow={false}
+                content={
+                  <div className="flex flex-col gap-3 p-3 w-[220px]">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Filter by Date
+                    </p>
+                    <DatePicker
+                      onChange={(date, ds) => onChange(date, ds, "start")}
+                      placeholder="Start Date"
+                      className="rounded-lg"
+                    />
+                    <DatePicker
+                      onChange={(date, ds) => onChange(date, ds, "end")}
+                      placeholder="End Date"
+                      className="rounded-lg"
+                    />
+                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-sm rounded-lg">
+                      Apply Filter
+                    </Button>
+                  </div>
+                }
+              >
+                <button className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition-all">
+                  <ListFilter size={14} />
+                  Filter
+                  {hasDateFilter && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                  )}
+                </button>
+              </Popover>
+            </div>
           </div>
-        </Container>
+
+          {/* Table */}
+          <DashboardTable
+            columns={columns}
+            data={displayData}
+            isFetching={isLoading}
+            action={() => {}}
+            type="expenses"
+          />
+        </div>
       </div>
-      <Container>
-        <DashboardTable
-          columns={columns}
-          data={filteredOptions || fetchedData || []}
-          isFetching={isLoading}
-          action={() => {}}
-          type={"expenses"}
-        />
-        <AddExpense open={open} setShowDrawer={setOpen} />
-      </Container>
+
+      <AddExpense open={open} setShowDrawer={setOpen} />
     </div>
   );
 }

@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.3.1",
+    "@react-pdf/renderer": "^4.3.2",
     "@reduxjs/toolkit": "^2.2.7",
     "antd": "^5.20.0",
     "bcryptjs": "^2.4.3",
@@ -41,6 +42,7 @@
     "react-to-print": "^3.2.0",
     "react-toastify": "^10.0.5",
     "tailwind-merge": "^2.5.2",
+    "to-words": "^4.9.0",
     "uuid": "^10.0.0",
     "yup": "^1.4.0"
   },

@@ -1,11 +1,22 @@
-import { Search } from "lucide-react";
+import {
+  Search,
+  X,
+  Package,
+  User,
+  Building2,
+  Phone,
+  Mail,
+  Tag,
+  ShoppingCart,
+  HandCoins,
+  Eye,
+} from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   useLazyGetOrdersQuery,
   useLazySearchBySerialNumberQuery,
 } from "../../api/ordersApi";
 import DataLoading from "../../ui/DataLoading";
-import ProductDetails from "../../ui/dashboard/ProductDetails";
 import { format } from "date-fns";
 import { cn } from "../../utils/cn";
 import { useLazyGetProductsQuery } from "../../api/productApi";
@@ -16,440 +27,436 @@ import InvoiceModal from "../../modules/invoices/InvoiceModal";
 import { useLazyGetAllSalesQuery } from "../../api/metrics";
 import BorrowInvoiceModal from "../../modules/invoices/BorrowInvoiceModal";
 
+const STATUS_STYLES: Record<string, { label: string; className: string }> = {
+  completed: {
+    label: "Item Sold",
+    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  },
+  pending: {
+    label: "Pending Payment",
+    className: "bg-amber-50 text-amber-700 border-amber-200",
+  },
+  borrowed: {
+    label: "Item Borrowed",
+    className: "bg-blue-50 text-blue-700 border-blue-200",
+  },
+  returned: {
+    label: "Item Returned",
+    className: "bg-purple-50 text-purple-700 border-purple-200",
+  },
+  in_store: {
+    label: "In Store",
+    className: "bg-indigo-50 text-indigo-700 border-indigo-200",
+  },
+};
+
+const getStatusStyle = (status?: string) =>
+  STATUS_STYLES[status ?? "in_store"] ?? STATUS_STYLES["in_store"];
+
+const InfoRow = ({ label, value }: { label: string; value: string }) => (
+  <div className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0">
+    <span className="text-xs font-medium text-gray-400 w-32 shrink-0 pt-0.5">
+      {label}
+    </span>
+    <span className="text-sm text-gray-800 font-medium">{value}</span>
+  </div>
+);
+
+const SectionCard = ({
+  title,
+  icon,
+  children,
+  action,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}) => (
+  <div className="rounded-xl border border-gray-100 overflow-hidden">
+    <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-100">
+      <div className="flex items-center gap-2">
+        <span className="text-gray-400">{icon}</span>
+        <span className="text-sm font-semibold text-gray-700">{title}</span>
+      </div>
+      {action}
+    </div>
+    <div className="px-4 py-1">{children}</div>
+  </div>
+);
+
 function SearchModal() {
   const [searchBySerialNumber, { data, isFetching }] =
     useLazySearchBySerialNumberQuery();
   const [searchValue, setSearchValue] = useState("");
   const [debouncedValue, setDebouncedValue] = useState("");
-
-  // Debounce logic: delay updating debouncedValue
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(searchValue);
-    }, 300); // debounce delay in ms
-
-    return () => {
-      clearTimeout(handler); // clear timeout on cleanup
-    };
-  }, [searchValue]);
   const [showSearch, setShowSearch] = useState(false);
   const [open, setOpen] = useState(false);
   const [openBorrowed, setOpenBorrowed] = useState(false);
+  const [showSuggestion, setShowSuggestion] = useState(false);
+  const [productDialog, setProductDialog] = useState(false);
+  const [id, setId] = useState("");
 
-  const [getOrders, { data: ordersData, isError, isSuccess }] =
-    useLazyGetAllSalesQuery();
+  const navigate = useNavigate();
+  const optionsRef = useRef<HTMLDivElement>(null);
 
-  const [getProduct, { isFetching: productsLoading, data: productsData }] =
-    useLazyGetProductsQuery();
+  const [getOrders, { data: ordersData }] = useLazyGetAllSalesQuery();
+  const [getProduct, { data: productsData }] = useLazyGetProductsQuery();
 
   useEffect(() => {
     getProduct("");
   }, []);
-
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(searchValue), 300);
+    return () => clearTimeout(handler);
+  }, [searchValue]);
   useEffect(() => {
     getOrders({ search: debouncedValue });
   }, [debouncedValue]);
-
-  const optionsRef = useRef<HTMLDivElement>(null);
-
-  const [showSuggestion, setShowSuggestion] = useState(false);
-
-  const handleClickOutside = (event: MouseEvent) => {
-    if (
-      optionsRef.current &&
-      !optionsRef.current.contains(event.target as Node)
-    ) {
-      setShowSearch(false);
-      setShowSuggestion(false);
-    }
-  };
-
   useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+    if (data?.product) setId(data.product.id);
+  }, [data]);
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        optionsRef.current &&
+        !optionsRef.current.contains(e.target as Node)
+      ) {
+        setShowSuggestion(false);
+      }
     };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const salesResult = ordersData?.map((order) => ({
+  const salesResult = ordersData?.map((order: any) => ({
     serial_number: order.serial_number,
     productId: order.productId,
   }));
 
-  const result = productsData?.flatMap((product) =>
-    JSON.parse(product.serial_numbers).map((serial_number) => ({
+  const result = productsData?.flatMap((product: any) =>
+    JSON.parse(product.serial_numbers).map((serial_number: string) => ({
       serial_number,
       productId: product.id,
-    }))
-  );
-
-  const handleSearch = () => {
-    if (searchValue !== "") {
-      setShowSearch(true);
-      searchBySerialNumber(searchValue.trim());
-    }
-  };
-
-  const isSold = JSON.parse(data?.product?.serial_numbers ?? "[]").includes(
-    searchValue
+    })),
   );
 
   const filteredOptions = useMemo(() => {
     if (result && salesResult) {
-      return [...result, ...salesResult]?.filter((item) =>
-        item.serial_number.toLowerCase().includes(searchValue.toLowerCase())
+      return [...result, ...salesResult]?.filter((item: any) =>
+        item.serial_number.toLowerCase().includes(searchValue.toLowerCase()),
       );
     }
-  }, [result, searchValue]);
+  }, [result, salesResult, searchValue]);
 
-  const [productDialog, setProductDialog] = useState(false);
+  const isSold = JSON.parse(data?.product?.serial_numbers ?? "[]").includes(
+    searchValue,
+  );
 
-  const navigate = useNavigate();
-
-  const [id, setId] = useState("");
-
-  useEffect(() => {
-    if (data?.product) {
-      setId(data.product.id);
+  const handleSearch = () => {
+    if (searchValue.trim()) {
+      setShowSearch(true);
+      setShowSuggestion(false);
+      searchBySerialNumber(searchValue.trim());
     }
-  }, [data]);
+  };
+
+  const productPayload = {
+    sn: searchValue,
+    description: data?.saleItem
+      ? data.saleItem.description
+      : data?.product?.description,
+    size: data?.saleItem ? data.saleItem.size : data?.product?.size,
+    id: data?.saleItem ? data.saleItem.productId : data?.product?.id,
+  };
+
+  // Determine the status to display
+  const saleStatus = data?.saleItem?.Sale?.status;
+  const isInStore = !!data?.product;
+  const statusKey = isInStore ? "in_store" : saleStatus;
+  const statusStyle = getStatusStyle(statusKey);
 
   return (
-    <div>
-      <div className="mb-[16px] flex">
-        <div className="relative">
-          <div className="flex">
-            <input
-              value={searchValue}
-              className="border-[1px] rounded-[4px] py-[8px] px-[8px]"
-              placeholder="Search by serial number"
-              onChange={(e) => {
-                setShowSuggestion(true);
-                setSearchValue(e.target.value);
-              }}
-            />
-            <button className="bg-[#000] px-[12px]" onClick={handleSearch}>
-              <Search className="text-neutral-50" />
-            </button>
-          </div>
+    <div className="mb-5">
+      {/* Search Bar */}
+      <div className="relative" ref={optionsRef}>
+        <div className="flex items-center gap-0 rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-50 transition-all w-full max-w-md">
+          <Search size={16} className="text-gray-400 ml-3 shrink-0" />
+          <input
+            value={searchValue}
+            className="flex-1 py-2.5 px-3 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
+            placeholder="Search by serial number..."
+            onChange={(e) => {
+              setShowSuggestion(true);
+              setSearchValue(e.target.value);
+            }}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          />
+          <button
+            onClick={handleSearch}
+            className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium transition-colors"
+          >
+            Search
+          </button>
+        </div>
 
-          {filteredOptions && showSuggestion && (
-            <div
-              className="bg-[#fff] shadow-lg p-[14px] absolute w-[100%] z-[10]"
-              ref={optionsRef}
-            >
-              {filteredOptions?.map((value, index) => (
-                <div
-                  className="border-b-[1px] py-[8px] cursor-pointer"
+        {/* Suggestions Dropdown */}
+        {filteredOptions &&
+          showSuggestion &&
+          filteredOptions.length > 0 &&
+          searchValue && (
+            <div className="absolute top-full mt-1.5 left-0 w-full max-w-md bg-white rounded-xl border border-gray-100 shadow-lg z-10 overflow-hidden">
+              {filteredOptions.slice(0, 8).map((value: any, index: number) => (
+                <button
                   key={index}
-                  onClick={() => setSearchValue(value.serial_number)}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-indigo-50 transition-colors text-left border-b border-gray-50 last:border-0"
+                  onClick={() => {
+                    setSearchValue(value.serial_number);
+                    setShowSuggestion(false);
+                  }}
                 >
-                  <p>{value.serial_number}</p>
-                </div>
+                  <Tag size={13} className="text-gray-400 shrink-0" />
+                  <span className="text-sm text-gray-700">
+                    {value.serial_number}
+                  </span>
+                </button>
               ))}
             </div>
           )}
-        </div>
       </div>
+
+      {/* Results Modal */}
       {showSearch && (
-        <div
-          ref={optionsRef}
-          className="fixed z-[80] top-0 bottom-0 overflow-y-scroll right-0 left-0 bg-[#0000005f]"
-        >
-          <div className="bg-[#fff] rounded-[8px] max-w-[800px] mx-auto mt-[50px] p-[32px] min-h-[400px]">
-            <button
-              className="bg-[#000] text-[#fff] px-[16px] "
-              onClick={() => setShowSearch(false)}
-            >
-              close
-            </button>
-            {isFetching && (
-              <div className="h-[400px] flex justify-center items-center">
-                <DataLoading />
+        <div className="fixed z-[80] inset-0 bg-black/40 backdrop-blur-sm flex items-start justify-center pt-16 px-4 pb-8 overflow-y-auto">
+          <div
+            className="bg-white rounded-2xl w-full max-w-[680px] shadow-2xl overflow-hidden"
+            style={{ animation: "slideUp 0.25s ease-out" }}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-indigo-50 flex items-center justify-center">
+                  <Search size={15} className="text-indigo-600" />
+                </div>
+                <div>
+                  <h2 className="text-[15px] font-semibold text-gray-900">
+                    Search Results
+                  </h2>
+                  <p className="text-xs text-gray-400">
+                    Serial:{" "}
+                    <span className="font-mono text-gray-600">
+                      {searchValue}
+                    </span>
+                  </p>
+                </div>
               </div>
-            )}
-            {!isFetching && data && (
-              <div>
-                {data?.product && (
-                  <div className="mt-[20px]">
-                    <div className="flex gap-4 items-end">
-                      <div>
-                        <p className="text-[1.25rem] font-[600]">
-                          Item Details
-                        </p>
-                        <p className="text-[0.865rem] bg-secondary-600 p-[6px] max-w-[150px]">
-                          {data.product
-                            ? "Item in store"
-                            : (data.saleItem?.Sale.status == "borrowed" &&
-                                "Item borrowed") ||
-                              (data.saleItem?.Sale.status == "completed" &&
-                                "Item Sold") ||
-                              (data.saleItem?.Sale.status == "pending" &&
-                                "Item pending payment")}
-                        </p>
-                      </div>
+              <button
+                onClick={() => setShowSearch(false)}
+                className="h-8 w-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-all"
+              >
+                <X size={15} />
+              </button>
+            </div>
 
+            <div className="p-6">
+              {isFetching && (
+                <div className="h-48 flex justify-center items-center">
+                  <DataLoading />
+                </div>
+              )}
+
+              {!isFetching && data && (
+                <div className="space-y-4">
+                  {/* Status & Actions */}
+                  <div className="flex items-center justify-between flex-wrap gap-3">
+                    <span
+                      className={cn(
+                        "text-xs font-semibold px-3 py-1.5 rounded-full border",
+                        statusStyle.className,
+                      )}
+                    >
+                      {statusStyle.label}
+                    </span>
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => {
-                          setProductDialog(true);
-                        }}
-                        className="bg-[#000] text-neutral p-[6px]"
+                        onClick={() => setProductDialog(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-all"
                       >
-                        view details
+                        <Eye size={13} /> View Details
                       </button>
-
-                      {data.product && (
+                      {(isInStore || saleStatus === "returned") && (
                         <button
-                          onClick={() => setOpen(!open)}
-                          className="bg-[#000] text-neutral p-[6px]"
+                          onClick={() => setOpen(true)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-xs font-medium text-white transition-all"
                         >
-                          Sell Item
+                          <ShoppingCart size={13} /> Sell Item
                         </button>
                       )}
-
-                      {data.product && (
+                      {isInStore && (
                         <button
-                          onClick={() => setOpenBorrowed(!openBorrowed)}
-                          className="bg-[#000] text-neutral p-[6px]"
+                          onClick={() => setOpenBorrowed(true)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-xs font-medium text-white transition-all"
                         >
-                          Borrow Item
+                          <HandCoins size={13} /> Borrow Item
                         </button>
                       )}
-                    </div>
-
-                    <div className="mt-[20px]">
-                      <div className="flex flex-col gap-2">
-                        <ProductDetails
-                          title={" Product name"}
-                          text={data.product.product_name}
-                        />
-                        <ProductDetails
-                          title={" Product Amount"}
-                          text={`${formatAmount(data.product.purchase_amount)}`}
-                        />
-                        <ProductDetails
-                          title={" Sales Amount"}
-                          text={`${formatAmount(data.product.sales_price)}`}
-                        />
-                        <ProductDetails
-                          title={" Purchase Date"}
-                          text={`${format(new Date(data.product.createdAt), "dd, MMM, yyyy")}`}
-                        />
-                      </div>
-                      <div className="flex gap-4 items-end">
-                        <p className="text-[1rem] font-[600] mt-[20px]">
-                          Vendor Details
-                        </p>
-
-                        <button
-                          onClick={() => {
-                            navigate(
-                              `vendors/${data?.product.Vendor?.id}/products`
-                            );
-                          }}
-                          className="bg-[#000] text-neutral p-[6px]"
-                        >
-                          view details
-                        </button>
-                      </div>
-
-                      <div className="mt-[14px]">
-                        <div className="flex flex-col gap-2">
-                          <ProductDetails
-                            title={" Business name"}
-                            text={data.product.Vendor.first_name}
-                          />
-                          <ProductDetails
-                            title={" Full Name"}
-                            text={`${data.product.Vendor.last_name}`}
-                          />
-                          <ProductDetails
-                            title={"Phone Number"}
-                            text={`${data.product.Vendor.phone_number}`}
-                          />
-                          <ProductDetails
-                            title={"Email Address"}
-                            text={`${data.product.Vendor.email}`}
-                          />
-                        </div>
-                      </div>
                     </div>
                   </div>
-                )}
-                {data?.saleItem && !isSold && (
-                  <div className="mt-[20px]">
-                    <div className="flex gap-4 items-end">
-                      <div>
-                        <p className="text-[1.25rem] font-[600]">
-                          Item Details
-                        </p>
-                        <p className="text-[0.865rem] bg-secondary-600 p-[6px] max-w-[150px]">
-                          {data.saleItem?.Sale.status == "borrowed" &&
-                            "Item borrowed"}
-                          {data.saleItem?.Sale.status == "completed" &&
-                            "Item Sold"}
 
-                          {data.saleItem?.Sale.status == "pending" &&
-                            "Item pending payment"}
+                  {/* Product Details */}
+                  {(data.product || data.saleItem) &&
+                    (() => {
+                      const product = data.product ?? data.saleItem?.Product;
+                      const vendor =
+                        product?.Vendor ?? data.saleItem?.Product?.Vendor;
+                      const saleAmount = data.saleItem?.amount;
+                      const amountPaid = data.saleItem?.amount_paid;
 
-                          {data.saleItem?.Sale.status != "borrowed" &&
-                            data.saleItem?.Sale.status !== "completed" &&
-                            data.saleItem?.Sale.status !== "pending" &&
-                            "Item in store"}
-                        </p>
-                      </div>
+                      return (
+                        <>
+                          <SectionCard
+                            title="Product Details"
+                            icon={<Package size={15} />}
+                          >
+                            <InfoRow
+                              label="Product Name"
+                              value={product?.product_name ?? "—"}
+                            />
+                            <InfoRow
+                              label="Purchase Amount"
+                              value={formatAmount(
+                                product?.purchase_amount ?? saleAmount,
+                              )}
+                            />
+                            <InfoRow
+                              label={
+                                data.saleItem ? "Amount Paid" : "Sales Price"
+                              }
+                              value={formatAmount(
+                                data.saleItem
+                                  ? amountPaid
+                                  : product?.sales_price,
+                              )}
+                            />
+                            {data.product && (
+                              <InfoRow
+                                label="Purchase Date"
+                                value={format(
+                                  new Date(data.product.createdAt),
+                                  "dd MMM yyyy",
+                                )}
+                              />
+                            )}
+                          </SectionCard>
 
-                      <button
-                        onClick={() => {
-                          setProductDialog(true);
-                        }}
-                        className="bg-[#000] text-neutral p-[6px]"
-                      >
-                        view details
-                      </button>
+                          {vendor && (
+                            <SectionCard
+                              title="Vendor Details"
+                              icon={<Building2 size={15} />}
+                              action={
+                                <button
+                                  onClick={() =>
+                                    navigate(`vendors/${vendor.id}/products`)
+                                  }
+                                  className="text-xs text-indigo-600 hover:text-indigo-700 font-medium"
+                                >
+                                  View vendor →
+                                </button>
+                              }
+                            >
+                              <InfoRow
+                                label="Business Name"
+                                value={vendor.first_name ?? "—"}
+                              />
+                              <InfoRow
+                                label="Full Name"
+                                value={vendor.last_name ?? "—"}
+                              />
+                              <InfoRow
+                                label="Phone"
+                                value={vendor.phone_number ?? "—"}
+                              />
+                              <InfoRow
+                                label="Email"
+                                value={vendor.email ?? "—"}
+                              />
+                            </SectionCard>
+                          )}
 
-                      {data.saleItem?.Sale.status == "returned" && (
-                        <button
-                          onClick={() => setOpen(!open)}
-                          className="bg-[#000] text-neutral p-[6px]"
-                        >
-                          Sell Item
-                        </button>
-                      )}
-                    </div>
+                          {data.saleItem?.Sale?.Customer && !isSold && (
+                            <SectionCard
+                              title="Customer Details"
+                              icon={<User size={15} />}
+                            >
+                              <InfoRow
+                                label="First Name"
+                                value={
+                                  data.saleItem.Sale.Customer.first_name ?? "—"
+                                }
+                              />
+                              <InfoRow
+                                label="Last Name"
+                                value={
+                                  data.saleItem.Sale.Customer.last_name ?? "—"
+                                }
+                              />
+                              <InfoRow
+                                label="Phone"
+                                value={
+                                  data.saleItem.Sale.Customer.phone_number ??
+                                  "—"
+                                }
+                              />
+                              <InfoRow
+                                label="Email"
+                                value={data.saleItem.Sale.Customer.email ?? "—"}
+                              />
+                            </SectionCard>
+                          )}
+                        </>
+                      );
+                    })()}
+                </div>
+              )}
 
-                    {data.saleItem?.Sale.status !== "returned" && (
-                      <p
-                        className={cn(
-                          "text-[0.865rem]  p-[6px] max-w-[130px] text-[#000] mt-[12px]",
-                          data.saleItem?.Sale.status == "completed"
-                            ? "bg-green-300"
-                            : "bg-secondary-550"
-                        )}
-                      >
-                        Status: {data.saleItem?.Sale.status}
-                      </p>
-                    )}
-
-                    <div className="mt-[20px]">
-                      <div className="flex flex-col gap-2">
-                        <ProductDetails
-                          title={" Product name"}
-                          text={data.saleItem.Product.product_name}
-                        />
-                        <ProductDetails
-                          title={" Product Amount"}
-                          text={`${formatAmount(data.saleItem.amount)}`}
-                        />
-                        <ProductDetails
-                          title={" Sales Amount"}
-                          text={`${formatAmount(data.saleItem.amount_paid)}`}
-                        />
-                      </div>
-
-                      <p className="text-[1rem] font-[600] mt-[20px]">
-                        Vendor Details
-                      </p>
-
-                      <div className="mt-[14px]">
-                        <div className="flex flex-col gap-2">
-                          <ProductDetails
-                            title={" Business name"}
-                            text={data.saleItem.Product.Vendor.first_name}
-                          />
-                          <ProductDetails
-                            title={" Full Name"}
-                            text={`${data.saleItem.Product.Vendor.last_name}`}
-                          />
-                          <ProductDetails
-                            title={"Phone Number"}
-                            text={`${data.saleItem.Product.Vendor.phone_number}`}
-                          />
-                          <ProductDetails
-                            title={"Email Address"}
-                            text={`${data.saleItem.Product.Vendor.email}`}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex gap-4 items-end">
-                        <p className="text-[1rem] font-[600] mt-[20px]">
-                          Customer Details
-                        </p>
-
-                        <button
-                          // onClick={() => {
-                          //   navigate(`vendors/${data?.saleItem?.Vendor?.id}/products`);
-                          // }}
-                          className="bg-[#000] text-neutral p-[6px]"
-                        >
-                          view details
-                        </button>
-                      </div>
-
-                      <div className="mt-[14px]">
-                        <div className="flex flex-col gap-2">
-                          <ProductDetails
-                            title={" Business name"}
-                            text={data.saleItem.Sale.Customer.first_name}
-                          />
-                          <ProductDetails
-                            title={" Full Name"}
-                            text={`${data.saleItem.Sale.Customer.last_name}`}
-                          />
-                          <ProductDetails
-                            title={"Phone Number"}
-                            text={`${data.saleItem.Sale.Customer.phone_number}`}
-                          />
-                          <ProductDetails
-                            title={"Email Address"}
-                            text={`${data.saleItem.Sale.Customer.email}`}
-                          />
-                        </div>
-                      </div>
-                    </div>
+              {!isFetching && !data && (
+                <div className="text-center py-12">
+                  <div className="h-14 w-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                    <Search size={22} className="text-gray-400" />
                   </div>
-                )}
-              </div>
-            )}
+                  <p className="text-sm font-medium text-gray-500">
+                    No results found
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Try a different serial number
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {productDialog && (
         <ViewProduct
-          id={data.saleItem ? data?.saleItem?.productId : data.product.id}
+          id={data?.saleItem ? data.saleItem.productId : data?.product?.id}
           setShowAddProduct={setProductDialog}
         />
       )}
-
       {openBorrowed && (
         <BorrowInvoiceModal
           setDialogOpen={setOpenBorrowed}
-          sn={searchValue}
-          description={
-            data.saleItem
-              ? data?.saleItem?.description
-              : data.product.description
-          }
-          size={data.saleItem ? data?.saleItem?.size : data.product.size}
-          id={data.saleItem ? data?.saleItem?.productId : data.product.id}
+          {...productPayload}
         />
       )}
+      {open && <InvoiceModal setDialogOpen={setOpen} {...productPayload} />}
 
-      {open && (
-        <InvoiceModal
-          setDialogOpen={setOpen}
-          sn={searchValue}
-          description={
-            data.saleItem
-              ? data?.saleItem?.description
-              : data.product.description
-          }
-          size={data.saleItem ? data?.saleItem?.size : data.product.size}
-          id={data.saleItem ? data?.saleItem?.productId : data.product.id}
-        />
-      )}
+      <style>{`
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }

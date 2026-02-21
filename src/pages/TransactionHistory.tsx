@@ -96,7 +96,7 @@ function TransactionHistory() {
     const sortedResult: any = Object.values(ordersData ?? []).sort(
       (a: any, b: any) => {
         return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      }
+      },
     );
     let filteredData = sortedResult;
 
@@ -112,7 +112,7 @@ function TransactionHistory() {
       filteredData = Object.values(customData.totalProfit.sales ?? []).sort(
         (a: any, b: any) => {
           return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        }
+        },
       );
     }
 
@@ -127,31 +127,31 @@ function TransactionHistory() {
     tableData = Object.values(todayData.totalProfit.sales ?? []).sort(
       (a: any, b: any) => {
         return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      }
+      },
     );
   } else if (period === "week" && weekData?.totalProfit?.sales) {
     tableData = Object.values(weekData.totalProfit.sales ?? []).sort(
       (a: any, b: any) => {
         return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      }
+      },
     );
   } else if (period === "quarter" && quarterData?.totalProfit?.sales) {
     tableData = Object.values(quarterData.totalProfit.sales ?? []).sort(
       (a: any, b: any) => {
         return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      }
+      },
     );
   } else if (period === "year" && yearData?.totalProfit?.sales) {
     tableData = Object.values(yearData.totalProfit.sales ?? []).sort(
       (a: any, b: any) => {
         return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      }
+      },
     );
   } else if (period === "Previous month" && prevMonthData?.totalProfit?.sales) {
     tableData = Object.values(prevMonthData.totalProfit.sales ?? []).sort(
       (a: any, b: any) => {
         return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      }
+      },
     );
   } else {
     tableData = fetchedData || [];
@@ -162,25 +162,25 @@ function TransactionHistory() {
       return Object.values(todayData.totalProfit.sales ?? []).sort(
         (a: any, b: any) => {
           return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        }
+        },
       );
     } else if (period === "week" && weekData?.totalProfit?.sales) {
       return Object.values(weekData.totalProfit.sales ?? []).sort(
         (a: any, b: any) => {
           return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        }
+        },
       );
     } else if (period === "quarter" && quarterData?.totalProfit?.sales) {
       return Object.values(quarterData.totalProfit.sales ?? []).sort(
         (a: any, b: any) => {
           return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        }
+        },
       );
     } else if (period === "year" && yearData?.totalProfit?.sales) {
       return Object.values(yearData.totalProfit.sales ?? []).sort(
         (a: any, b: any) => {
           return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        }
+        },
       );
     } else if (
       period === "Previous month" &&
@@ -189,7 +189,7 @@ function TransactionHistory() {
       return Object.values(prevMonthData.totalProfit.sales ?? []).sort(
         (a: any, b: any) => {
           return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-        }
+        },
       );
     } else {
       return fetchedData || [];
@@ -209,7 +209,7 @@ function TransactionHistory() {
     const sortedResult: any = Object.values(baseData ?? []).sort(
       (a: any, b: any) => {
         return moment(b.Sale.date).isBefore(a.Sale.date) ? -1 : 1;
-      }
+      },
     );
 
     return sortedResult?.filter((item) => {
@@ -230,7 +230,7 @@ function TransactionHistory() {
   const dataToUse = startDate && endDate ? fetchedData : filteredOptions || [];
 
   const totalPurchaseAmount = dataToUse.reduce((sum, item) => {
-    return sum + (item.amount - (item.Product?.purchase_amount || 0));
+    return sum + (item.amount_paid - (item.Product?.purchase_amount || 0));
   }, 0);
 
   return (
@@ -251,7 +251,7 @@ function TransactionHistory() {
                   `rounded-tl-[4px] rounded-tr-[4px] border-[1px] border-b-0 px-[8px] py-[8px] `,
                   activeTab === tab
                     ? "font-[600] text-secondary-600"
-                    : "text-neutral-300"
+                    : "text-neutral-300",
                 )}
               >
                 <p className="text-[0.865rem] capitalize">{tab}</p>

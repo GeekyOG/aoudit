@@ -1,173 +1,180 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Cookies from "js-cookie";
-import { DecodedData } from "../types/DecodedDataType";
 import SidebarTab from "./SidebarTab";
 import {
   ArrowLeftRight,
   LayoutGrid,
-  LogOutIcon,
+  LogOut,
   Logs,
   Receipt,
   ReceiptText,
   Store,
   UserCheck,
   Users,
+  PackageOpen,
+  PackageCheck,
 } from "lucide-react";
-import Button from "../ui/Button";
 import { logout } from "../utils/logout";
-import test from "node:test";
-import { url } from "inspector";
 
 const mainMenuOptions = [
   {
     text: "Dashboard",
     url: "/dashboard",
-    icon: <LayoutGrid size={16} />,
+    icon: <LayoutGrid size={15} />,
     slug: "read_order",
   },
   {
     text: "Transactions",
     url: "/dashboard/transactions",
-    icon: <ArrowLeftRight size={16} />,
+    icon: <ArrowLeftRight size={15} />,
     slug: "view_reports",
   },
   {
     text: "Customers",
     url: "/dashboard/customers",
-    icon: <Users size={16} />,
+    icon: <Users size={15} />,
     slug: "read_customer",
   },
   {
     text: "Sales",
     url: "/dashboard/invoices",
-    icon: <ReceiptText size={16} />,
+    icon: <ReceiptText size={15} />,
     slug: "read_order",
   },
   {
     text: "Inventory",
     url: "/dashboard/inventory",
-    icon: <Store size={16} />,
+    icon: <Store size={15} />,
     slug: "read_product",
   },
   {
     text: "Opening Stock",
     url: "/dashboard/opening-stock",
-    icon: <Store size={16} />,
+    icon: <PackageOpen size={15} />,
     slug: "read_product",
   },
   {
     text: "Closing Stock",
     url: "/dashboard/closing-stock",
-    icon: <Store size={16} />,
+    icon: <PackageCheck size={15} />,
     slug: "read_product",
   },
   {
     text: "Vendors",
     url: "/dashboard/vendors",
-    icon: <UserCheck size={16} />,
+    icon: <UserCheck size={15} />,
     slug: "read_vendor",
   },
   {
     text: "Expenses",
     url: "/dashboard/expenses",
-    icon: <Receipt size={16} />,
+    icon: <Receipt size={15} />,
     slug: "view_reports",
   },
   {
-    text: "Manage users",
+    text: "Manage Users",
     url: "/dashboard/users",
-    icon: <Users size={16} />,
+    icon: <Users size={15} />,
     slug: "create_user",
   },
   {
     text: "Audit Logs",
     url: "/dashboard/auditlog",
-    icon: <Logs size={16} />,
+    icon: <Logs size={15} />,
     slug: "view_reports",
   },
 ];
 
 function Sidebar() {
-  const [permittedOverviewNavs, setPermittedOverviewNavs] = useState<
-    {
-      text: string;
-      url: string;
-      icon: React.JSX.Element;
-      slug: string;
-    }[]
-  >([]);
-  const [user] = useState(Cookies.get("authToken"));
-  const [decodedData, setDecodedData] = useState<DecodedData>();
-
+  const [permittedNavs, setPermittedNavs] = useState<typeof mainMenuOptions>(
+    [],
+  );
   const location = useLocation();
   const { pathname } = location;
 
-  // Retrieve permissions from local storage
   const storedPermissions = localStorage.getItem("permissions");
   const permissions = storedPermissions ? JSON.parse(storedPermissions) : null;
+  const userData = JSON.parse(localStorage.getItem("user") ?? "{}");
 
-  const userData = JSON.parse(localStorage.getItem("user") ?? "");
+  const initials =
+    `${userData.firstname?.[0] ?? ""}${userData.lastname?.[0] ?? ""}`.toUpperCase();
+  const fullName =
+    `${userData.firstname ?? ""} ${userData.lastname ?? ""}`.trim();
 
-  // Filter permitted menu items based on user's permissions
   useEffect(() => {
     if (permissions) {
       const navs = mainMenuOptions.filter((item) =>
-        permissions.some(
-          (permission: { name: string }) => permission.name === item.slug
-        )
+        permissions.some((p: { name: string }) => p.name === item.slug),
       );
-      setPermittedOverviewNavs(navs);
+      setPermittedNavs(navs);
     }
-  }, []); // Use permissions as a dependency
-
-  // Decode JWT token and set user data
-  useEffect(() => {
-    if (user) {
-    }
-  }, [user]); // User as dependency to avoid re-running on every render
+  }, []);
 
   return (
-    <div className="hidden h-[100vh] w-[250px] flex-none border-r-[1px] lg:block overflow-y-scroll bg-[#282830] no-scrollbar">
-      <div className=" fixed bottom-0 top-0 overflow-y-scroll w-[250px] bg-[#282830]">
-        <div className="border-b-[1px] px-[28px] pb-[20px] pt-[24px]"></div>
-
-        <div className="border-b-[1px] px-[20px] py-[17px]">
-          <div className="flex h-[76px] w-[100%] items-center gap-[8px] rounded-[12px] px-[12px]">
-            <div className="flex h-[44px] w-[44px] items-center justify-center rounded-[50%] bg-[#fff]">
-              <p className="text-[1.25rem] font-[700] text-[#000]">
-                {userData.firstname.slice(0, 1)} {userData.lastname.slice(0, 1)}
-              </p>
+    <div className="hidden h-screen w-[240px] flex-none lg:block bg-[#1e1e27]">
+      <div className="fixed top-0 bottom-0 w-[240px] bg-[#1e1e27] flex flex-col overflow-hidden">
+        {/* Logo / Brand area */}
+        <div className="px-5 py-5 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 rounded-lg bg-indigo-500 flex items-center justify-center shrink-0">
+              <Store size={15} className="text-white" />
             </div>
-            <div>
-              <p className="text-[0.75rem] font-[500] text-[#fff]">
-                {userData.firstname} {userData.lastname}
+            <span className="text-white font-semibold text-sm tracking-wide">
+              StoreManager
+            </span>
+          </div>
+        </div>
+
+        {/* User profile */}
+        <div className="px-4 py-4 border-b border-white/[0.06]">
+          <div className="flex items-center gap-3 px-2 py-2.5 rounded-xl bg-white/[0.05]">
+            <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center shrink-0">
+              <span className="text-[11px] font-bold text-white">
+                {initials}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <p className="text-[12px] font-semibold text-white truncate">
+                {fullName}
+              </p>
+              <p className="text-[10px] text-white/40 truncate">
+                {userData.email ?? "Admin"}
               </p>
             </div>
           </div>
         </div>
-        <div className="border-b-[1px] pb-[10px] text-neutral-100">
-          <div className="px-[28px] py-[14px]">
-            <p className="text-[0.625rem] font-[700]">MAIN MENU</p>
-          </div>
-          {permittedOverviewNavs?.map((item) => (
-            <SidebarTab
-              key={item.text}
-              item={item.text}
-              activeOption={pathname}
-              url={item.url}
-              icon={item.icon}
+
+        {/* Nav */}
+        <div className="flex-1 overflow-y-auto py-3 px-3 no-scrollbar">
+          <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-white/25 px-3 mb-2">
+            Main Menu
+          </p>
+          <nav className="flex flex-col gap-0.5">
+            {permittedNavs.map((item) => (
+              <SidebarTab
+                key={item.text}
+                item={item.text}
+                activeOption={pathname}
+                url={item.url}
+                icon={item.icon}
+              />
+            ))}
+          </nav>
+        </div>
+
+        {/* Logout */}
+        <div className="px-4 py-4 border-t border-white/[0.06]">
+          <button
+            onClick={() => logout()}
+            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/[0.06] transition-all group"
+          >
+            <LogOut
+              size={15}
+              className="group-hover:text-rose-400 transition-colors"
             />
-          ))}
-          <div className="bottom-5 ml-[24px] mt-auto text-[#fff]">
-            <Button
-              className="flex items-center gap-[10px] bg-transparent"
-              onClick={() => logout()}
-            >
-              <LogOutIcon size={16} />
-              <p className="text-[0.813rem] leading-[22.4px]">Logout</p>
-            </Button>
-          </div>
+            <span className="text-[12px] font-medium">Logout</span>
+          </button>
         </div>
       </div>
     </div>

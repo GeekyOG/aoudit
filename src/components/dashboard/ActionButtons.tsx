@@ -63,7 +63,7 @@ function ActionButtons({
     setShowDialog(true);
     setDialogTitle("Delete customer Permanently");
     setDialogContent(
-      "Deleting this customer, this customer would would not longer be displayed on your website. Please note this action cannot be undone"
+      "Deleting this customer, this customer would would not longer be displayed on your website. Please note this action cannot be undone",
     );
   };
 
@@ -86,7 +86,7 @@ function ActionButtons({
     setShowDialog(true);
     setDialogTitle("Delete Supplier Permanently");
     setDialogContent(
-      "Deleting this Supplier, this Supplier would would not longer be displayed on your website. Please note this action cannot be undone"
+      "Deleting this Supplier, this Supplier would would not longer be displayed on your website. Please note this action cannot be undone",
     );
   };
 
@@ -107,7 +107,7 @@ function ActionButtons({
     setShowDialog(true);
     setDialogTitle("Delete Category Permanently");
     setDialogContent(
-      "Deleting this Category, this Category would would not longer be displayed on your website. Please note this action cannot be undone"
+      "Deleting this Category, this Category would would not longer be displayed on your website. Please note this action cannot be undone",
     );
   };
 
@@ -128,7 +128,7 @@ function ActionButtons({
     setShowDialog(true);
     setDialogTitle("Delete SubCategory Permanently");
     setDialogContent(
-      "Deleting this SubCategory, this SubCategory would would not longer be displayed on your website. Please note this action cannot be undone"
+      "Deleting this SubCategory, this SubCategory would would not longer be displayed on your website. Please note this action cannot be undone",
     );
   };
 
@@ -149,7 +149,7 @@ function ActionButtons({
     setShowDialog(true);
     setDialogTitle("Delete Product Permanently");
     setDialogContent(
-      "Deleting this Product, this Product would would not longer be displayed on your website. Please note this action cannot be undone"
+      "Deleting this Product, this Product would would not longer be displayed on your website. Please note this action cannot be undone",
     );
   };
 
@@ -178,7 +178,7 @@ function ActionButtons({
     setShowDialog(true);
     setDialogTitle("Delete User Permanently");
     setDialogContent(
-      "Deleting this User, this User would would not longer be displayed on your website. Please note this action cannot be undone"
+      "Deleting this User, this User would would not longer be displayed on your website. Please note this action cannot be undone",
     );
   };
 
@@ -201,7 +201,7 @@ function ActionButtons({
     setShowDialog(true);
     setDialogTitle("Delete Order Permanently");
     setDialogContent(
-      "Deleting this Order, this Order would would not longer be displayed on your website. Please note this action cannot be undone"
+      "Deleting this Order, this Order would would not longer be displayed on your website. Please note this action cannot be undone",
     );
   };
 
@@ -223,7 +223,7 @@ function ActionButtons({
     setShowDialog(true);
     setDialogTitle("Delete Expense Permanently");
     setDialogContent(
-      "Deleting this Expense, this Expense would would not longer be displayed on your website. Please note this action cannot be undone"
+      "Deleting this Expense, this Expense would would not longer be displayed on your website. Please note this action cannot be undone",
     );
   };
 
@@ -236,7 +236,7 @@ function ActionButtons({
   const [showAudit, setShowAudit] = useState(false);
 
   return (
-    <div className="z-[100]">
+    <div className="z-[1000] relative">
       {type == "audit" && (
         <>
           {" "}

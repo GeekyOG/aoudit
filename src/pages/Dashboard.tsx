@@ -2,7 +2,13 @@ import React, { useState, useEffect } from "react";
 import Container from "../ui/Container";
 import DashboardBox from "../ui/dashboard/DashboardBox";
 import DashboardTable from "../components/dashboard/DashboardTable";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  Package,
+  RefreshCcw,
+  Users,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useGetMetricsQuery } from "../api/metrics";
 import { useGetOrdersQuery } from "../api/ordersApi";
@@ -21,100 +27,114 @@ function Dashboard() {
     limit: 10,
   });
   const [showAddProduct, setShowAddProduct] = useState(false);
-
   const [open, setOpen] = useState(false);
   const [openAddCustomers, setOpenAddCustomers] = useState(false);
   const { data } = useGetMetricsQuery("");
-
-  const [getProducts, { isFetching: productsLoading, data: productsData }] =
-    useLazyGetProductsQuery();
-
+  const [getProducts, { data: productsData }] = useLazyGetProductsQuery();
   const [totalItems, setTotalItems] = useState(0);
 
   useEffect(() => {
     getProducts({});
-
     if (productsData) {
       const totalSerialNumbersLength = productsData?.reduce(
         (total, product) => {
           const serialNumbersArray = JSON.parse(product.serial_numbers);
           return total + serialNumbersArray.length;
         },
-        0
+        0,
       );
-
       setTotalItems(totalSerialNumbersLength);
     }
   }, [getProducts, productsData]);
 
+  const today = new Date().toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
   return (
-    <Container>
-      <h1 className="text-[1.45rem] font-[600] text-neutral-500 mb-[24px]">
-        Dashboard Overview
-      </h1>
-      <SearchModal />
-      <div className="flex flex-col gap-[24px] md:flex-row">
-        <DashboardBox
-          title="All Customers"
-          value={data?.totalCustomers ?? 0}
-          action={() => setOpenAddCustomers(!openAddCustomers)}
-          link="/dashboard/customers"
-        />
-        <DashboardBox
-          title="Total Sales"
-          value={data?.totalSales ?? 0}
-          action={() => setOpen(!open)}
-          link="/dashboard/invoices"
-        />
-      </div>
-
-      <div className="flex flex-col gap-[24px] md:flex-row mt-[24px]">
-        <DashboardBox
-          title="Total Inventory"
-          value={totalItems}
-          action={() => setShowAddProduct(!showAddProduct)}
-          link="/dashboard/inventory"
-        />
-        <DashboardBox
-          title="Total Items Returned"
-          value={data?.returnedSalesCount ?? 0}
-          action={() => setOpen(!open)}
-          link="/dashboard/invoices"
-        />
-      </div>
-      <div className="mt-[26px]">
-        <div className="flex items-center justify-between text-[0.895rem] font-[500]">
-          <p className="text-[1.2rem] font-[500]">Recent Sales</p>
-
-          <div
-            className="flex cursor-pointer items-center"
-            onClick={() => navigate("/dashboard/invoices")}
-          >
-            <p className="font-[300] text-[0.865rem] text-[#0505ab]">
-              View all
-            </p>
-            <ArrowRight size={16} className="text-[#0505ab]" />
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Page header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-sm text-gray-400 mt-0.5">{today}</p>
           </div>
         </div>
 
-        <DashboardTable
-          columns={columns}
-          data={ordersData?.data || []}
-          isFetching={ordersLoading}
-          action={undefined}
-          type={"orders"}
-        />
+        <SearchModal />
+
+        {/* Stat cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <DashboardBox
+            title="All Customers"
+            value={data?.totalCustomers ?? 0}
+            action={() => setOpenAddCustomers(true)}
+            link="/dashboard/customers"
+            icon={<Users size={18} />}
+            color="indigo"
+          />
+          <DashboardBox
+            title="Total Sales"
+            value={data?.totalSales ?? 0}
+            action={() => setOpen(true)}
+            link="/dashboard/invoices"
+            icon={<BarChart3 size={18} />}
+            color="emerald"
+          />
+          <DashboardBox
+            title="Total Inventory"
+            value={totalItems}
+            action={() => setShowAddProduct(true)}
+            link="/dashboard/inventory"
+            icon={<Package size={18} />}
+            color="amber"
+          />
+          <DashboardBox
+            title="Items Returned"
+            value={data?.returnedSalesCount ?? 0}
+            action={() => setOpen(true)}
+            link="/dashboard/invoices"
+            icon={<RefreshCcw size={18} />}
+            color="rose"
+          />
+        </div>
+
+        {/* Recent Sales table */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h2 className="text-[15px] font-semibold text-gray-900">
+              Recent Sales
+            </h2>
+            <button
+              onClick={() => navigate("/dashboard/invoices")}
+              className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+            >
+              View all <ArrowRight size={14} />
+            </button>
+          </div>
+          <DashboardTable
+            columns={columns}
+            data={ordersData?.data || []}
+            isFetching={ordersLoading}
+            action={undefined}
+            type="orders"
+          />
+        </div>
       </div>
+
       <AddCustomer
         open={openAddCustomers}
         setShowDrawer={setOpenAddCustomers}
       />
       {open && <InvoiceModal setDialogOpen={setOpen} />}
-
       {showAddProduct && (
         <AddProductModal setShowAddProduct={setShowAddProduct} />
       )}
-    </Container>
+    </div>
   );
 }
 

@@ -1,7 +1,7 @@
 import type { FunctionComponent, ReactNode } from "react";
-import clsx from "clsx";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import React from "react";
+import { cn } from "../utils/cn";
 
 interface SidebarTabProps {
   item: string;
@@ -16,26 +16,27 @@ const SidebarTab: FunctionComponent<SidebarTabProps> = ({
   url,
   icon,
 }) => {
+  const isActive = activeOption === url;
+
   return (
-    <Link to={`${url}`}>
+    <Link to={url}>
       <div
-        className={clsx(
-          "px-[28px]",
-          activeOption == url ? "border-r-[6px] border-[#E1BAAC]" : ""
+        className={cn(
+          "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+          isActive
+            ? "bg-indigo-600 text-white"
+            : "text-white/50 hover:text-white hover:bg-white/[0.06]",
         )}
       >
-        <div
-          className={clsx(
-            "flex h-[56px] items-center gap-[10px] px-[14px]",
-            activeOption == url
-              ? "rounded-[8px] bg-[#fff] font-[500] text-[#E1BAAC]"
-              : "font-[300]"
+        <span
+          className={cn(
+            "shrink-0 transition-colors",
+            isActive ? "text-white" : "text-white/40",
           )}
         >
           {icon}
-
-          <p className={clsx("text-[0.813rem] leading-[22.4px]")}>{item}</p>
-        </div>
+        </span>
+        <span className="text-[12.5px] leading-none">{item}</span>
       </div>
     </Link>
   );

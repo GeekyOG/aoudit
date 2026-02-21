@@ -1,150 +1,167 @@
 import React, { useEffect, useMemo, useState } from "react";
-import Container from "../ui/Container";
-import { cn } from "../utils/cn";
-import { ListFilter, Search } from "lucide-react";
+import { ListFilter, Logs, Search } from "lucide-react";
 import { DatePicker, Popover } from "antd";
 import Button from "../ui/Button";
 import DashboardTable from "../components/dashboard/DashboardTable";
 import { columns } from "../modules/audit/columns";
 import { useGetAuditsQuery } from "../api/audit";
 import moment from "moment";
-const Tabs = ["Audit"];
+import { cn } from "../utils/cn";
 
-function Auodit() {
+const MODEL_TABS = ["All", "Product", "Sale"];
+
+const TAB_STYLES: Record<string, string> = {
+  All: "data-[active=true]:bg-indigo-50 data-[active=true]:text-indigo-700 data-[active=true]:border-indigo-200",
+  Product:
+    "data-[active=true]:bg-emerald-50 data-[active=true]:text-emerald-700 data-[active=true]:border-emerald-200",
+  Sale: "data-[active=true]:bg-purple-50 data-[active=true]:text-purple-700 data-[active=true]:border-purple-200",
+};
+
+function Audit() {
   const [activeTab, setTab] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [fetchedData, setFetchedData] = useState<any[]>([]);
-
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+
   const { data: ordersData, isLoading } = useGetAuditsQuery("");
 
-  const onChange = (date, dateString, type) => {
-    if (type === "start") {
-      setStartDate(date ? date.toDate() : null);
-    } else {
-      setEndDate(date ? date.toDate() : null);
-    }
+  const onChange = (date: any, _: any, type: string) => {
+    if (type === "start") setStartDate(date ? date.toDate() : null);
+    else setEndDate(date ? date.toDate() : null);
   };
 
   useEffect(() => {
-    const sortedResult: any = Object.values(ordersData ?? []).sort(
-      (a: any, b: any) => {
-        return moment(b.timestamp).isBefore(a.timestamp) ? -1 : 1;
-      }
+    const sorted: any[] = Object.values(ordersData ?? []).sort(
+      (a: any, b: any) => (moment(b.timestamp).isBefore(a.timestamp) ? -1 : 1),
     );
-    let filteredData = sortedResult;
 
-    // Filter by status
+    let filtered = sorted;
+
     if (activeTab !== "All") {
-      filteredData = filteredData?.filter((item) => {
-        return item.model === activeTab.toLowerCase();
-      });
+      filtered = filtered.filter(
+        (item) => item.model?.toLowerCase() === activeTab.toLowerCase(),
+      );
     }
 
-    // Filter by date
     if (startDate && endDate) {
-      filteredData = filteredData?.filter((item) => {
-        const date = moment(item.timestamp);
-
-        return date.isBetween(startDate, endDate, undefined, "[]");
-      });
+      filtered = filtered.filter((item) =>
+        moment(item.timestamp).isBetween(startDate, endDate, undefined, "[]"),
+      );
     }
 
-    setFetchedData(filteredData);
+    setFetchedData(filtered);
   }, [activeTab, startDate, endDate, ordersData]);
 
-  const filteredOptions = useMemo(() => {
-    return fetchedData?.filter((item) => {
-      const customerNameMatch = item?.changedBy
-        ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase());
-      const productNameMatch = item?.description
-        ?.toLowerCase()
-        .includes(searchTerm?.toLowerCase());
+  const filteredOptions = useMemo(
+    () =>
+      fetchedData?.filter(
+        (item) =>
+          item?.changedBy?.toLowerCase().includes(searchTerm?.toLowerCase()) ||
+          item?.description?.toLowerCase().includes(searchTerm?.toLowerCase()),
+      ),
+    [fetchedData, searchTerm],
+  );
 
-      // const imeiMatch = item?.serial_number
-      //   ?.toLowerCase()
-      //   .includes(searchTerm?.toLowerCase());
-      return customerNameMatch || productNameMatch;
-    });
-  }, [fetchedData, searchTerm]);
+  const displayData = filteredOptions || fetchedData || [];
+  const hasDateFilter = !!(startDate || endDate);
 
   return (
-    <div>
-      <div className="">
-        <Container className="flex items-center justify-between">
-          <div className="flex gap-[5px]">
-            {Tabs.map((tab, i) => (
+    <div className="min-h-screen bg-gray-50/50">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-5">
+        {/* Page Header */}
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-indigo-50 flex items-center justify-center">
+            <Logs size={17} className="text-indigo-600" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">Audit Logs</h1>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {displayData.length} record{displayData.length !== 1 ? "s" : ""}
+            </p>
+          </div>
+        </div>
+
+        {/* Table Card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          {/* Toolbar */}
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between gap-3 flex-wrap">
+            {/* Search */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 hover:border-indigo-300 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-50 transition-all">
+              <Search size={14} className="text-gray-400 shrink-0" />
+              <input
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-transparent text-sm text-gray-700 placeholder-gray-400 outline-none w-52"
+                placeholder="Search by name or description..."
+              />
+            </div>
+
+            {/* Date Filter */}
+            <Popover
+              trigger="click"
+              placement="bottomRight"
+              showArrow={false}
+              content={
+                <div className="flex flex-col gap-3 p-3 w-[220px]">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Filter by Date
+                  </p>
+                  <DatePicker
+                    onChange={(date, ds) => onChange(date, ds, "start")}
+                    placeholder="Start Date"
+                    className="rounded-lg"
+                  />
+                  <DatePicker
+                    onChange={(date, ds) => onChange(date, ds, "end")}
+                    placeholder="End Date"
+                    className="rounded-lg"
+                  />
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 text-sm rounded-lg">
+                    Apply Filter
+                  </Button>
+                </div>
+              }
+            >
+              <button className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-500 hover:text-indigo-600 hover:border-indigo-300 transition-all">
+                <ListFilter size={14} />
+                Filter
+                {hasDateFilter && (
+                  <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+                )}
+              </button>
+            </Popover>
+          </div>
+
+          {/* Model Tabs */}
+          <div className="px-5 py-3 border-b border-gray-100 flex gap-1 flex-wrap">
+            {MODEL_TABS.map((tab) => (
               <button
+                key={tab}
+                data-active={activeTab === tab}
                 onClick={() => setTab(tab)}
-                key={i}
                 className={cn(
-                  `rounded-tl-[4px] rounded-tr-[4px] border-[1px] border-b-0 px-[8px] py-[8px] `,
-                  activeTab === tab
-                    ? "font-[600] text-secondary-600"
-                    : "text-neutral-300"
+                  "px-3 py-1.5 rounded-lg text-sm font-medium border transition-all",
+                  "border-transparent text-gray-500 hover:bg-gray-50",
+                  TAB_STYLES[tab],
                 )}
               >
-                <p className="text-[0.865rem] ">{tab}</p>
+                {tab}
               </button>
             ))}
           </div>
 
-          <div className="mb-[3px] flex items-center gap-[8px]">
-            <div className="lg:flex hidden cursor-pointer items-center gap-[3px] border-b-[1px] px-[8px] py-[8px] ">
-              <Search size={16} className="text-neutral-300" />
-              <input
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className=" py-[2px] text-[0.865rem]"
-                placeholder="Enter name, product name or imie"
-              />
-            </div>
-
-            <Popover
-              content={
-                <div className="flex flex-col gap-3 px-[4px] py-[16px]">
-                  <DatePicker
-                    onChange={(date, dateString) =>
-                      onChange(date, dateString, "start")
-                    }
-                    placeholder="Start Date"
-                  />
-                  <DatePicker
-                    onChange={(date, dateString) =>
-                      onChange(date, dateString, "end")
-                    }
-                    placeholder="End Date"
-                  />
-
-                  <Button className="items-center gap-3 bg-[#093aa4] text-[0.865rem]">
-                    Apply
-                  </Button>
-                </div>
-              }
-              title=""
-              placement="bottomLeft"
-              showArrow={false}
-            >
-              <div className="flex cursor-pointer items-center gap-[3px] rounded-md px-[8px] py-[8px] text-neutral-300 hover:text-[#093aa4]">
-                <ListFilter size={16} className="" />
-                <p className="text-[0.865rem]">Filter</p>
-              </div>
-            </Popover>
-          </div>
-        </Container>
+          {/* Table */}
+          <DashboardTable
+            columns={columns}
+            data={displayData}
+            isFetching={isLoading}
+            action={() => {}}
+            type="audit"
+          />
+        </div>
       </div>
-      <Container>
-        <DashboardTable
-          columns={columns}
-          data={filteredOptions || fetchedData || []}
-          isFetching={isLoading}
-          action={() => {}}
-          type={"audit"}
-        />
-      </Container>
     </div>
   );
 }
 
-export default Auodit;
+export default Audit;

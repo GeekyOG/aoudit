@@ -35,3 +35,17 @@ export function formatSnakeCase(text: string) {
 
   return text;
 }
+
+export function getDecimalPart(value: number) {
+  if (!Number.isFinite(value)) return null;
+
+  const fixed = value.toFixed(2);
+  const hasDecimal = fixed.includes(".");
+
+  if (hasDecimal) {
+    const decimalPart = fixed.split(".")[1];
+    return decimalPart;
+  }
+
+  return "";
+}

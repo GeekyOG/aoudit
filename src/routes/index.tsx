@@ -28,7 +28,7 @@ const OrderList = Loadable(lazy(() => import("../pages/OrderList")));
 const Users = Loadable(lazy(() => import("../pages/Users")));
 const Expenses = Loadable(lazy(() => import("../pages/Expenses")));
 const VendorsProducts = Loadable(
-  lazy(() => import("../pages/VendorsProducts"))
+  lazy(() => import("../pages/VendorsProducts")),
 );
 const CustomerOrders = Loadable(lazy(() => import("../pages/CustomerOrders")));
 
@@ -41,7 +41,7 @@ const router = createBrowserRouter([
       </PublicRoute>
     ),
     children: [
-      { index: true, element: <Login /> },
+      { index: true, element: <Register /> },
       { path: "login", element: <Login /> },
     ],
   },
